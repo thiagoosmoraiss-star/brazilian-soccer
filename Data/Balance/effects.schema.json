@@ -1,0 +1,57 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "effects.schema.json",
+  "title": "Effect catalog (Balance)",
+  "description": "Definitions evaluated by Balance.Eval(Effect, attributes). Each effect: 1-3 weighted attributes -> piecewise linear curve -> clamped to [min, max]. Cross-file rules (every Effect enum member defined, every attribute feeding at least one effect, declared monotonicity) are enforced by BalanceValidator.",
+  "type": "object",
+  "required": ["schemaVersion", "effects"],
+  "additionalProperties": false,
+  "properties": {
+    "$schema": { "type": "string" },
+    "schemaVersion": { "type": "integer", "const": 1 },
+    "effects": {
+      "type": "array",
+      "items": { "$ref": "#/$defs/effect" }
+    }
+  },
+  "$defs": {
+    "attribute": {
+      "enum": [
+        "Speed", "Agility", "Stamina", "Strength", "Passing", "Crossing", "Dribbling", "Finishing", "LongShots",
+        "Heading", "Tackling", "Vision", "Positioning", "Composure", "GkReflexes", "GkPositioning", "GkAerial", "GkHandling"
+      ]
+    },
+    "effect": {
+      "type": "object",
+      "required": ["key", "inputs", "curve", "min", "max", "unit"],
+      "additionalProperties": false,
+      "properties": {
+        "key": { "type": "string", "description": "Name of the Effect enum member." },
+        "inputs": {
+          "type": "array",
+          "minItems": 1,
+          "maxItems": 3,
+          "items": {
+            "type": "object",
+            "required": ["attribute", "weight"],
+            "additionalProperties": false,
+            "properties": {
+              "attribute": { "$ref": "#/$defs/attribute" },
+              "weight": { "type": "number", "exclusiveMinimum": 0 }
+            }
+          }
+        },
+        "curve": {
+          "type": "array",
+          "minItems": 2,
+          "description": "Points [x, y]; x = weighted attribute value (1-99 scale), strictly increasing.",
+          "items": { "type": "array", "prefixItems": [{ "type": "number" }, { "type": "number" }], "minItems": 2, "maxItems": 2 }
+        },
+        "min": { "type": "number" },
+        "max": { "type": "number" },
+        "unit": { "type": "string", "minLength": 1 },
+        "monotonicity": { "enum": ["None", "NonDecreasing", "NonIncreasing"], "default": "None" }
+      }
+    }
+  }
+}

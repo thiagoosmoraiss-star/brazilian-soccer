@@ -1,0 +1,17 @@
+{
+    "name": "Rules",
+    "rootNamespace": "Game.Rules",
+    "references": [
+        "Core",
+        "Data"
+    ],
+    "includePlatforms": [],
+    "excludePlatforms": [],
+    "allowUnsafeCode": false,
+    "overrideReferences": false,
+    "precompiledReferences": [],
+    "autoReferenced": true,
+    "defineConstraints": [],
+    "versionDefines": [],
+    "noEngineReferences": true
+}

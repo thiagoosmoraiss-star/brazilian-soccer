@@ -1,0 +1,19 @@
+{
+    "name": "Match.AI",
+    "rootNamespace": "Game.Match.AI",
+    "references": [
+        "Core",
+        "Data",
+        "Rules",
+        "Match"
+    ],
+    "includePlatforms": [],
+    "excludePlatforms": [],
+    "allowUnsafeCode": false,
+    "overrideReferences": false,
+    "precompiledReferences": [],
+    "autoReferenced": true,
+    "defineConstraints": [],
+    "versionDefines": [],
+    "noEngineReferences": true
+}

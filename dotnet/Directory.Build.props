@@ -1,0 +1,10 @@
+<Project>
+  <!-- Mirrors Unity 6 constraints: .NET Standard 2.1 API surface, C# 9. -->
+  <PropertyGroup>
+    <LangVersion>9.0</LangVersion>
+    <Nullable>disable</Nullable>
+    <EnableDefaultCompileItems>false</EnableDefaultCompileItems>
+    <TreatWarningsAsErrors>true</TreatWarningsAsErrors>
+    <GameSources>$(MSBuildThisFileDirectory)../Unity/Assets/_Game/</GameSources>
+  </PropertyGroup>
+</Project>

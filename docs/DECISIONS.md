@@ -60,6 +60,7 @@ Formato de nova entrada: Id, título, contexto, opções, decisão (ou PENDENTE)
 | D-16 | Nome do jogo (nome de trabalho ACESSO; checar INPI e lojas) | Marca, loja | Não | Antes de C5 |
 | D-17 | Dificuldade no MVP: dificuldade da carreira (orçamento/paciência) e da partida (reação/decisão da IA, 4 níveis citados no GDD original) entram ou não | Parâmetros da diretoria e da IA | Parcial | Antes de B7 (carreira) e A9 (partida) |
 | D-18 | Criar clube próprio (nome, cores, escudo por template) no MVP ou só escolher entre clubes da D | Fluxo de nova carreira | Não para o núcleo | Antes de C3 |
+| D-20 | Catálogo de produção de `Effect` e curvas em `Data/Balance/effects.json`: (a) definir na Stage 0 todos os efeitos de `TECHNICAL_SPEC.md` §8 com curvas provisórias; (b) cada etapa adiciona os efeitos que consome, e a regra "todo atributo alimenta um Effect" passa a valer sobre o `Data/` real quando os 18 atributos estiverem cobertos. Os documentos listam os efeitos, mas não os valores das curvas. Registrada na Stage 0 (29/09/2026); a Stage 0 implementou só o mecanismo, com `Effect` vazio | Validação de dados de produção; a regra de cobertura não pode passar com catálogo parcial | Não para a Stage 0 (mecanismo e validador testados com dados de teste); sim para validar o `Data/` real | Antes da primeira etapa que consumir um `Effect` (A2 ou B2) |
 
 ## Sugestões registradas (não aprovadas)
 

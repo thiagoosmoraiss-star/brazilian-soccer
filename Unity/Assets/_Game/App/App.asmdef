@@ -1,0 +1,29 @@
+{
+    "name": "App",
+    "rootNamespace": "Game.App",
+    "references": [
+        "Core",
+        "Data",
+        "Rules",
+        "Match",
+        "Match.AI",
+        "Simulation",
+        "Career",
+        "Career.Market",
+        "Career.Economy",
+        "Save",
+        "UI",
+        "Presentation",
+        "Input",
+        "Audio"
+    ],
+    "includePlatforms": [],
+    "excludePlatforms": [],
+    "allowUnsafeCode": false,
+    "overrideReferences": false,
+    "precompiledReferences": [],
+    "autoReferenced": true,
+    "defineConstraints": [],
+    "versionDefines": [],
+    "noEngineReferences": false
+}

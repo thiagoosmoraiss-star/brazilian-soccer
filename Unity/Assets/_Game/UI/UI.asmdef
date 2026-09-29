@@ -1,0 +1,21 @@
+{
+    "name": "UI",
+    "rootNamespace": "Game.UI",
+    "references": [
+        "Core",
+        "Data",
+        "Career",
+        "Career.Market",
+        "Career.Economy",
+        "Simulation"
+    ],
+    "includePlatforms": [],
+    "excludePlatforms": [],
+    "allowUnsafeCode": false,
+    "overrideReferences": false,
+    "precompiledReferences": [],
+    "autoReferenced": true,
+    "defineConstraints": [],
+    "versionDefines": [],
+    "noEngineReferences": false
+}

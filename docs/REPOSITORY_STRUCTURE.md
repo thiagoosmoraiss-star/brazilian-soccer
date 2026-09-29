@@ -30,6 +30,13 @@ Fonte: Especificação Técnica §16 + decisões D-06, D-09 e D-19. Nomes exatos
 
 Cada pasta em `Assets/_Game/` com código tem um Assembly Definition com o mesmo nome.
 
+### Nomes definidos na Stage 0
+
+- `<ProjetoUnity>` = `Unity/` (projeto Unity 6 LTS; `ProjectSettings/ProjectVersion.txt` = 6000.3.1f1).
+- Solution .NET: `dotnet/Game.sln`, um `.csproj` por assembly pura (`dotnet/<Assembly>/<Assembly>.csproj`) + `dotnet/Tests.Unit/`.
+- Namespaces: `Game.<Assembly>` (sem o nome de trabalho, pendente D-16).
+- `Tests/Simulation/` e `Tests/Career/` são criadas nas etapas que as usam.
+
 ## Responsabilidades
 
 | Área | Zona | Responsabilidade |

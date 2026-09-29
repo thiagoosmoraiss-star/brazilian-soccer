@@ -1,0 +1,20 @@
+{
+    "name": "Career",
+    "rootNamespace": "Game.Career",
+    "references": [
+        "Core",
+        "Data",
+        "Rules",
+        "Match",
+        "Simulation"
+    ],
+    "includePlatforms": [],
+    "excludePlatforms": [],
+    "allowUnsafeCode": false,
+    "overrideReferences": false,
+    "precompiledReferences": [],
+    "autoReferenced": true,
+    "defineConstraints": [],
+    "versionDefines": [],
+    "noEngineReferences": true
+}

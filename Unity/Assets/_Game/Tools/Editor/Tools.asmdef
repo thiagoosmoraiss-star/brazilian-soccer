@@ -1,0 +1,32 @@
+{
+    "name": "Tools",
+    "rootNamespace": "Game.Tools",
+    "references": [
+        "Core",
+        "Data",
+        "Rules",
+        "Match",
+        "Match.AI",
+        "Simulation",
+        "Career",
+        "Career.Market",
+        "Career.Economy",
+        "Save",
+        "App",
+        "Input",
+        "Presentation",
+        "Audio",
+        "UI"
+    ],
+    "includePlatforms": [
+        "Editor"
+    ],
+    "excludePlatforms": [],
+    "allowUnsafeCode": false,
+    "overrideReferences": false,
+    "precompiledReferences": [],
+    "autoReferenced": false,
+    "defineConstraints": [],
+    "versionDefines": [],
+    "noEngineReferences": false
+}

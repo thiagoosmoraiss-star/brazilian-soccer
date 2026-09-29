@@ -1,0 +1,30 @@
+<Project Sdk="Microsoft.NET.Sdk">
+  <PropertyGroup>
+    <TargetFramework>net8.0</TargetFramework>
+    <AssemblyName>Tests.Unit</AssemblyName>
+    <RootNamespace>Game.Tests.Unit</RootNamespace>
+    <IsPackable>false</IsPackable>
+    <IsTestProject>true</IsTestProject>
+  </PropertyGroup>
+  <ItemGroup>
+    <Compile Include="$(GameSources)Tests/Unit/**/*.cs" />
+  </ItemGroup>
+  <ItemGroup>
+    <!-- NUnit 3 matches the API used by the Unity Test Framework. -->
+    <PackageReference Include="Microsoft.NET.Test.Sdk" Version="17.11.1" />
+    <PackageReference Include="NUnit" Version="3.14.0" />
+    <PackageReference Include="NUnit3TestAdapter" Version="4.6.0" />
+  </ItemGroup>
+  <ItemGroup>
+    <ProjectReference Include="../Core/Core.csproj" />
+    <ProjectReference Include="../Data/Data.csproj" />
+    <ProjectReference Include="../Rules/Rules.csproj" />
+    <ProjectReference Include="../Match/Match.csproj" />
+    <ProjectReference Include="../Match.AI/Match.AI.csproj" />
+    <ProjectReference Include="../Simulation/Simulation.csproj" />
+    <ProjectReference Include="../Career/Career.csproj" />
+    <ProjectReference Include="../Career.Market/Career.Market.csproj" />
+    <ProjectReference Include="../Career.Economy/Career.Economy.csproj" />
+    <ProjectReference Include="../Save/Save.csproj" />
+  </ItemGroup>
+</Project>

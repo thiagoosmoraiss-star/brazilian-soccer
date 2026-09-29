@@ -1,0 +1,19 @@
+<Project Sdk="Microsoft.NET.Sdk">
+  <!-- Compiles the pure sources in place (no copy). No Unity references are available here:
+       any UnityEngine usage in Save fails this build. -->
+  <PropertyGroup>
+    <TargetFramework>netstandard2.1</TargetFramework>
+    <AssemblyName>Save</AssemblyName>
+    <RootNamespace>Game.Save</RootNamespace>
+  </PropertyGroup>
+  <ItemGroup>
+    <Compile Include="$(GameSources)Save/**/*.cs" />
+  </ItemGroup>
+  <ItemGroup>
+    <ProjectReference Include="../Core/Core.csproj" />
+    <ProjectReference Include="../Data/Data.csproj" />
+    <ProjectReference Include="../Career/Career.csproj" />
+    <ProjectReference Include="../Career.Market/Career.Market.csproj" />
+    <ProjectReference Include="../Career.Economy/Career.Economy.csproj" />
+  </ItemGroup>
+</Project>

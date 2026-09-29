@@ -1,0 +1,19 @@
+{
+    "name": "Career.Economy",
+    "rootNamespace": "Game.Career.Economy",
+    "references": [
+        "Core",
+        "Data",
+        "Rules",
+        "Career"
+    ],
+    "includePlatforms": [],
+    "excludePlatforms": [],
+    "allowUnsafeCode": false,
+    "overrideReferences": false,
+    "precompiledReferences": [],
+    "autoReferenced": true,
+    "defineConstraints": [],
+    "versionDefines": [],
+    "noEngineReferences": true
+}
