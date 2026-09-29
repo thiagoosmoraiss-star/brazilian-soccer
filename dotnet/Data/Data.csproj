@@ -12,4 +12,8 @@
   <ItemGroup>
     <ProjectReference Include="../Core/Core.csproj" />
   </ItemGroup>
+  <ItemGroup>
+    <!-- D-11: same Json.NET version bundled by Unity's com.unity.nuget.newtonsoft-json 3.2.1. -->
+    <PackageReference Include="Newtonsoft.Json" Version="13.0.2" />
+  </ItemGroup>
 </Project>

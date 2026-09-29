@@ -22,8 +22,9 @@ namespace Game.Tests.PlayMode
             string repositoryRoot = Path.GetFullPath(Path.Combine(UnityEngine.Application.dataPath, "..", ".."));
             Assert.AreEqual(Path.Combine(repositoryRoot, "Data"), source.RootPath);
 
-            var db = GameDataLoader.Load(source);
-            Assert.IsTrue(db.IsSuccess, db.ToString());
+            // Same file and pipeline as the .NET tests (Newtonsoft, D-11).
+            var definitions = GameDataLoader.LoadEffectDefinitions(source);
+            Assert.IsTrue(definitions.IsSuccess, definitions.ToString());
         }
     }
 }

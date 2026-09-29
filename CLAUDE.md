@@ -23,7 +23,7 @@ Nome de trabalho: **ACESSO** (PENDENTE: verificação de marca e disponibilidade
 - Save em JSON + gzip, com migrações versionadas.
 - Controle de versão: Git + Git LFS (D-06). Hospedagem (GitHub, GitLab etc.) não decidida e não necessária agora.
 
-Não introduza tecnologia, pacote ou dependência fora desta lista sem decisão registrada em `DECISIONS.md`. Itens ainda PENDENTES (ver `DECISIONS.md`): serializador JSON exato, uso do Cinemachine.
+Não introduza tecnologia, pacote ou dependência fora desta lista sem decisão registrada em `DECISIONS.md`. JSON: Newtonsoft JSON (D-11). Item ainda PENDENTE (ver `DECISIONS.md`): uso do Cinemachine.
 
 ## 4. Fontes de verdade e hierarquia
 
@@ -106,4 +106,4 @@ Uma funcionalidade só está pronta quando cumpre `DEFINITION_OF_DONE.md`. Compi
 
 ## 14. Etapa atual
 
-**PENDENTE** — a primeira trilha (Track A — Partida ou Track B — Carreira) ainda não foi decidida. Stage 0 — Foundation é comum às duas e seus pré-requisitos D-06, D-09 e D-19 estão decididos. Continua pendente D-11 (serializador), que só bloqueia a Stage 0 se o loader de JSON precisar dele nessa etapa. Nenhuma implementação começa sem autorização explícita. Atualize esta seção quando a etapa mudar.
+**PENDENTE** — a primeira trilha (Track A — Partida ou Track B — Carreira) ainda não foi decidida. Stage 0 — Foundation é comum às duas e seus pré-requisitos D-06, D-09 e D-19 estão decididos. D-11 (serializador) decidida: Newtonsoft JSON. Nenhuma implementação começa sem autorização explícita. Atualize esta seção quando a etapa mudar.

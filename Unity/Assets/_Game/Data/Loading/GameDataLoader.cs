@@ -1,59 +1,59 @@
 using System;
 using System.Collections.Generic;
 using Game.Core.Results;
+using Game.Data.Effects;
 
 namespace Game.Data.Loading
 {
     /// <summary>
-    /// Loads the <see cref="GameDatabase"/> from an <see cref="IDataSource"/>.
-    ///
-    /// Stage 0 scope: verifies the required files exist and are readable as UTF-8 text.
-    /// JSON parsing into definitions is NOT implemented: the JSON serializer is pending decision D-11
-    /// (DECISIONS.md). The validation rules themselves live in <see cref="Effects.BalanceValidator"/> and
-    /// run on the parsed model once D-11 is decided.
+    /// Loads the <see cref="GameDatabase"/> from an <see cref="IDataSource"/>:
+    /// JSON file -> deserialization (Newtonsoft, D-11) -> EffectDefinitions -> BalanceValidator -> Balance.
     /// </summary>
     public static class GameDataLoader
     {
         public const string EffectsFile = "Balance/effects.json";
-        public const string EffectsSchemaFile = "Balance/effects.schema.json";
 
         public const string MissingFile = "MISSING_FILE";
         public const string ReadFailed = "READ_FAILED";
-        public const string EmptyFile = "EMPTY_FILE";
 
-        public static readonly IReadOnlyList<string> RequiredFiles = new[] { EffectsFile, EffectsSchemaFile };
+        public static readonly IReadOnlyList<string> RequiredFiles = new[] { EffectsFile };
 
-        public static Result<GameDatabase> Load(IDataSource source)
+        /// <summary>Reads and deserializes the effect definitions (syntax and structure only).</summary>
+        public static Result<IReadOnlyList<EffectDefinition>> LoadEffectDefinitions(IDataSource source)
         {
             if (source == null) throw new ArgumentNullException(nameof(source));
+            if (!source.Exists(EffectsFile))
+                return Result<IReadOnlyList<EffectDefinition>>.Fail(MissingFile, $"'{EffectsFile}' not found in {source.Description}.");
 
-            var errors = new List<Error>();
-            foreach (var file in RequiredFiles)
+            string text;
+            try
             {
-                if (!source.Exists(file))
-                {
-                    errors.Add(new Error(MissingFile, $"'{file}' not found in {source.Description}."));
-                    continue;
-                }
-
-                string text;
-                try
-                {
-                    text = source.ReadAllText(file);
-                }
-                catch (Exception e) when (e is System.IO.IOException || e is UnauthorizedAccessException)
-                {
-                    errors.Add(new Error(ReadFailed, $"'{file}': {e.Message}"));
-                    continue;
-                }
-
-                if (string.IsNullOrWhiteSpace(text))
-                    errors.Add(new Error(EmptyFile, $"'{file}' is empty."));
+                text = source.ReadAllText(EffectsFile);
+            }
+            catch (Exception e) when (e is System.IO.IOException || e is UnauthorizedAccessException)
+            {
+                return Result<IReadOnlyList<EffectDefinition>>.Fail(ReadFailed, $"'{EffectsFile}': {e.Message}");
             }
 
-            return errors.Count > 0
-                ? Result<GameDatabase>.Fail(errors)
-                : Result<GameDatabase>.Ok(new GameDatabase(source.Description));
+            return EffectsJsonReader.Read(text);
+        }
+
+        /// <summary>Full pipeline against the game's <see cref="Effect"/> catalog.</summary>
+        public static Result<GameDatabase> Load(IDataSource source)
+        {
+            var catalog = LoadBalanceCatalog(source, EffectSchema.FromEffectEnum());
+            return catalog.IsSuccess
+                ? Result<GameDatabase>.Ok(new GameDatabase(source.Description, new Balance(catalog.Value)))
+                : Result<GameDatabase>.Fail(catalog.Errors);
+        }
+
+        /// <summary>Deserializes and validates the effect definitions against <paramref name="schema"/>.</summary>
+        public static Result<BalanceCatalog> LoadBalanceCatalog(IDataSource source, EffectSchema schema)
+        {
+            var definitions = LoadEffectDefinitions(source);
+            return definitions.IsSuccess
+                ? BalanceCatalog.Create(schema, definitions.Value)
+                : Result<BalanceCatalog>.Fail(definitions.Errors);
         }
     }
 }

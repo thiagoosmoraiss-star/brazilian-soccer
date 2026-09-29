@@ -39,6 +39,7 @@ Formato de nova entrada: Id, título, contexto, opções, decisão (ou PENDENTE)
 | X-29 | **D-06:** controle de versão com Git + Git LFS. Git LFS para binários/pesados (modelos, texturas, áudio e similares que surgirem). Serviço de hospedagem não decidido e não necessário agora | Decisão do usuário |
 | X-30 | **D-09:** `Data/` na raiz do repositório, fora de `Assets/`; única fonte da verdade dos dados; consumida pela Unity e pela solution .NET/headless. `StreamingAssets` não é fonte da verdade; cópia para a build, se necessária, é gerada por etapa de build/empacotamento, sem duplicar a fonte | Decisão do usuário |
 | X-31 | **D-19:** `MatchSetup` e `MatchResult` (e os tipos que carregam, como `MatchEvent`) são contratos do `Core`. MatchEngine (Jogar, Assistir, Headless) e QuickSim (Simular) usam o mesmo contrato sem depender um do outro | Decisão do usuário |
+| X-32 | **D-11:** serializador JSON = **Newtonsoft JSON** (Json.NET, licença MIT, gratuito). Justificativa: a Unity mantém o pacote oficial `com.unity.nuget.newtonsoft-json`, compatível com Unity 6 e IL2CPP; `System.Text.Json` não faz parte do perfil .NET Standard 2.1 da Unity e exigiria DLLs manuais. Uma única abordagem para dados e save. Implementação: Unity usa `com.unity.nuget.newtonsoft-json` 3.2.1 (Json.NET 13.0.2) via `Unity/Packages/manifest.json`; a solution .NET usa o NuGet `Newtonsoft.Json` 13.0.2 (mesma versão). Só a assembly `Data` referencia (asmdef `precompiledReferences`); `Core` continua sem dependências. O loader usa LINQ to JSON (`JToken`), sem desserialização por reflexão, o que evita problemas de code stripping no IL2CPP. Save (B8) deve usar a mesma biblioteca | Decisão do usuário (29/09/2026) |
 
 ## Pendente
 
@@ -52,7 +53,6 @@ Formato de nova entrada: Id, título, contexto, opções, decisão (ou PENDENTE)
 | D-07 | Monetização | Pode exigir SDK e telas | Não | Antes de C5 |
 | D-08 | Versão mínima de Android / nível de API | Regras da Unity 6 e da Play Store mudam | Não até o build de loja | Antes de C5 (conferir regras vigentes) |
 | D-10 | Câmera: Cinemachine ou câmera própria | Implementação da câmera broadcast | Sim para a câmera de jogo | Antes de A2 |
-| D-11 | Serializador JSON: Newtonsoft ou System.Text.Json (compatibilidade com o .NET da Unity) | Save e loader de dados | Sim para save | Antes de B8 (o loader da Stage 0 pode usar a mesma escolha — se o loader precisar antes, decidir na Stage 0) |
 | D-12 | Tamanho do mundo no MVP (64 clubes das 4 divisões ou ~150 do design-alvo, clubes fora da pirâmide para a Copa) | Gerador de mundo, performance da carreira, Copa | Sim | Antes de B1 |
 | D-13 | Quantos sobem/caem entre divisões de 16 clubes | Regras de competição | Sim | Antes de B3 |
 | D-14 | Critério de classificação para a Copa Nacional de 32 clubes | Formato da Copa | Sim | Antes de B3 |

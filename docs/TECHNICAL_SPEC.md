@@ -487,7 +487,7 @@ Cada sistema é classe pura `(CareerState, data, RNG próprio, GameDatabase)`, c
 | Autosave | Após data com partida, transferência, fim de temporada, ida ao segundo plano |
 | Partida em andamento | `slot.match.gz` separado; carreira não muda até terminar |
 | Operação | Fora da thread principal quando crescer |
-| Serializador | **PENDENTE:** Newtonsoft JSON ou System.Text.Json (conferir compatibilidade com o .NET da Unity); decidir até B8 |
+| Serializador | Newtonsoft JSON (D-11, decidida; ver `DECISIONS.md` X-32) |
 
 ## 15. UI e cenas
 

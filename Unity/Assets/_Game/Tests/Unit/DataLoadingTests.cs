@@ -1,5 +1,7 @@
 using System;
 using System.IO;
+using System.Linq;
+using Game.Data.Effects;
 using Game.Data.Loading;
 using NUnit.Framework;
 
@@ -18,12 +20,30 @@ namespace Game.Tests.Unit
         }
 
         [Test]
-        public void Loader_ReadsRepositoryData()
+        public void RealEffectsJson_IsReadAndDeserialized()
         {
             var source = new DirectoryDataSource(TestPaths.DataRoot());
-            var result = GameDataLoader.Load(source);
-            Assert.IsTrue(result.IsSuccess, result.ToString());
-            StringAssert.StartsWith("{", source.ReadAllText(GameDataLoader.EffectsFile).TrimStart());
+            var definitions = GameDataLoader.LoadEffectDefinitions(source);
+            Assert.IsTrue(definitions.IsSuccess, definitions.ToString());
+        }
+
+        [Test]
+        public void RealEffectsJson_GoesThroughValidator_AndReportsOnlyTheD20Gap()
+        {
+            // Real Data/ through the full pipeline (file -> Newtonsoft -> definitions -> validator).
+            // The production catalog is empty (D-20 pending), so the only expected findings are the
+            // 18 "attribute without effect" errors. Any other error means the file itself is wrong.
+            var source = new DirectoryDataSource(TestPaths.DataRoot());
+            var definitions = GameDataLoader.LoadEffectDefinitions(source);
+            Assert.IsTrue(definitions.IsSuccess, definitions.ToString());
+
+            var errors = BalanceValidator.Validate(EffectSchema.FromEffectEnum(), definitions.Value);
+            Assert.AreEqual(AttrInfo.Count, errors.Count, string.Join("\n", errors));
+            Assert.IsTrue(errors.All(e => e.Code == BalanceValidator.AttributeWithoutEffect), string.Join("\n", errors));
+
+            var db = GameDataLoader.Load(source);
+            Assert.IsFalse(db.IsSuccess, "Load must not succeed while the validator rejects the catalog.");
+            CollectionAssert.AreEquivalent(errors.Select(e => e.Message), db.Errors.Select(e => e.Message));
         }
 
         [Test]
