@@ -28,22 +28,18 @@ namespace Game.Tests.Unit
         }
 
         [Test]
-        public void RealEffectsJson_GoesThroughValidator_AndReportsOnlyTheD20Gap()
+        public void RealEffectsJson_PassesTheValidator_AndLoadsTheGameDatabase()
         {
-            // Real Data/ through the full pipeline (file -> Newtonsoft -> definitions -> validator).
-            // The production catalog is empty (D-20 pending), so the only expected findings are the
-            // 18 "attribute without effect" errors. Any other error means the file itself is wrong.
             var source = new DirectoryDataSource(TestPaths.DataRoot());
             var definitions = GameDataLoader.LoadEffectDefinitions(source);
             Assert.IsTrue(definitions.IsSuccess, definitions.ToString());
 
             var errors = BalanceValidator.Validate(EffectSchema.FromEffectEnum(), definitions.Value);
-            Assert.AreEqual(AttrInfo.Count, errors.Count, string.Join("\n", errors));
-            Assert.IsTrue(errors.All(e => e.Code == BalanceValidator.AttributeWithoutEffect), string.Join("\n", errors));
+            Assert.IsEmpty(errors, string.Join("\n", errors));
 
             var db = GameDataLoader.Load(source);
-            Assert.IsFalse(db.IsSuccess, "Load must not succeed while the validator rejects the catalog.");
-            CollectionAssert.AreEquivalent(errors.Select(e => e.Message), db.Errors.Select(e => e.Message));
+            Assert.IsTrue(db.IsSuccess, db.ToString());
+            Assert.IsNotNull(db.Value.Balance);
         }
 
         [Test]
