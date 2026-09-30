@@ -1,0 +1,16 @@
+<Project Sdk="Microsoft.NET.Sdk">
+  <!-- Dev tool (B1 acceptance): generate and inspect a world from the command line. Not part of the game build. -->
+  <PropertyGroup>
+    <OutputType>Exe</OutputType>
+    <TargetFramework>net8.0</TargetFramework>
+    <AssemblyName>WorldGen</AssemblyName>
+    <RootNamespace>Game.Tools.WorldGen</RootNamespace>
+    <InvariantGlobalization>true</InvariantGlobalization>
+  </PropertyGroup>
+  <ItemGroup>
+    <Compile Include="*.cs" />
+  </ItemGroup>
+  <ItemGroup>
+    <ProjectReference Include="../Career/Career.csproj" />
+  </ItemGroup>
+</Project>

@@ -1,0 +1,293 @@
+{
+  "schemaVersion": 1,
+  "cities": [
+    {
+      "name": "Serra dos Ventos",
+      "uf": "SP"
+    },
+    {
+      "name": "Porto Anil",
+      "uf": "SP"
+    },
+    {
+      "name": "Campo Dourado do Oeste",
+      "uf": "SP"
+    },
+    {
+      "name": "Lagoa Serena",
+      "uf": "SP"
+    },
+    {
+      "name": "Vila Esperança Paulista",
+      "uf": "SP"
+    },
+    {
+      "name": "Ribeirão das Garças",
+      "uf": "SP"
+    },
+    {
+      "name": "Monte Aurora",
+      "uf": "SP"
+    },
+    {
+      "name": "Pedra Lisa do Tietê",
+      "uf": "SP"
+    },
+    {
+      "name": "Nova Estrela do Vale",
+      "uf": "SP"
+    },
+    {
+      "name": "Santa Clara das Palmeiras",
+      "uf": "SP"
+    },
+    {
+      "name": "Itaporã da Serra",
+      "uf": "SP"
+    },
+    {
+      "name": "Jacutinga Nova",
+      "uf": "SP"
+    },
+    {
+      "name": "Cerro Azul de Minas",
+      "uf": "MG"
+    },
+    {
+      "name": "Vale do Pequi",
+      "uf": "MG"
+    },
+    {
+      "name": "Ouro Claro",
+      "uf": "MG"
+    },
+    {
+      "name": "Montes Serenos",
+      "uf": "MG"
+    },
+    {
+      "name": "Rio Manso do Norte",
+      "uf": "MG"
+    },
+    {
+      "name": "Bom Sossego",
+      "uf": "MG"
+    },
+    {
+      "name": "Pedra do Sino Alto",
+      "uf": "MG"
+    },
+    {
+      "name": "Juriti de Minas",
+      "uf": "MG"
+    },
+    {
+      "name": "Alto Jequitibá do Sul",
+      "uf": "MG"
+    },
+    {
+      "name": "Porto das Conchas",
+      "uf": "RJ"
+    },
+    {
+      "name": "Serra Fluminense Nova",
+      "uf": "RJ"
+    },
+    {
+      "name": "Barra do Coqueiral",
+      "uf": "RJ"
+    },
+    {
+      "name": "Vila Maré Alta",
+      "uf": "RJ"
+    },
+    {
+      "name": "Itaguaçu da Baía",
+      "uf": "RJ"
+    },
+    {
+      "name": "Coxilha Verde",
+      "uf": "RS"
+    },
+    {
+      "name": "São Lindolfo do Pampa",
+      "uf": "RS"
+    },
+    {
+      "name": "Campo Largo do Minuano",
+      "uf": "RS"
+    },
+    {
+      "name": "Arroio das Pedras",
+      "uf": "RS"
+    },
+    {
+      "name": "Nova Tramontina",
+      "uf": "RS"
+    },
+    {
+      "name": "Araucária do Planalto",
+      "uf": "PR"
+    },
+    {
+      "name": "Ponta Alta do Iguaçu",
+      "uf": "PR"
+    },
+    {
+      "name": "Vila Guaratã",
+      "uf": "PR"
+    },
+    {
+      "name": "Rio Claro do Paraná",
+      "uf": "PR"
+    },
+    {
+      "name": "Morro das Gaivotas",
+      "uf": "SC"
+    },
+    {
+      "name": "Enseada Azul",
+      "uf": "SC"
+    },
+    {
+      "name": "Vale do Itaperi",
+      "uf": "SC"
+    },
+    {
+      "name": "Recife Novo das Pedras",
+      "uf": "PE"
+    },
+    {
+      "name": "Serra Talhada Nova",
+      "uf": "PE"
+    },
+    {
+      "name": "Vila Maracatu",
+      "uf": "PE"
+    },
+    {
+      "name": "Porto Coqueiro",
+      "uf": "BA"
+    },
+    {
+      "name": "Chapada Serena",
+      "uf": "BA"
+    },
+    {
+      "name": "Rio das Baleias",
+      "uf": "BA"
+    },
+    {
+      "name": "Vila Cacaueira",
+      "uf": "BA"
+    },
+    {
+      "name": "Jangada Branca",
+      "uf": "CE"
+    },
+    {
+      "name": "Serra do Juazeiro Alto",
+      "uf": "CE"
+    },
+    {
+      "name": "Dunas Douradas",
+      "uf": "CE"
+    },
+    {
+      "name": "Planalto Cerrado",
+      "uf": "GO"
+    },
+    {
+      "name": "Rio Verde do Cerrado Alto",
+      "uf": "GO"
+    },
+    {
+      "name": "Vila Buriti",
+      "uf": "GO"
+    },
+    {
+      "name": "Igarapé Grande",
+      "uf": "PA"
+    },
+    {
+      "name": "Porto Açaizal",
+      "uf": "PA"
+    },
+    {
+      "name": "Manguezal do Norte",
+      "uf": "MA"
+    },
+    {
+      "name": "Babaçu Alto",
+      "uf": "MA"
+    },
+    {
+      "name": "Várzea Serena",
+      "uf": "PB"
+    },
+    {
+      "name": "Coqueirais do Cariri",
+      "uf": "PB"
+    },
+    {
+      "name": "Salinas do Potengi",
+      "uf": "RN"
+    },
+    {
+      "name": "Maragogi Velho",
+      "uf": "AL"
+    },
+    {
+      "name": "Aracaju Nova Praia",
+      "uf": "SE"
+    },
+    {
+      "name": "Pantanal Dourado",
+      "uf": "MS"
+    },
+    {
+      "name": "Campo das Emas",
+      "uf": "MT"
+    },
+    {
+      "name": "Seringal Novo",
+      "uf": "AM"
+    },
+    {
+      "name": "Porto Buritizal",
+      "uf": "TO"
+    },
+    {
+      "name": "Vila Carnaúba do Piauí",
+      "uf": "PI"
+    },
+    {
+      "name": "Rio das Castanhas",
+      "uf": "AC"
+    },
+    {
+      "name": "Serra do Tucano",
+      "uf": "RR"
+    },
+    {
+      "name": "Vila Guaporé",
+      "uf": "RO"
+    },
+    {
+      "name": "Oiapoque Novo",
+      "uf": "AP"
+    },
+    {
+      "name": "Cachoeira Capixaba",
+      "uf": "ES"
+    },
+    {
+      "name": "Morro do Moqueca",
+      "uf": "ES"
+    },
+    {
+      "name": "Planalto Candango",
+      "uf": "DF"
+    }
+  ]
+}

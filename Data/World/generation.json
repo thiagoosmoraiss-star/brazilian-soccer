@@ -1,0 +1,275 @@
+{
+  "schemaVersion": 1,
+  "startYear": 2027,
+  "divisions": [
+    {
+      "name": "A",
+      "squadOvrMean": [71, 84],
+      "reputation": [550, 950],
+      "budget": [20000000, 45000000],
+      "stadiumLevel": [6, 9],
+      "fans": [400000, 5000000]
+    },
+    {
+      "name": "B",
+      "squadOvrMean": [63, 69],
+      "reputation": [350, 600],
+      "budget": [9000000, 16000000],
+      "stadiumLevel": [4, 6],
+      "fans": [80000, 600000]
+    },
+    {
+      "name": "C",
+      "squadOvrMean": [56, 61],
+      "reputation": [200, 400],
+      "budget": [4000000, 7500000],
+      "stadiumLevel": [2, 4],
+      "fans": [20000, 120000]
+    },
+    {
+      "name": "D",
+      "squadOvrMean": [46, 54],
+      "reputation": [50, 250],
+      "budget": [1500000, 3000000],
+      "stadiumLevel": [1, 3],
+      "fans": [5000, 40000]
+    }
+  ],
+  "clubsPerDivision": 16,
+  "reputationStarThresholds": [
+    0,
+    200,
+    400,
+    600,
+    800
+  ],
+  "stadiumCapacityByLevel": [
+    3000,
+    5000,
+    8000,
+    12000,
+    18000,
+    25000,
+    32000,
+    40000,
+    50000,
+    62000
+  ],
+  "clubProfileNoise": 0.1,
+  "squad": {
+    "slots": [
+      {
+        "position": "GOL",
+        "starter": true
+      },
+      {
+        "position": "LD",
+        "starter": true
+      },
+      {
+        "position": "ZAG",
+        "starter": true
+      },
+      {
+        "position": "ZAG",
+        "starter": true
+      },
+      {
+        "position": "LE",
+        "starter": true
+      },
+      {
+        "position": "VOL",
+        "starter": true
+      },
+      {
+        "position": "MC",
+        "starter": true
+      },
+      {
+        "position": "MEI",
+        "starter": true
+      },
+      {
+        "position": "PD",
+        "starter": true
+      },
+      {
+        "position": "PE",
+        "starter": true
+      },
+      {
+        "position": "ATA",
+        "starter": true
+      },
+      {
+        "position": "GOL",
+        "starter": false
+      },
+      {
+        "position": "GOL",
+        "starter": false
+      },
+      {
+        "position": "LD",
+        "starter": false
+      },
+      {
+        "position": "ZAG",
+        "starter": false
+      },
+      {
+        "position": "ZAG",
+        "starter": false
+      },
+      {
+        "position": "LE",
+        "starter": false
+      },
+      {
+        "position": "VOL",
+        "starter": false
+      },
+      {
+        "position": "MC",
+        "starter": false
+      },
+      {
+        "position": "MC",
+        "starter": false
+      },
+      {
+        "position": "MEI",
+        "starter": false
+      },
+      {
+        "position": "ATA",
+        "starter": false
+      }
+    ],
+    "starterOvrOffset": 3,
+    "reserveOvrOffset": -2,
+    "youthOvrOffset": -9,
+    "veteranOvrOffset": 0,
+    "playerOvrNoise": 3,
+    "youthCount": [2, 3],
+    "youthAge": [17, 19],
+    "veteranCount": [1, 2],
+    "veteranAge": [32, 35],
+    "regularAge": [20, 31]
+  },
+  "attributes": {
+    "roleNoise": 7,
+    "offRoleGap": 15,
+    "offRoleNoise": 8,
+    "goalkeepingAttributesForOutfield": [5, 20],
+    "outfieldGapForGoalkeepers": 20,
+    "min": 5,
+    "max": 99,
+    "ovrCorrectionPasses": 4
+  },
+  "potential": {
+    "min": 40,
+    "max": 99,
+    "youthBonus": [18, 32],
+    "bonusByAge": [
+      {
+        "maxAge": 21,
+        "bonus": [6, 18]
+      },
+      {
+        "maxAge": 26,
+        "bonus": [2, 8]
+      },
+      {
+        "maxAge": 99,
+        "bonus": [0, 2]
+      }
+    ]
+  },
+  "secondaryPositions": {
+    "countWeights": [
+      3,
+      5,
+      2
+    ],
+    "candidates": {
+      "GOL": [],
+      "ZAG": [
+        "VOL",
+        "LD",
+        "LE"
+      ],
+      "LD": [
+        "LE",
+        "ZAG",
+        "PD"
+      ],
+      "LE": [
+        "LD",
+        "ZAG",
+        "PE"
+      ],
+      "VOL": [
+        "MC",
+        "ZAG"
+      ],
+      "MC": [
+        "VOL",
+        "MEI"
+      ],
+      "MEI": [
+        "MC",
+        "PD",
+        "PE",
+        "ATA"
+      ],
+      "PD": [
+        "PE",
+        "MEI",
+        "ATA"
+      ],
+      "PE": [
+        "PD",
+        "MEI",
+        "ATA"
+      ],
+      "ATA": [
+        "PD",
+        "PE",
+        "MEI"
+      ]
+    }
+  },
+  "heightCm": {
+    "GOL": [184, 198],
+    "ZAG": [180, 195],
+    "LD": [168, 184],
+    "LE": [168, 184],
+    "VOL": [172, 188],
+    "MC": [168, 186],
+    "MEI": [165, 183],
+    "PD": [164, 182],
+    "PE": [164, 182],
+    "ATA": [172, 192]
+  },
+  "leftFootedChance": {
+    "GOL": 0.15,
+    "ZAG": 0.2,
+    "LD": 0.1,
+    "LE": 0.75,
+    "VOL": 0.2,
+    "MC": 0.2,
+    "MEI": 0.25,
+    "PD": 0.35,
+    "PE": 0.65,
+    "ATA": 0.2
+  },
+  "weakFootWeights": [
+    10,
+    30,
+    40,
+    15,
+    5
+  ]
+}

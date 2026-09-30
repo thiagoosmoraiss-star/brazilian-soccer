@@ -1,0 +1,14 @@
+{
+  "schemaVersion": 1,
+  "source": "GAME_DESIGN.md §12 (OVR elenco por etapa) and §3 (elenco inicial: 22 jogadores, 2-3 jovens promissores, 1-2 veteranos)",
+  "squadOvrByDivision": {
+    "A": [70, 85],
+    "B": [62, 70],
+    "C": [55, 62],
+    "D": [45, 55]
+  },
+  "squadSize": 22,
+  "promisingYouthPerSquad": [2, 3],
+  "veteransPerSquad": [1, 2],
+  "seeds": [1, 2, 3, 5, 8, 13, 21, 34, 55, 89, 144, 233, 377, 610, 987, 1597, 2584, 4181, 6765, 10946]
+}

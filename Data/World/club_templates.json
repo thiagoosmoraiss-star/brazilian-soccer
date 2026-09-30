@@ -1,0 +1,63 @@
+{
+  "schemaVersion": 1,
+  "namePatterns": [
+    "Esporte Clube {city}",
+    "{city} Futebol Clube",
+    "Associação Atlética {city}",
+    "{city} Esporte Clube",
+    "Clube Atlético {city}",
+    "União Esportiva {city}",
+    "Sociedade Esportiva {city}",
+    "Associação Desportiva {city}"
+  ],
+  "colors": [
+    {
+      "id": "branco",
+      "hex": "#F5F5F2"
+    },
+    {
+      "id": "preto",
+      "hex": "#15171A"
+    },
+    {
+      "id": "vermelho",
+      "hex": "#C8102E"
+    },
+    {
+      "id": "azul",
+      "hex": "#1F4E9C"
+    },
+    {
+      "id": "azul_celeste",
+      "hex": "#6FB3E0"
+    },
+    {
+      "id": "verde",
+      "hex": "#1E7B3C"
+    },
+    {
+      "id": "amarelo",
+      "hex": "#F2C318"
+    },
+    {
+      "id": "laranja",
+      "hex": "#E86A1C"
+    },
+    {
+      "id": "grena",
+      "hex": "#7A1F2B"
+    },
+    {
+      "id": "roxo",
+      "hex": "#5B2C83"
+    },
+    {
+      "id": "cinza",
+      "hex": "#8A8F87"
+    },
+    {
+      "id": "azul_marinho",
+      "hex": "#14284B"
+    }
+  ]
+}

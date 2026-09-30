@@ -35,7 +35,8 @@ Cada pasta em `Assets/_Game/` com código tem um Assembly Definition com o mesmo
 - `<ProjetoUnity>` = `Unity/` (projeto Unity 6 LTS; `ProjectSettings/ProjectVersion.txt` = 6000.3.1f1).
 - Solution .NET: `dotnet/Game.sln`, um `.csproj` por assembly pura (`dotnet/<Assembly>/<Assembly>.csproj`) + `dotnet/Tests.Unit/`.
 - Namespaces: `Game.<Assembly>` (sem o nome de trabalho, pendente D-16).
-- `Tests/Simulation/` e `Tests/Career/` são criadas nas etapas que as usam.
+- `Tests/Simulation/` é criada na etapa que a usar; `Tests/Career/` (+ `dotnet/Tests.Career/`) criada na B1.
+- `dotnet/WorldGen/`: ferramenta de linha de comando da B1 para gerar e inspecionar o mundo (fora de `Assets/`, não entra na build do jogo).
 
 ## Responsabilidades
 

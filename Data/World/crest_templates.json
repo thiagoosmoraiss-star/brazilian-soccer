@@ -1,0 +1,23 @@
+{
+  "schemaVersion": 1,
+  "shapes": [
+    "escudo_classico",
+    "escudo_suico",
+    "circulo",
+    "losango",
+    "flamula",
+    "hexagono"
+  ],
+  "symbols": [
+    "estrela",
+    "bola",
+    "ramo",
+    "torre",
+    "onda",
+    "montanha",
+    "sol",
+    "ancora",
+    "raio",
+    "coroa_de_louros"
+  ]
+}

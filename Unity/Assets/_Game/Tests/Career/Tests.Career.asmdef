@@ -1,10 +1,11 @@
 {
-    "name": "Tests.Unit",
-    "rootNamespace": "Game.Tests.Unit",
+    "name": "Tests.Career",
+    "rootNamespace": "Game.Tests.Career",
     "references": [
         "Core",
         "Data",
         "Rules",
+        "Career",
         "UnityEngine.TestRunner",
         "UnityEditor.TestRunner"
     ],

@@ -106,4 +106,4 @@ Uma funcionalidade só está pronta quando cumpre `DEFINITION_OF_DONE.md`. Compi
 
 ## 14. Etapa atual
 
-**PENDENTE** — a primeira trilha (Track A — Partida ou Track B — Carreira) ainda não foi decidida. Stage 0 — Foundation é comum às duas e seus pré-requisitos D-06, D-09 e D-19 estão decididos. D-11 (serializador) decidida: Newtonsoft JSON. Nenhuma implementação começa sem autorização explícita. Atualize esta seção quando a etapa mudar.
+**Track B — B1 Mundo e dados** (D-01 = Track B). Stage 0 — Foundation concluída e validada (`dotnet test`, EditMode e PlayMode na Unity). Atualize esta seção quando a etapa mudar.

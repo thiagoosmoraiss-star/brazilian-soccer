@@ -1,0 +1,353 @@
+{
+  "schemaVersion": 1,
+  "secondaryPositionFactor": 0.97,
+  "outOfPositionFactor": 0.9,
+  "positions": [
+    {
+      "position": "GOL",
+      "weights": [
+        {
+          "attribute": "GkReflexes",
+          "weight": 30
+        },
+        {
+          "attribute": "GkPositioning",
+          "weight": 25
+        },
+        {
+          "attribute": "GkHandling",
+          "weight": 20
+        },
+        {
+          "attribute": "GkAerial",
+          "weight": 15
+        },
+        {
+          "attribute": "Agility",
+          "weight": 5
+        },
+        {
+          "attribute": "Composure",
+          "weight": 5
+        }
+      ]
+    },
+    {
+      "position": "ZAG",
+      "weights": [
+        {
+          "attribute": "Tackling",
+          "weight": 25
+        },
+        {
+          "attribute": "Positioning",
+          "weight": 20
+        },
+        {
+          "attribute": "Heading",
+          "weight": 15
+        },
+        {
+          "attribute": "Strength",
+          "weight": 15
+        },
+        {
+          "attribute": "Speed",
+          "weight": 8
+        },
+        {
+          "attribute": "Composure",
+          "weight": 7
+        },
+        {
+          "attribute": "Passing",
+          "weight": 5
+        },
+        {
+          "attribute": "Agility",
+          "weight": 5
+        }
+      ]
+    },
+    {
+      "position": "LD",
+      "weights": [
+        {
+          "attribute": "Speed",
+          "weight": 18
+        },
+        {
+          "attribute": "Tackling",
+          "weight": 18
+        },
+        {
+          "attribute": "Crossing",
+          "weight": 14
+        },
+        {
+          "attribute": "Stamina",
+          "weight": 12
+        },
+        {
+          "attribute": "Positioning",
+          "weight": 12
+        },
+        {
+          "attribute": "Agility",
+          "weight": 10
+        },
+        {
+          "attribute": "Passing",
+          "weight": 10
+        },
+        {
+          "attribute": "Dribbling",
+          "weight": 6
+        }
+      ]
+    },
+    {
+      "position": "LE",
+      "weights": [
+        {
+          "attribute": "Speed",
+          "weight": 18
+        },
+        {
+          "attribute": "Tackling",
+          "weight": 18
+        },
+        {
+          "attribute": "Crossing",
+          "weight": 14
+        },
+        {
+          "attribute": "Stamina",
+          "weight": 12
+        },
+        {
+          "attribute": "Positioning",
+          "weight": 12
+        },
+        {
+          "attribute": "Agility",
+          "weight": 10
+        },
+        {
+          "attribute": "Passing",
+          "weight": 10
+        },
+        {
+          "attribute": "Dribbling",
+          "weight": 6
+        }
+      ]
+    },
+    {
+      "position": "VOL",
+      "weights": [
+        {
+          "attribute": "Tackling",
+          "weight": 22
+        },
+        {
+          "attribute": "Positioning",
+          "weight": 18
+        },
+        {
+          "attribute": "Passing",
+          "weight": 18
+        },
+        {
+          "attribute": "Stamina",
+          "weight": 12
+        },
+        {
+          "attribute": "Strength",
+          "weight": 10
+        },
+        {
+          "attribute": "Vision",
+          "weight": 10
+        },
+        {
+          "attribute": "Composure",
+          "weight": 10
+        }
+      ]
+    },
+    {
+      "position": "MC",
+      "weights": [
+        {
+          "attribute": "Passing",
+          "weight": 24
+        },
+        {
+          "attribute": "Vision",
+          "weight": 18
+        },
+        {
+          "attribute": "Stamina",
+          "weight": 12
+        },
+        {
+          "attribute": "Dribbling",
+          "weight": 10
+        },
+        {
+          "attribute": "Composure",
+          "weight": 10
+        },
+        {
+          "attribute": "LongShots",
+          "weight": 10
+        },
+        {
+          "attribute": "Positioning",
+          "weight": 8
+        },
+        {
+          "attribute": "Tackling",
+          "weight": 8
+        }
+      ]
+    },
+    {
+      "position": "MEI",
+      "weights": [
+        {
+          "attribute": "Vision",
+          "weight": 22
+        },
+        {
+          "attribute": "Passing",
+          "weight": 20
+        },
+        {
+          "attribute": "Dribbling",
+          "weight": 18
+        },
+        {
+          "attribute": "LongShots",
+          "weight": 12
+        },
+        {
+          "attribute": "Finishing",
+          "weight": 10
+        },
+        {
+          "attribute": "Composure",
+          "weight": 10
+        },
+        {
+          "attribute": "Agility",
+          "weight": 8
+        }
+      ]
+    },
+    {
+      "position": "PD",
+      "weights": [
+        {
+          "attribute": "Dribbling",
+          "weight": 22
+        },
+        {
+          "attribute": "Speed",
+          "weight": 20
+        },
+        {
+          "attribute": "Crossing",
+          "weight": 16
+        },
+        {
+          "attribute": "Agility",
+          "weight": 14
+        },
+        {
+          "attribute": "Finishing",
+          "weight": 10
+        },
+        {
+          "attribute": "Passing",
+          "weight": 10
+        },
+        {
+          "attribute": "Vision",
+          "weight": 8
+        }
+      ]
+    },
+    {
+      "position": "PE",
+      "weights": [
+        {
+          "attribute": "Dribbling",
+          "weight": 22
+        },
+        {
+          "attribute": "Speed",
+          "weight": 20
+        },
+        {
+          "attribute": "Crossing",
+          "weight": 16
+        },
+        {
+          "attribute": "Agility",
+          "weight": 14
+        },
+        {
+          "attribute": "Finishing",
+          "weight": 10
+        },
+        {
+          "attribute": "Passing",
+          "weight": 10
+        },
+        {
+          "attribute": "Vision",
+          "weight": 8
+        }
+      ]
+    },
+    {
+      "position": "ATA",
+      "weights": [
+        {
+          "attribute": "Finishing",
+          "weight": 28
+        },
+        {
+          "attribute": "Positioning",
+          "weight": 14
+        },
+        {
+          "attribute": "Composure",
+          "weight": 12
+        },
+        {
+          "attribute": "Heading",
+          "weight": 12
+        },
+        {
+          "attribute": "Speed",
+          "weight": 12
+        },
+        {
+          "attribute": "Dribbling",
+          "weight": 10
+        },
+        {
+          "attribute": "Strength",
+          "weight": 6
+        },
+        {
+          "attribute": "LongShots",
+          "weight": 6
+        }
+      ]
+    }
+  ]
+}
