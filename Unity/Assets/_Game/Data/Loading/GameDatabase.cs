@@ -15,11 +15,14 @@ namespace Game.Data.Loading
         public Match.QuickSimDefinition QuickSim { get; }
         public Competitions.CompetitionsDefinition Competitions { get; }
         public Competitions.CalendarDefinition Calendar { get; }
+        public Career.DevelopmentDefinition Development { get; }
 
         internal GameDatabase(string sourceDescription, Effects.Balance balance, Ovr.OvrDefinition ovr, World.WorldDefinition world,
             System.Collections.Generic.IReadOnlyList<Match.FormationDefinition> formations, Match.MatchRulesDefinition matchRules,
-            Match.QuickSimDefinition quickSim, Competitions.CompetitionsDefinition competitions, Competitions.CalendarDefinition calendar)
+            Match.QuickSimDefinition quickSim, Competitions.CompetitionsDefinition competitions, Competitions.CalendarDefinition calendar,
+            Career.DevelopmentDefinition development)
         {
+            Development = development;
             Competitions = competitions;
             Calendar = calendar;
             Formations = formations;

@@ -1,6 +1,7 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using Game.Career.Players;
 using Game.Career.Season;
 using Game.Career.World;
 using Game.Core.Ids;
@@ -22,7 +23,18 @@ namespace Game.Tests.Career
             public Season Season;
             public SeasonSummary Summary;
             public Dictionary<Id, int> DivisionAtStart;
+            /// <summary>B4 snapshots at season end (after retirements, before the next youth intake).</summary>
+            public int PlayersAbovePotential;
+            public int OldestAge;
+            public Dictionary<Id, int> SquadSize;
+            public Dictionary<Id, HashSet<Id>> SquadIds;
+            public Dictionary<Id, int> Goalkeepers;
+            public double[] Top22ByDivision;
         }
+
+        /// <summary>Lineup violations seen by the MatchPlayed hook: unavailable players used while enough were available.</summary>
+        private static readonly Dictionary<ulong, List<string>> Violations = new Dictionary<ulong, List<string>>();
+        private static readonly Dictionary<ulong, List<string>> FloorBreaches = new Dictionary<ulong, List<string>>();
 
         private static readonly Dictionary<ulong, List<SeasonRecord>> Careers = new Dictionary<ulong, List<SeasonRecord>>();
 
@@ -34,6 +46,28 @@ namespace Game.Tests.Career
             var db = CareerTestData.Db();
             var quickSim = new Game.Simulation.QuickSim.QuickSim(db);
             var career = CareerSimulator.Start(db, seed, quickSim.Simulate);
+            var violations = Violations[seed] = new List<string>();
+            var floor = FloorBreaches[seed] = new List<string>();
+            var dev = db.Development;
+            career.LineupsSelected += (f, setup) =>
+            {
+                var w = career.State.World;
+                foreach (var team in new[] { setup.Home, setup.Away })
+                {
+                    var squad = w.SquadOf(team.ClubId);
+                    var byId = squad.ToDictionary(p => p.Id);
+                    // Independent of ConditionSystem.Available: read the condition fields directly.
+                    bool Out(Player p) => p.Condition.InjuryMatchesLeft > 0
+                                          || (p.Condition.InjuredUntil.HasValue && f.Date < p.Condition.InjuredUntil.Value)
+                                          || p.Condition.SuspendedMatches((int)f.Kind) > 0;
+                    int available = squad.Count(p => !Out(p));
+                    foreach (var mp in team.Starters.Concat(team.Bench))
+                        if (Out(byId[mp.PlayerId]) && available >= 11)
+                            violations.Add($"{f.Date:d} club={team.ClubId} player={mp.PlayerId}");
+                    if (squad.Count < dev.MinSquadSize || squad.Count(p => p.MainPosition == Game.Data.Definitions.Position.GOL) < dev.MinGoalkeepers)
+                        floor.Add($"{f.Date:d} club={team.ClubId} size={squad.Count}");
+                }
+            };
             list = new List<SeasonRecord>();
             for (int s = 0; s < CareerTestData.Int("careerSeasons"); s++)
             {
@@ -43,6 +77,16 @@ namespace Game.Tests.Career
                     DivisionAtStart = career.State.World.Clubs.ToDictionary(c => c.Id, c => c.DivisionIndex),
                 };
                 record.Summary = career.PlaySeason();
+                var w = career.State.World;
+                int endYear = record.Season.Year;
+                record.PlayersAbovePotential = w.Players.Count(p => Game.Rules.Ovr.OvrCalculator.Rating(db.Ovr, p.AttributeSpan, p.MainPosition) > p.Potential);
+                record.OldestAge = w.Players.Max(p => p.BirthDate.AgeOn(endYear, 12, 31));
+                record.SquadSize = w.Clubs.ToDictionary(c => c.Id, c => w.SquadOf(c.Id).Count);
+                record.SquadIds = w.Clubs.ToDictionary(c => c.Id, c => new HashSet<Id>(w.SquadOf(c.Id).Select(p => p.Id)));
+                record.Goalkeepers = w.Clubs.ToDictionary(c => c.Id, c => w.SquadOf(c.Id).Count(p => p.MainPosition == Game.Data.Definitions.Position.GOL));
+                record.Top22ByDivision = w.DivisionNames.Select((_, d) => w.Clubs.Where(c => c.DivisionIndex == d)
+                    .Average(c => w.SquadOf(c.Id).Select(p => (double)Game.Rules.Ovr.OvrCalculator.Rating(db.Ovr, p.AttributeSpan, p.MainPosition))
+                        .OrderByDescending(x => x).Take(22).Average())).ToArray();
                 list.Add(record);
             }
             Careers[seed] = list;
@@ -199,6 +243,75 @@ namespace Game.Tests.Career
                 }
                 Assert.AreEqual(1, inRound.Count, ctx);
                 Assert.AreEqual(inRound.Single(), r.Summary.CupWinner, ctx);
+            }
+        }
+
+        // ---------------- B4: players in the career ----------------
+
+        [TestCaseSource(nameof(Seeds))]
+        public void NobodyEverPassesPotential_AndNobodyPlaysForever(ulong seed)
+        {
+            var last = CareerTestData.Db().Development.RetirementByAge.Last().Age;
+            foreach (var r in Career(seed))
+            {
+                Assert.AreEqual(0, r.PlayersAbovePotential, $"seed={seed} year={r.Season.Year}");
+                Assert.Less(r.OldestAge, last + 1, $"seed={seed} year={r.Season.Year}: retirement at {last} is certain");
+            }
+        }
+
+        [TestCaseSource(nameof(Seeds))]
+        public void Squads_StayAboveTheFloor_WithGoalkeepers_OnEveryMatchday(ulong seed)
+        {
+            Career(seed);
+            Assert.IsEmpty(FloorBreaches[seed], $"seed={seed}: " + string.Join(", ", FloorBreaches[seed].Take(10)));
+        }
+
+        [TestCaseSource(nameof(Seeds))]
+        public void EveryClub_ReceivesTheYearlyYouthIntake(ulong seed)
+        {
+            var d = CareerTestData.Db().Development;
+            var records = Career(seed);
+            for (int s = 1; s < records.Count; s++)
+            {
+                // No transfers before B5: every new player in a squad comes from the youth intake.
+                foreach (var kv in records[s].SquadIds)
+                {
+                    int newcomers = kv.Value.Count(id => !records[s - 1].SquadIds[kv.Key].Contains(id));
+                    Assert.GreaterOrEqual(newcomers, d.YouthPerClubPerYear, $"seed={seed} year={records[s].Season.Year} club={kv.Key}");
+                }
+            }
+        }
+
+        [TestCaseSource(nameof(Seeds))]
+        public void InjuredOrSuspendedPlayers_AreNotSelected(ulong seed)
+        {
+            Career(seed);
+            Assert.IsEmpty(Violations[seed], $"seed={seed}: " + string.Join(", ", Violations[seed].Take(10)));
+        }
+
+        [Test]
+        public void TenSeasons_OvrNeitherExplodesNorCollapses()
+        {
+            var cfg = JObject.Parse(System.IO.File.ReadAllText(System.IO.Path.Combine(CareerTestData.DataRoot(), "TestRanges", "development.json")))["careerStability"];
+            ulong seed = cfg["seed"].Value<ulong>();
+            var db = CareerTestData.Db();
+            var career = CareerSimulator.Start(db, seed, new Game.Simulation.QuickSim.QuickSim(db).Simulate);
+            var w = career.State.World;
+            int top = cfg["top"].Value<int>();
+            double[] Top() => w.DivisionNames.Select((_, d) => w.Clubs.Where(c => c.DivisionIndex == d)
+                .Average(c => w.SquadOf(c.Id).Select(p => (double)Game.Rules.Ovr.OvrCalculator.Rating(db.Ovr, p.AttributeSpan, p.MainPosition))
+                    .OrderByDescending(x => x).Take(top).Average())).ToArray();
+            var start = Top();
+            double maxDrift = cfg["maxTop22DriftPerDivision"].Value<double>();
+            for (int s = 0; s < cfg["seasons"].Value<int>(); s++)
+            {
+                career.PlaySeason();
+                var now = Top();
+                for (int d = 0; d < now.Length; d++)
+                {
+                    Assert.That(Math.Abs(now[d] - start[d]), Is.LessThanOrEqualTo(maxDrift), $"seed={seed} season={s + 1} division={d} start={start[d]:0.0} now={now[d]:0.0}");
+                    if (d > 0) Assert.Greater(now[d - 1], now[d], $"seed={seed}: divisions stay ordered");
+                }
             }
         }
 

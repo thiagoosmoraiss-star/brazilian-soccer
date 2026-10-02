@@ -94,6 +94,8 @@ namespace Game.Career.Season
         LeagueRound = 3,
         MonthEnd = 4,
         SeasonEnd = 5,
+        YouthIntake = 6,
+        WeeklyDevelopment = 7,
     }
 
     public sealed class CalendarEntry
@@ -115,6 +117,8 @@ namespace Game.Career.Season
         /// <summary>Formation chosen by the AI for each club this season (X-41).</summary>
         public IReadOnlyDictionary<Id, string> ClubFormations { get; internal set; }
         public bool Finished => NextEntry >= Calendar.Count;
+        /// <summary>Matches played by each club this season (minutes share for development).</summary>
+        public Dictionary<Id, int> ClubMatches { get; } = new Dictionary<Id, int>();
 
         public IEnumerable<Fixture> AllFixtures()
         {
@@ -134,5 +138,6 @@ namespace Game.Career.Season
         public Id CupWinner { get; internal set; }
         public Id CupRunnerUp { get; internal set; }
         public IReadOnlyList<Id> CupQualified { get; internal set; }
+        public IReadOnlyList<Id> Retired { get; internal set; }
     }
 }

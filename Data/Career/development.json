@@ -1,0 +1,94 @@
+{
+  "schemaVersion": 1,
+  "weeksPerYear": 52,
+  "ageCurve": [
+    {
+      "maxAge": 21,
+      "ovrPerYear": 5.0
+    },
+    {
+      "maxAge": 26,
+      "ovrPerYear": 2.0
+    },
+    {
+      "maxAge": 30,
+      "ovrPerYear": 0.0
+    },
+    {
+      "maxAge": 33,
+      "ovrPerYear": -1.5
+    },
+    {
+      "maxAge": 99,
+      "ovrPerYear": -4.0
+    }
+  ],
+  "potentialGapForFullGrowth": 10,
+  "minutes": {
+    "noMinutesFactor": 0.4,
+    "fullMinutesShare": 0.6
+  },
+  "staff": {
+    "trainingCenterFactor": 1.0,
+    "assistantCoachFactor": 1.0
+  },
+  "decline": {
+    "physicalAttributes": ["Speed", "Agility", "Stamina", "Strength"],
+    "otherAttributeChance": 0.4
+  },
+  "annual": {
+    "minAppearances": 10,
+    "goodRating": 7.0,
+    "goodRatingBonus": 1.0
+  },
+  "condition": {
+    "energyRecoveryPerDay": 10.0,
+    "moraleUpOnWin": 0.35,
+    "moraleDownOnLoss": 0.35,
+    "moraleToNeutralOnDraw": 0.2,
+    "formMatches": 5
+  },
+  "injuries": {
+    "lightMatches": [1, 2],
+    "mediumMatches": [3, 6],
+    "severeDays": [60, 180]
+  },
+  "suspensions": {
+    "yellowsPerSuspension": 3,
+    "secondYellowMatches": 1,
+    "straightRedMatchWeights": [50, 35, 15],
+    "resetEachSeason": true
+  },
+  "retirement": {
+    "chanceByAge": [
+      {
+        "age": 33,
+        "chance": 0.1
+      },
+      {
+        "age": 34,
+        "chance": 0.3
+      },
+      {
+        "age": 35,
+        "chance": 0.5
+      },
+      {
+        "age": 36,
+        "chance": 0.75
+      },
+      {
+        "age": 37,
+        "chance": 1.0
+      }
+    ]
+  },
+  "youth": {
+    "perClubPerYear": 3,
+    "age": [16, 17],
+    "ovrOffsetFromSquadMean": [-20, -10],
+    "potentialAboveOvr": [15, 35],
+    "minSquadSize": 18,
+    "minGoalkeepers": 2
+  }
+}

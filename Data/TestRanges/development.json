@@ -1,0 +1,7 @@
+{
+  "schemaVersion": 1,
+  "source": "TEST_PLAN §2 Progressão (young high-potential players with minutes reach the expected range by 24; nobody above potential; veterans decline) and ROADMAP B4 acceptance (10 seasons without OVR exploding or collapsing). Ranges are design estimates.",
+  "youngProspect": { "age": 18, "ovr": 55, "potential": 80, "minutesShare": 1.0, "byAge": 24, "maxGapAtTarget": 6 },
+  "veteran": { "age": 31, "ovr": 75, "years": 4, "minDecline": 4 },
+  "careerStability": { "seed": 3, "seasons": 10, "maxTop22DriftPerDivision": 3.5, "top": 22 }
+}

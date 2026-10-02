@@ -110,6 +110,60 @@ namespace Game.Career.World
         public ReadOnlySpan<Position> SecondaryPositionSpan => SecondaryPositionValues;
 
         public string Name => FirstName + " " + LastName;
+
+        /// <summary>Career condition (B4): energy, morale, form, injury, suspensions, season statistics.</summary>
+        public PlayerCondition Condition { get; internal set; } = new PlayerCondition();
+    }
+
+    /// <summary>
+    /// PlayerCondition block (TECHNICAL_SPEC §4.2): energy, morale, form, active injury, suspensions and yellows per
+    /// competition, plus the season counters used by development (minutes) and the annual adjustment (ratings).
+    /// </summary>
+    public sealed class PlayerCondition
+    {
+        public const int Competitions = 2; // indexed by Season.CompetitionKind (League, Cup)
+
+        /// <summary>Energy 0-100 at <see cref="EnergyDate"/> (recovers with the days elapsed).</summary>
+        public float Energy { get; internal set; } = 100f;
+        public System.DateTime? EnergyDate { get; internal set; }
+        /// <summary>Morale 1-5 (3 = neutral).</summary>
+        public int Morale { get; internal set; } = 3;
+        internal readonly List<float> RecentRatingValues = new List<float>();
+        public IReadOnlyList<float> RecentRatings => RecentRatingValues;
+
+        public Game.Core.Contracts.Match.InjurySeverity Injury { get; internal set; }
+        /// <summary>Club matches still to miss (light/medium injuries).</summary>
+        public int InjuryMatchesLeft { get; internal set; }
+        /// <summary>Unavailable until this date (severe injuries).</summary>
+        public System.DateTime? InjuredUntil { get; internal set; }
+
+        internal readonly int[] YellowCount = new int[Competitions];
+        internal readonly int[] SuspendedMatchCount = new int[Competitions];
+        public int Yellows(int competition) => YellowCount[competition];
+        public int SuspendedMatches(int competition) => SuspendedMatchCount[competition];
+
+        public int SeasonAppearances { get; internal set; }
+        public int SeasonMinutes { get; internal set; }
+        public int SeasonGoals { get; internal set; }
+        public float SeasonRatingSum { get; internal set; }
+        /// <summary>Share of the club's possible minutes played last season (fallback early in a season).</summary>
+        public float PreviousMinutesShare { get; internal set; }
+        /// <summary>Accumulated development in OVR points; applied in whole points.</summary>
+        public float DevelopmentProgress { get; internal set; }
+
+        /// <summary>Form = average of the last ratings (GAME_DESIGN §9); null without ratings.</summary>
+        public float? Form
+        {
+            get
+            {
+                if (RecentRatingValues.Count == 0) return null;
+                float sum = 0f;
+                foreach (var r in RecentRatingValues) sum += r;
+                return sum / RecentRatingValues.Count;
+            }
+        }
+
+        public bool IsInjured(System.DateTime date) => InjuryMatchesLeft > 0 || (InjuredUntil.HasValue && date < InjuredUntil.Value);
     }
 
     /// <summary>
@@ -122,7 +176,7 @@ namespace Game.Career.World
         public Id ClubId { get; internal set; }
     }
 
-    /// <summary>The generated world: part of the future CareerState. References are Ids only.</summary>
+    /// <summary>The world: part of the CareerState. References are Ids only. Squads change from B4 (youth, retirements).</summary>
     public sealed class WorldState
     {
         public ulong Seed { get; internal set; }
@@ -131,30 +185,61 @@ namespace Game.Career.World
         public int LastIssuedId { get; internal set; }
         public IReadOnlyList<string> DivisionNames { get; internal set; }
         public IReadOnlyList<Club> Clubs { get; internal set; }
-        public IReadOnlyList<Player> Players { get; internal set; }
-        public IReadOnlyList<Contract> Contracts { get; internal set; }
+        internal List<Player> PlayerList = new List<Player>();
+        internal List<Contract> ContractList = new List<Contract>();
+        public IReadOnlyList<Player> Players => PlayerList;
+        public IReadOnlyList<Contract> Contracts => ContractList;
 
         /// <summary>Age on 1 January of the start year (season = calendar year, GAME_DESIGN §4).</summary>
         public int AgeAtStart(Player p) => p.BirthDate.AgeOn(StartYear, 1, 1);
 
         private Dictionary<Id, List<Player>> _squads;
+        private Dictionary<Id, Id> _clubOf;
 
-        /// <summary>Players under contract with the club (index built once; the world is immutable in B1).</summary>
+        internal void AddPlayer(Player player, Contract contract)
+        {
+            PlayerList.Add(player);
+            ContractList.Add(contract);
+            LastIssuedId = Math.Max(LastIssuedId, Math.Max(player.Id.Value, contract.Id.Value));
+            _squads = null;
+            _clubOf = null;
+        }
+
+        internal void RemovePlayer(Id playerId)
+        {
+            PlayerList.RemoveAll(p => p.Id == playerId);
+            ContractList.RemoveAll(c => c.PlayerId == playerId);
+            _squads = null;
+            _clubOf = null;
+        }
+
+        /// <summary>Players under contract with the club (index rebuilt after squad changes).</summary>
         public IReadOnlyList<Player> SquadOf(Id clubId)
         {
-            if (_squads == null)
+            if (_squads == null) BuildIndex();
+            return _squads.TryGetValue(clubId, out var squad) ? squad : (IReadOnlyList<Player>)Array.Empty<Player>();
+        }
+
+        public Id ClubOf(Id playerId)
+        {
+            if (_clubOf == null) BuildIndex();
+            return _clubOf.TryGetValue(playerId, out var c) ? c : Id.None;
+        }
+
+        private void BuildIndex()
+        {
+            var byId = new Dictionary<Id, Player>();
+            foreach (var p in PlayerList) byId[p.Id] = p;
+            var squads = new Dictionary<Id, List<Player>>();
+            var clubOf = new Dictionary<Id, Id>();
+            foreach (var c in ContractList)
             {
-                var byId = new Dictionary<Id, Player>();
-                foreach (var p in Players) byId[p.Id] = p;
-                var squads = new Dictionary<Id, List<Player>>();
-                foreach (var c in Contracts)
-                {
-                    if (!squads.TryGetValue(c.ClubId, out var list)) squads[c.ClubId] = list = new List<Player>();
-                    list.Add(byId[c.PlayerId]);
-                }
-                _squads = squads;
+                if (!squads.TryGetValue(c.ClubId, out var list)) squads[c.ClubId] = list = new List<Player>();
+                list.Add(byId[c.PlayerId]);
+                clubOf[c.PlayerId] = c.ClubId;
             }
-            return _squads.TryGetValue(clubId, out var squad) ? squad : (IReadOnlyList<Player>)System.Array.Empty<Player>();
+            _squads = squads;
+            _clubOf = clubOf;
         }
     }
 }

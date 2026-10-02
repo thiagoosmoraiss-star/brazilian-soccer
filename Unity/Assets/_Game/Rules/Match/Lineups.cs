@@ -61,7 +61,9 @@ namespace Game.Rules.Match
             {
                 // A goalkeeper only plays in goal and only a goalkeeper plays in goal, when one exists.
                 bool keeperSlot = slotPosition == Position.GOL, isKeeper = p.MainPosition == (int)Position.GOL;
-                float value = rules.EffectiveOvr(p, slotPosition) - (keeperSlot != isKeeper ? 100f : 0f);
+                // Effective OVR, penalized below the low-energy threshold (tired players are rested).
+                float value = rules.EffectiveOvr(p, slotPosition) * rules.EnergyFactor(p.Attributes, p.Energy)
+                              - (keeperSlot != isKeeper ? 100f : 0f);
                 if (value > bestValue || (value == bestValue && best != null && p.PlayerId.CompareTo(best.PlayerId) < 0))
                 {
                     best = p;

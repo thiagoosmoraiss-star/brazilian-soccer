@@ -1,6 +1,7 @@
 using System;
 using System.Collections.Generic;
 using Game.Career.Match;
+using Game.Career.Players;
 using Game.Career.World;
 using Game.Core.Contracts.Match;
 using Game.Core.Ids;
@@ -44,6 +45,7 @@ namespace Game.Career.Season
             var world = WorldGenerator.Generate(db, seed);
             var state = new CareerState { Seed = seed, World = world, Ids = new IdAllocator(world.LastIssuedId) };
             var sim = new CareerSimulator(db, state, resolve);
+            Youth.Intake(db, world, state.Ids, world.StartYear, regularIntake: false, sim.SeasonRng("Youth", world.StartYear));
             state.Season = sim.CreateSeason(world.StartYear, sim.FirstSeasonCupQualifiers());
             return sim;
         }
@@ -59,6 +61,10 @@ namespace Game.Career.Season
             {
                 case CalendarEntryKind.LeagueRound: PlayLeagueRound(season, entry); break;
                 case CalendarEntryKind.CupRound: PlayCupRound(season, entry); break;
+                case CalendarEntryKind.WeeklyDevelopment: WeeklyDevelopment(season, entry.Date); break;
+                case CalendarEntryKind.YouthIntake:
+                    Youth.Intake(_db, State.World, State.Ids, season.Year, regularIntake: true, SeasonRng("Youth", season.Year));
+                    break;
                 case CalendarEntryKind.SeasonEnd: season.NextEntry++; SeasonTransition(); return entry;
             }
             season.NextEntry++;
@@ -128,6 +134,13 @@ namespace Game.Career.Season
                 if (monthEnd < seasonEnd) entries.Add(new CalendarEntry { Date = monthEnd, Kind = CalendarEntryKind.MonthEnd, Round = -1 });
             }
             entries.Add(new CalendarEntry { Date = seasonEnd, Kind = CalendarEntryKind.SeasonEnd, Round = -1 });
+            // Youth intake at the start of the year (the first season starts with the generated squads).
+            if (year > State.World.StartYear)
+                entries.Add(new CalendarEntry { Date = new DateTime(year, 1, 1), Kind = CalendarEntryKind.YouthIntake, Round = -1 });
+            // Weekly development (TECHNICAL_SPEC §11): every Monday before the season end.
+            for (var day = new DateTime(year, 1, 1); day < seasonEnd; day = day.AddDays(1))
+                if (day.DayOfWeek == DayOfWeek.Monday)
+                    entries.Add(new CalendarEntry { Date = day, Kind = CalendarEntryKind.WeeklyDevelopment, Round = -1 });
             entries.Sort((a, b) => a.Date != b.Date ? a.Date.CompareTo(b.Date) : a.Kind.CompareTo(b.Kind));
             if (entries[entries.Count - 1].Kind != CalendarEntryKind.SeasonEnd)
                 throw new InvalidOperationException("calendar.json: a match or window falls after the season end date.");
@@ -226,11 +239,15 @@ namespace Game.Career.Season
         private void Play(Season season, Fixture f, bool requiresWinner)
         {
             var mr = MatchRulesDef;
-            MatchTeamSetup Team(Id club) => MatchSetupFactory.Team(State.World, _rules, _db, club,
-                new TacticSetup(season.ClubFormations[club], mr.AiMentality, mr.AiDefensiveLine, mr.AiPressure), mr.BenchSize);
+            MatchTeamSetup Team(Id club)
+            {
+                var tactic = new TacticSetup(season.ClubFormations[club], mr.AiMentality, mr.AiDefensiveLine, mr.AiPressure);
+                return MatchSetupFactory.Team(_rules, _db, club, tactic, Candidates(club, f.Kind, f.Date), mr.BenchSize);
+            }
 
             var setup = new MatchSetup(Team(f.HomeClubId), Team(f.AwayClubId), f.NeutralVenue, mr.DurationMinutes, mr.MaxSubstitutions,
                 f.Seed, requiresWinner);
+            LineupsSelected?.Invoke(f, setup);
             var r = _resolve(setup);
             f.Played = true;
             f.HomeGoals = r.HomeGoals;
@@ -242,7 +259,66 @@ namespace Game.Career.Season
             f.AwayYellows = r.AwayStats.YellowCards;
             f.AwayReds = r.AwayStats.RedCards;
             if (requiresWinner && f.Winner.IsNone) throw new InvalidOperationException($"Knockout fixture {f.Id} ended without a winner.");
+
+            var rng = SeasonRng("Condition", season.Year, f.Id.Value);
+            ConditionSystem.AfterMatch(_db, State.World.SquadOf(f.HomeClubId), MatchSide.Home, r, f.Kind, f.Date, rng);
+            ConditionSystem.AfterMatch(_db, State.World.SquadOf(f.AwayClubId), MatchSide.Away, r, f.Kind, f.Date, rng);
+            foreach (var club in new[] { f.HomeClubId, f.AwayClubId })
+                season.ClubMatches[club] = season.ClubMatches.TryGetValue(club, out int n) ? n + 1 : 1;
+            MatchPlayed?.Invoke(f, setup, r);
         }
+
+        /// <summary>Raised before a match is resolved, with the condition still as it was before the match.</summary>
+        public event Action<Fixture, MatchSetup> LineupsSelected;
+
+        /// <summary>Raised after every match (tests and tools can observe lineups and results).</summary>
+        public event Action<Fixture, MatchSetup, MatchResult> MatchPlayed;
+
+        /// <summary>
+        /// Available players (not injured, not suspended in this competition) with their condition. If fewer than 11 are
+        /// available, the least-affected unavailable players fill the gap (a match always has 11 starters).
+        /// </summary>
+        public List<MatchPlayerSetup> Candidates(Id club, CompetitionKind kind, DateTime date)
+        {
+            var d = _db.Development;
+            var available = new List<MatchPlayerSetup>();
+            var others = new List<Player>();
+            foreach (var p in State.World.SquadOf(club))
+            {
+                if (ConditionSystem.Available(p, kind, date))
+                    available.Add(MatchSetupFactory.ToMatchPlayer(p, ConditionSystem.EnergyAt(d, p, date), p.Condition.Morale, p.Condition.Form));
+                else others.Add(p);
+            }
+            if (available.Count < MatchTeamSetup.StarterCount)
+            {
+                others.Sort((a, b) =>
+                {
+                    int ka = a.Condition.InjuryMatchesLeft + a.Condition.SuspendedMatches((int)kind) + (a.Condition.InjuredUntil.HasValue ? 1000 : 0);
+                    int kb = b.Condition.InjuryMatchesLeft + b.Condition.SuspendedMatches((int)kind) + (b.Condition.InjuredUntil.HasValue ? 1000 : 0);
+                    return ka != kb ? ka.CompareTo(kb) : a.Id.CompareTo(b.Id);
+                });
+                for (int i = 0; i < others.Count && available.Count < MatchTeamSetup.StarterCount; i++)
+                    available.Add(MatchSetupFactory.ToMatchPlayer(others[i], ConditionSystem.EnergyAt(d, others[i], date), others[i].Condition.Morale, others[i].Condition.Form));
+            }
+            return available;
+        }
+
+        private void WeeklyDevelopment(Season season, DateTime date)
+        {
+            var rng = SeasonRng("Development", season.Year, date.DayOfYear);
+            foreach (var p in State.World.Players)
+            {
+                int age = p.BirthDate.AgeOn(date.Year, date.Month, date.Day);
+                var club = State.World.ClubOf(p.Id);
+                int clubMatches = season.ClubMatches.TryGetValue(club, out int n) ? n : 0;
+                // Early in a season the previous season's share stands in for the minutes played.
+                float share = clubMatches >= 5 ? Math.Min(1f, p.Condition.SeasonMinutes / (90f * clubMatches)) : p.Condition.PreviousMinutesShare;
+                Development.Week(_db, p, age, share, rng);
+            }
+        }
+
+        private Rng SeasonRng(string system, int year, int index = 0) =>
+            new Rng(RngStreams.DeriveSeed(State.Seed, "Career." + system, (ulong)(year * 1000 + index)));
 
         // ---------------- Season transition ----------------
 
@@ -289,6 +365,17 @@ namespace Game.Career.Season
             foreach (var id in promoted) { var c = State.Club(id); c.DivisionIndex--; c.DivisionName = divisionNames[c.DivisionIndex]; }
             foreach (var id in relegated) { var c = State.Club(id); c.DivisionIndex++; c.DivisionName = divisionNames[c.DivisionIndex]; }
 
+            // B4: annual development, retirements, season counters (X-42).
+            var devRng = SeasonRng("Development", season.Year, 999);
+            foreach (var p in State.World.Players) Development.Annual(_db, p, devRng);
+            var seasonEnd = season.Calendar[season.Calendar.Count - 1].Date;
+            var retired = Retirement.Apply(_db, State.World, seasonEnd, SeasonRng("Retirement", season.Year));
+            foreach (var p in State.World.Players)
+            {
+                var club = State.World.ClubOf(p.Id);
+                ConditionSystem.NewSeason(_db.Development, p, season.ClubMatches.TryGetValue(club, out int n) ? n : 0);
+            }
+
             // X-40: next cup = top N of each division's final table.
             var nextCup = new List<Id>();
             foreach (var t in tables)
@@ -303,6 +390,7 @@ namespace Game.Career.Season
                 CupWinner = season.Cup.Winner,
                 CupRunnerUp = season.Cup.RunnerUp,
                 CupQualified = season.Cup.Qualified,
+                Retired = retired,
             });
             State.Season = CreateSeason(season.Year + 1, nextCup);
         }

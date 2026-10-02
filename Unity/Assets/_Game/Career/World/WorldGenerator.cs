@@ -68,8 +68,8 @@ namespace Game.Career.World
                 LastIssuedId = ids.LastIssued,
                 DivisionNames = divisionNames,
                 Clubs = clubs,
-                Players = players,
-                Contracts = contracts,
+                PlayerList = players,
+                ContractList = contracts,
             };
         }
 
@@ -219,8 +219,8 @@ namespace Game.Career.World
             }
         }
 
-        private static Player CreatePlayer(OvrDefinition ovr, WorldDefinition def, Position position, float targetOvr,
-            int age, bool promisingYouth, Rng rng, IdAllocator ids)
+        internal static Player CreatePlayer(OvrDefinition ovr, WorldDefinition def, Position position, float targetOvr,
+            int age, bool promisingYouth, Rng rng, IdAllocator ids, int? birthYearAgeReference = null)
         {
             var g = def.Generation;
             var at = g.Attributes;
@@ -233,7 +233,7 @@ namespace Game.Career.World
             potential = Math.Max(Math.Max(rating, pot.Min), Math.Min(pot.Max, potential));
 
             // Birth date such that the age on 1 January of the start year equals `age`.
-            int birthYear = g.StartYear - age - 1;
+            int birthYear = (birthYearAgeReference ?? g.StartYear) - age - 1;
             // Valid window: birthYear-01-02 .. (birthYear+1)-01-01, i.e. as many days as birthYear has.
             var birth = new DateTime(birthYear, 1, 2).AddDays(rng.NextInt(0, DateTime.IsLeapYear(birthYear) ? 366 : 365));
 
