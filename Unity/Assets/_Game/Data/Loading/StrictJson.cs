@@ -179,6 +179,58 @@ namespace Game.Data.Loading
             return list;
         }
 
+        public List<float> FloatList(JToken parent, string name, string path)
+        {
+            var list = new List<float>();
+            var arr = Array(parent, name, path);
+            if (arr == null) return list;
+            for (int i = 0; i < arr.Count; i++) list.Add(AsFloat(arr[i], $"{path}.{name}[{i}]"));
+            return list;
+        }
+
+        /// <summary>Object keyed by every member of enum <typeparamref name="TKey"/> with numeric values.</summary>
+        public float[] FloatsByEnum<TKey>(JToken parent, string name, string path, bool requireAll = true) where TKey : struct, Enum
+        {
+            int count = Enum.GetValues(typeof(TKey)).Length;
+            var result = new float[count];
+            var seen = new bool[count];
+            var obj = Object(parent, name, path);
+            if (obj == null) return result;
+            foreach (var prop in obj.Properties())
+            {
+                string p = $"{path}.{name}.{prop.Name}";
+                if (!TryEnum(prop.Name, p, out TKey key)) continue;
+                int k = Convert.ToInt32(key);
+                result[k] = AsFloat(prop.Value, p);
+                seen[k] = true;
+            }
+            if (requireAll)
+                for (int k = 0; k < count; k++)
+                    if (!seen[k]) Fail(InvalidStructure, $"{path}.{name} is missing {Enum.GetName(typeof(TKey), k)}.");
+            return result;
+        }
+
+        /// <summary>Array of {"attribute": name, "weight": number} into a per-attribute weight array.</summary>
+        public float[] AttributeWeights(JToken parent, string name, string path)
+        {
+            var w = new float[Effects.AttrInfo.Count];
+            var arr = Array(parent, name, path);
+            if (arr == null) return w;
+            for (int i = 0; i < arr.Count; i++)
+            {
+                string p = $"{path}.{name}[{i}]";
+                var o = AsObject(arr[i], p);
+                if (o == null) continue;
+                Keys(o, p, "attribute", "weight");
+                float value = Float(o, "weight", p);
+                if (!TryEnum(String(o, "attribute", p), p + ".attribute", out Effects.Attr attr)) continue;
+                if (w[(int)attr] != 0f) Fail(InvalidStructure, $"{p}: duplicate attribute {attr}.");
+                if (!(value > 0f)) Fail(InvalidStructure, $"{p}: weight must be > 0.");
+                w[(int)attr] = value;
+            }
+            return w;
+        }
+
         /// <summary>Exact, case-sensitive enum name (no numeric aliases).</summary>
         public bool TryEnum<T>(string text, string path, out T value) where T : struct, Enum
         {

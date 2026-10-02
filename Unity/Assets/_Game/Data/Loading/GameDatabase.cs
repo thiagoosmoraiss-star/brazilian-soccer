@@ -2,7 +2,7 @@ namespace Game.Data.Loading
 {
     /// <summary>
     /// Immutable game definitions loaded from Data/: effect catalog (<see cref="Effects.Balance"/>),
-    /// OVR weights and world-generation definitions. Other definitions are added by the stages that need them.
+    /// OVR weights, world-generation definitions, formations, shared match rules and QuickSim coefficients. Other definitions are added by the stages that need them.
     /// </summary>
     public sealed class GameDatabase
     {
@@ -10,13 +10,28 @@ namespace Game.Data.Loading
         public Effects.Balance Balance { get; }
         public Ovr.OvrDefinition Ovr { get; }
         public World.WorldDefinition World { get; }
+        public System.Collections.Generic.IReadOnlyList<Match.FormationDefinition> Formations { get; }
+        public Match.MatchRulesDefinition MatchRules { get; }
+        public Match.QuickSimDefinition QuickSim { get; }
 
-        internal GameDatabase(string sourceDescription, Effects.Balance balance, Ovr.OvrDefinition ovr, World.WorldDefinition world)
+        internal GameDatabase(string sourceDescription, Effects.Balance balance, Ovr.OvrDefinition ovr, World.WorldDefinition world,
+            System.Collections.Generic.IReadOnlyList<Match.FormationDefinition> formations, Match.MatchRulesDefinition matchRules,
+            Match.QuickSimDefinition quickSim)
         {
+            Formations = formations;
+            MatchRules = matchRules;
+            QuickSim = quickSim;
             SourceDescription = sourceDescription;
             Balance = balance;
             Ovr = ovr;
             World = world;
+        }
+
+        /// <summary>Formation by id, or null.</summary>
+        public Match.FormationDefinition Formation(string id)
+        {
+            foreach (var f in Formations) if (f.Id == id) return f;
+            return null;
         }
     }
 }

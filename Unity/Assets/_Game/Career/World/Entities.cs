@@ -137,12 +137,24 @@ namespace Game.Career.World
         /// <summary>Age on 1 January of the start year (season = calendar year, GAME_DESIGN §4).</summary>
         public int AgeAtStart(Player p) => p.BirthDate.AgeOn(StartYear, 1, 1);
 
-        public IEnumerable<Player> SquadOf(Id clubId)
+        private Dictionary<Id, List<Player>> _squads;
+
+        /// <summary>Players under contract with the club (index built once; the world is immutable in B1).</summary>
+        public IReadOnlyList<Player> SquadOf(Id clubId)
         {
-            var byId = new Dictionary<Id, Player>();
-            foreach (var p in Players) byId[p.Id] = p;
-            foreach (var c in Contracts)
-                if (c.ClubId == clubId) yield return byId[c.PlayerId];
+            if (_squads == null)
+            {
+                var byId = new Dictionary<Id, Player>();
+                foreach (var p in Players) byId[p.Id] = p;
+                var squads = new Dictionary<Id, List<Player>>();
+                foreach (var c in Contracts)
+                {
+                    if (!squads.TryGetValue(c.ClubId, out var list)) squads[c.ClubId] = list = new List<Player>();
+                    list.Add(byId[c.PlayerId]);
+                }
+                _squads = squads;
+            }
+            return _squads.TryGetValue(clubId, out var squad) ? squad : (IReadOnlyList<Player>)System.Array.Empty<Player>();
         }
     }
 }

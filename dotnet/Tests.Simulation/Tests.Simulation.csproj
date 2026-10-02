@@ -1,0 +1,24 @@
+<Project Sdk="Microsoft.NET.Sdk">
+  <PropertyGroup>
+    <TargetFramework>net8.0</TargetFramework>
+    <AssemblyName>Tests.Simulation</AssemblyName>
+    <RootNamespace>Game.Tests.Simulation</RootNamespace>
+    <IsPackable>false</IsPackable>
+    <IsTestProject>true</IsTestProject>
+  </PropertyGroup>
+  <ItemGroup>
+    <Compile Include="$(GameSources)Tests/Simulation/**/*.cs" />
+  </ItemGroup>
+  <ItemGroup>
+    <PackageReference Include="Microsoft.NET.Test.Sdk" Version="17.11.1" />
+    <PackageReference Include="NUnit" Version="3.14.0" />
+    <PackageReference Include="NUnit3TestAdapter" Version="4.6.0" />
+  </ItemGroup>
+  <ItemGroup>
+    <ProjectReference Include="../Core/Core.csproj" />
+    <ProjectReference Include="../Data/Data.csproj" />
+    <ProjectReference Include="../Rules/Rules.csproj" />
+    <ProjectReference Include="../Simulation/Simulation.csproj" />
+    <ProjectReference Include="../Career/Career.csproj" />
+  </ItemGroup>
+</Project>

@@ -35,7 +35,9 @@ Cada pasta em `Assets/_Game/` com código tem um Assembly Definition com o mesmo
 - `<ProjetoUnity>` = `Unity/` (projeto Unity 6 LTS; `ProjectSettings/ProjectVersion.txt` = 6000.3.1f1).
 - Solution .NET: `dotnet/Game.sln`, um `.csproj` por assembly pura (`dotnet/<Assembly>/<Assembly>.csproj`) + `dotnet/Tests.Unit/`.
 - Namespaces: `Game.<Assembly>` (sem o nome de trabalho, pendente D-16).
-- `Tests/Simulation/` é criada na etapa que a usar; `Tests/Career/` (+ `dotnet/Tests.Career/`) criada na B1.
+- `Tests/Career/` (+ `dotnet/Tests.Career/`) criada na B1; `Tests/Simulation/` (+ `dotnet/Tests.Simulation/`) criada na B2 (testes lentos marcados com a categoria `Slow`).
+- `dotnet/QuickSimReport/`: ferramenta de linha de comando da B2 que roda lotes da QuickSim e imprime as métricas de calibração.
+- Contratos `MatchSetup`/`MatchResult`/`MatchEvent` em `Core/Contracts/Match/` (D-19), criados na B2.
 - `dotnet/WorldGen/`: ferramenta de linha de comando da B1 para gerar e inspecionar o mundo (fora de `Assets/`, não entra na build do jogo).
 
 ## Responsabilidades

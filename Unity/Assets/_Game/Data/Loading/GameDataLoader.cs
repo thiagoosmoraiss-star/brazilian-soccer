@@ -2,6 +2,7 @@ using System;
 using System.Collections.Generic;
 using Game.Core.Results;
 using Game.Data.Effects;
+using Game.Data.Match;
 using Game.Data.Ovr;
 using Game.Data.World;
 
@@ -21,6 +22,9 @@ namespace Game.Data.Loading
         public const string ClubTemplatesFile = "World/club_templates.json";
         public const string CrestTemplatesFile = "World/crest_templates.json";
         public const string GenerationFile = "World/generation.json";
+        public const string FormationsFile = "Formations/formations.json";
+        public const string MatchRulesFile = "Balance/match_rules.json";
+        public const string QuickSimFile = "Balance/quicksim.json";
 
         public const string MissingFile = "MISSING_FILE";
         public const string ReadFailed = "READ_FAILED";
@@ -28,6 +32,7 @@ namespace Game.Data.Loading
         public static readonly IReadOnlyList<string> RequiredFiles = new[]
         {
             EffectsFile, OvrFile, NamesFile, CitiesFile, ClubTemplatesFile, CrestTemplatesFile, GenerationFile,
+            FormationsFile, MatchRulesFile, QuickSimFile,
         };
 
         /// <summary>Reads and deserializes the effect definitions (syntax and structure only).</summary>
@@ -63,6 +68,24 @@ namespace Game.Data.Loading
             return semantic.Count > 0 ? Result<WorldDefinition>.Fail(semantic) : world;
         }
 
+        public static Result<IReadOnlyList<FormationDefinition>> LoadFormations(IDataSource source)
+        {
+            var text = ReadText(source, FormationsFile);
+            return text.IsSuccess ? MatchDataReaders.ReadFormations(text.Value) : Result<IReadOnlyList<FormationDefinition>>.Fail(text.Errors);
+        }
+
+        public static Result<MatchRulesDefinition> LoadMatchRules(IDataSource source)
+        {
+            var text = ReadText(source, MatchRulesFile);
+            return text.IsSuccess ? MatchDataReaders.ReadMatchRules(text.Value) : Result<MatchRulesDefinition>.Fail(text.Errors);
+        }
+
+        public static Result<QuickSimDefinition> LoadQuickSim(IDataSource source)
+        {
+            var text = ReadText(source, QuickSimFile);
+            return text.IsSuccess ? MatchDataReaders.ReadQuickSim(text.Value) : Result<QuickSimDefinition>.Fail(text.Errors);
+        }
+
         private static Result<string> ReadText(IDataSource source, string file)
         {
             if (source == null) throw new ArgumentNullException(nameof(source));
@@ -84,14 +107,21 @@ namespace Game.Data.Loading
             var catalog = LoadBalanceCatalog(source, EffectSchema.FromEffectEnum());
             var ovr = LoadOvr(source);
             var world = LoadWorld(source);
+            var formations = LoadFormations(source);
+            var matchRules = LoadMatchRules(source);
+            var quickSim = LoadQuickSim(source);
 
             var errors = new List<Error>();
             errors.AddRange(catalog.Errors);
             errors.AddRange(ovr.Errors);
             errors.AddRange(world.Errors);
+            errors.AddRange(formations.Errors);
+            errors.AddRange(matchRules.Errors);
+            errors.AddRange(quickSim.Errors);
             if (errors.Count > 0) return Result<GameDatabase>.Fail(errors);
 
-            return Result<GameDatabase>.Ok(new GameDatabase(source.Description, new Balance(catalog.Value), ovr.Value, world.Value));
+            return Result<GameDatabase>.Ok(new GameDatabase(source.Description, new Balance(catalog.Value), ovr.Value, world.Value,
+                formations.Value, matchRules.Value, quickSim.Value));
         }
 
         /// <summary>Deserializes and validates the effect definitions against <paramref name="schema"/>.</summary>

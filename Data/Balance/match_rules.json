@@ -1,0 +1,232 @@
+{
+  "schemaVersion": 1,
+  "sectors": {
+    "Attack": [
+      {
+        "attribute": "Finishing",
+        "weight": 30
+      },
+      {
+        "attribute": "Speed",
+        "weight": 15
+      },
+      {
+        "attribute": "Dribbling",
+        "weight": 15
+      },
+      {
+        "attribute": "Composure",
+        "weight": 10
+      },
+      {
+        "attribute": "LongShots",
+        "weight": 10
+      },
+      {
+        "attribute": "Positioning",
+        "weight": 10
+      },
+      {
+        "attribute": "Agility",
+        "weight": 10
+      }
+    ],
+    "Creation": [
+      {
+        "attribute": "Passing",
+        "weight": 30
+      },
+      {
+        "attribute": "Vision",
+        "weight": 25
+      },
+      {
+        "attribute": "Dribbling",
+        "weight": 12
+      },
+      {
+        "attribute": "Composure",
+        "weight": 10
+      },
+      {
+        "attribute": "Agility",
+        "weight": 8
+      },
+      {
+        "attribute": "Crossing",
+        "weight": 10
+      },
+      {
+        "attribute": "Stamina",
+        "weight": 5
+      }
+    ],
+    "Defense": [
+      {
+        "attribute": "Tackling",
+        "weight": 30
+      },
+      {
+        "attribute": "Positioning",
+        "weight": 25
+      },
+      {
+        "attribute": "Strength",
+        "weight": 15
+      },
+      {
+        "attribute": "Speed",
+        "weight": 12
+      },
+      {
+        "attribute": "Agility",
+        "weight": 8
+      },
+      {
+        "attribute": "Stamina",
+        "weight": 5
+      },
+      {
+        "attribute": "Composure",
+        "weight": 5
+      }
+    ],
+    "Aerial": [
+      {
+        "attribute": "Heading",
+        "weight": 45
+      },
+      {
+        "attribute": "Strength",
+        "weight": 30
+      },
+      {
+        "attribute": "Crossing",
+        "weight": 25
+      }
+    ],
+    "Goalkeeping": [
+      {
+        "attribute": "GkReflexes",
+        "weight": 35
+      },
+      {
+        "attribute": "GkPositioning",
+        "weight": 25
+      },
+      {
+        "attribute": "GkHandling",
+        "weight": 20
+      },
+      {
+        "attribute": "GkAerial",
+        "weight": 20
+      }
+    ]
+  },
+  "roleSectorWeights": {
+    "GK": {
+      "Goalkeeping": 1.0
+    },
+    "CB": {
+      "Defense": 1.0,
+      "Aerial": 0.5,
+      "Creation": 0.1
+    },
+    "FB": {
+      "Defense": 0.7,
+      "Creation": 0.3,
+      "Attack": 0.15,
+      "Aerial": 0.2
+    },
+    "DM": {
+      "Defense": 0.6,
+      "Creation": 0.5
+    },
+    "CM": {
+      "Creation": 1.0,
+      "Defense": 0.3,
+      "Attack": 0.2
+    },
+    "AM": {
+      "Creation": 0.8,
+      "Attack": 0.6
+    },
+    "W": {
+      "Attack": 0.7,
+      "Creation": 0.4,
+      "Aerial": 0.25
+    },
+    "ST": {
+      "Attack": 1.0,
+      "Aerial": 0.5
+    }
+  },
+  "sectorReferenceWeights": {
+    "Goalkeeping": 1.0,
+    "Defense": 4.0,
+    "Creation": 3.6,
+    "Attack": 4.1,
+    "Aerial": 2.9
+  },
+  "condition": {
+    "moraleFactors": [0.95, 0.975, 1.0, 1.025, 1.05],
+    "formNeutral": 6.5,
+    "formFactorPerPoint": 0.01,
+    "formFactorRange": [0.97, 1.03],
+    "lowEnergyThreshold": 60
+  },
+  "fatigue": {
+    "baseDrainPerMinute": 0.6,
+    "mentalityIntensity": [0.95, 0.975, 1.0, 1.03, 1.06],
+    "pressureIntensity": [0.9, 1.0, 1.15],
+    "halftimeRecovery": 17.5
+  },
+  "discipline": {
+    "yellowPerFoul": 0.235,
+    "straightRedPerFoul": 0.004,
+    "bookedCardFactor": 0.2
+  },
+  "injuries": {
+    "hazardPerPlayerMinute": 0.00011,
+    "lowEnergyThreshold": 40,
+    "lowEnergyMultiplier": 1.5,
+    "severityWeights": {
+      "Light": 70,
+      "Medium": 25,
+      "Severe": 5
+    }
+  },
+  "ratings": {
+    "base": 6.0,
+    "goal": 1.0,
+    "assist": 0.6,
+    "shotOnTarget": 0.15,
+    "shotOffTarget": -0.05,
+    "foul": -0.05,
+    "yellow": -0.3,
+    "red": -1.5,
+    "win": 0.4,
+    "loss": -0.4,
+    "cleanSheet": 0.5,
+    "goalConceded": -0.25,
+    "defensiveRoles": [
+      "GK",
+      "CB",
+      "FB",
+      "DM"
+    ],
+    "noise": 0.3,
+    "fullImpactMinutes": 45,
+    "min": 0,
+    "max": 10
+  },
+  "substitutions": {
+    "windows": [46, 60, 70, 80],
+    "maxWindows": 3,
+    "halftimeMinute": 46,
+    "energyThreshold": 85,
+    "maxTiredSubstitutions": 4,
+    "benchOvrMargin": 5
+  }
+}

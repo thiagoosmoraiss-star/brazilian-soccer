@@ -1,0 +1,43 @@
+{
+  "schemaVersion": 1,
+  "sources": {
+    "goalsPerMatch": "Brasileirão Série A 2024: 877 goals in 360 matches = 2.44 (placar.com.br); GAME_DESIGN §15 design target ~2-4",
+    "zeroZeroPct": "Premier League: 3-9% per season, historical average ~8% (theanalyst.com)",
+    "homeDrawAway": "Brasileirão Série A 2023: home 46.84%, draw 25.79%, away 27.37% (tribunapr.com.br / maquinadoesporte.com.br)",
+    "foulsPerMatch": "Brasileirão: 25.2-28.53 fouls per match (flashscore.com.br)",
+    "yellowPerMatch": "Brasileirão: 5.59-5.76 yellow cards per match (flashscore.com.br)",
+    "cornersPerMatch": "~9.6 per match (5.2 home + 4.4 away example; weak source)",
+    "redPerMatch": "ESTIMATE (no source found): typical professional leagues ~0.1-0.35",
+    "injuriesPerMatch": "ESTIMATE (no source found)",
+    "ovrCurve": "DESIGN (TECHNICAL_SPEC §19: the stronger side wins most matches, upsets exist)"
+  },
+  "league": { "matches": 10000, "worldSeeds": [1, 2, 3, 4, 5], "batchSeed": 1, "benchSize": 9, "maxSubstitutions": 5 },
+  "goalsPerMatch": [2.2, 2.7],
+  "zeroZeroPct": [5.0, 11.0],
+  "homeWinPct": [43.0, 51.0],
+  "drawPct": [22.0, 30.0],
+  "awayWinPct": [23.0, 31.0],
+  "foulsPerMatch": [24.0, 30.0],
+  "yellowPerMatch": [5.0, 6.3],
+  "redPerMatch": [0.1, 0.4],
+  "cornersPerMatch": [8.5, 11.0],
+  "injuriesPerMatch": [0.1, 0.5],
+  "ovrCurve": {
+    "bucketWidth": 2,
+    "minMatchesPerBucket": 300,
+    "monotonicTolerancePct": 3.0,
+    "evenBucketStrongerWinPct": [33.0, 45.0],
+    "upsetMinPct": 10.0
+  },
+  "crossDivision": { "matches": 2000, "strongWinMinPct": 70.0, "weakWinMinPct": 1.0, "weakWinMaxPct": 15.0 },
+  "sensitivity": {
+    "boost": 15,
+    "matches": 4000,
+    "minZ": 3.0,
+    "metric": {
+      "default": "goalDifference",
+      "Stamina": "finalEnergy"
+    }
+  },
+  "maxMsPerMatch": 5.0
+}

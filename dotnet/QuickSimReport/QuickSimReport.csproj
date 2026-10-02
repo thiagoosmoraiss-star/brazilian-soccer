@@ -1,0 +1,17 @@
+<Project Sdk="Microsoft.NET.Sdk">
+  <!-- Dev tool (B2): run batches of QuickSim matches on generated worlds and print the design metrics. -->
+  <PropertyGroup>
+    <OutputType>Exe</OutputType>
+    <TargetFramework>net8.0</TargetFramework>
+    <AssemblyName>QuickSimReport</AssemblyName>
+    <RootNamespace>Game.Tools.QuickSimReport</RootNamespace>
+    <InvariantGlobalization>true</InvariantGlobalization>
+  </PropertyGroup>
+  <ItemGroup>
+    <Compile Include="*.cs" />
+  </ItemGroup>
+  <ItemGroup>
+    <ProjectReference Include="../Career/Career.csproj" />
+    <ProjectReference Include="../Simulation/Simulation.csproj" />
+  </ItemGroup>
+</Project>

@@ -1,0 +1,123 @@
+{
+  "schemaVersion": 1,
+  "minutes": 90,
+  "homeAdvantage": 0.09,
+  "possessionExponent": 1.0,
+  "attackChancePerMinute": 0.29,
+  "attackRatioExponent": 1.0,
+  "playTypes": [
+    {
+      "type": "OpenPlay",
+      "weight": 0.6,
+      "onTarget": 0.38,
+      "goalGivenOnTarget": 0.43,
+      "assistChance": 0.75
+    },
+    {
+      "type": "Cross",
+      "weight": 0.2,
+      "onTarget": 0.33,
+      "goalGivenOnTarget": 0.42,
+      "assistChance": 0.9
+    },
+    {
+      "type": "LongShot",
+      "weight": 0.2,
+      "onTarget": 0.3,
+      "goalGivenOnTarget": 0.16,
+      "assistChance": 0.3
+    }
+  ],
+  "aerialDuelExponent": 1.0,
+  "blockChance": 0.22,
+  "corners": {
+    "fromBlock": 0.5,
+    "fromSave": 0.3,
+    "fromAttackWithoutShot": 0.07,
+    "shotChance": 0.3,
+    "onTarget": 0.32,
+    "goalGivenOnTarget": 0.33,
+    "assistChance": 0.9
+  },
+  "penalties": {
+    "perDefensiveFoul": 0.035,
+    "onTarget": 0.85,
+    "goalGivenOnTarget": 0.9
+  },
+  "accuracyExponent": 0.8,
+  "keeperExponent": 0.7,
+  "composureExponent": 0.5,
+  "foulsPerMinute": 0.3,
+  "defendingTeamFoulShare": 0.6,
+  "pressureFoulMult": [0.85, 1.0, 1.2],
+  "mentalityAttack": [0.88, 0.94, 1.0, 1.06, 1.12],
+  "mentalityDefense": [1.08, 1.04, 1.0, 0.96, 0.92],
+  "lineDefense": [1.03, 1.0, 0.97],
+  "linePossession": [0.97, 1.0, 1.03],
+  "pressurePossession": [0.96, 1.0, 1.04],
+  "pressureDefense": [0.98, 1.0, 1.03],
+  "maxGoalsPerTeam": 15,
+  "noKeeperGoalMultiplier": 2.0,
+  "maxAttackChance": 0.9,
+  "maxShotProbability": 0.95,
+  "shooterWeights": {
+    "GOL": 0,
+    "ZAG": 0.4,
+    "LD": 0.5,
+    "LE": 0.5,
+    "VOL": 0.6,
+    "MC": 1.2,
+    "MEI": 2.5,
+    "PD": 3,
+    "PE": 3,
+    "ATA": 5
+  },
+  "headerWeights": {
+    "GOL": 0,
+    "ZAG": 2.5,
+    "LD": 0.5,
+    "LE": 0.5,
+    "VOL": 1.2,
+    "MC": 0.8,
+    "MEI": 0.8,
+    "PD": 1,
+    "PE": 1,
+    "ATA": 4
+  },
+  "assistWeights": {
+    "GOL": 0.05,
+    "ZAG": 0.3,
+    "LD": 1,
+    "LE": 1,
+    "VOL": 0.8,
+    "MC": 1.8,
+    "MEI": 3,
+    "PD": 2.5,
+    "PE": 2.5,
+    "ATA": 1.5
+  },
+  "crossWeights": {
+    "GOL": 0,
+    "ZAG": 0.1,
+    "LD": 2,
+    "LE": 2,
+    "VOL": 0.4,
+    "MC": 0.8,
+    "MEI": 1.2,
+    "PD": 3,
+    "PE": 3,
+    "ATA": 0.5
+  },
+  "foulWeights": {
+    "GOL": 0.1,
+    "ZAG": 3,
+    "LD": 2,
+    "LE": 2,
+    "VOL": 3,
+    "MC": 2,
+    "MEI": 1.2,
+    "PD": 1,
+    "PE": 1,
+    "ATA": 1.2
+  }
+}
