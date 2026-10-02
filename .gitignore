@@ -38,6 +38,10 @@
 /dotnet/TestResults/
 *.trx
 
+# ---- Logs written at the repository root (Unity/IDE tooling) ----
+/logs/
+/Logs/
+
 # ---- OS / editors ----
 .DS_Store
 Thumbs.db
