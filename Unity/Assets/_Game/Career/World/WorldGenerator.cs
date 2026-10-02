@@ -1,6 +1,5 @@
 using System;
 using System.Collections.Generic;
-using System.Globalization;
 using System.Text;
 using Game.Core.Ids;
 using Game.Core.Random;
@@ -155,12 +154,19 @@ namespace Game.Career.World
             throw new InvalidOperationException("Could not derive a unique short name for " + city);
         }
 
+        // Explicit table (not Unicode normalization, whose behaviour depends on the platform's globalization mode).
+        private const string Accented = "ÁÀÂÃÄÉÈÊËÍÌÎÏÓÒÔÕÖÚÙÛÜÇÑáàâãäéèêëíìîïóòôõöúùûüçñ";
+        private const string Plain = "AAAAAEEEEIIIIOOOOOUUUUCNaaaaaeeeeiiiiooooouuuucn";
+
         private static string RemoveAccents(string s)
         {
-            var sb = new StringBuilder();
-            foreach (char ch in s.Normalize(NormalizationForm.FormD))
-                if (CharUnicodeInfo.GetUnicodeCategory(ch) != UnicodeCategory.NonSpacingMark && (char.IsLetter(ch) || ch == ' '))
-                    sb.Append(ch);
+            var sb = new StringBuilder(s.Length);
+            foreach (char ch in s)
+            {
+                int i = Accented.IndexOf(ch);
+                char c = i >= 0 ? Plain[i] : ch;
+                if ((c >= 'A' && c <= 'Z') || (c >= 'a' && c <= 'z') || c == ' ') sb.Append(c);
+            }
             return sb.ToString();
         }
 

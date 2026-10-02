@@ -5,6 +5,7 @@
         "Core",
         "Data",
         "Rules",
+        "Simulation",
         "Career",
         "UnityEngine.TestRunner",
         "UnityEditor.TestRunner"

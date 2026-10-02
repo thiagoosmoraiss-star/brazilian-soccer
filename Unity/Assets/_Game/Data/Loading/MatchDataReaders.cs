@@ -65,7 +65,7 @@ namespace Game.Data.Loading
         {
             var j = new StrictJson(GameDataLoader.MatchRulesFile);
             var root = j.ParseRoot(json, SupportedSchemaVersion, "sectors", "roleSectorWeights", "sectorReferenceWeights",
-                "condition", "fatigue", "discipline", "injuries", "ratings", "substitutions");
+                "condition", "fatigue", "discipline", "injuries", "ratings", "substitutions", "penaltyShootout");
             if (root == null) return Result<MatchRulesDefinition>.Fail(j.Errors);
             var d = new MatchRulesDefinition();
             void Check(bool ok, string message) { if (!ok) j.Fail(InvalidMatchData, message); }
@@ -212,6 +212,23 @@ namespace Game.Data.Loading
                 for (int i = 1; i < d.Substitutions.Windows.Count; i++)
                     Check(d.Substitutions.Windows[i] > d.Substitutions.Windows[i - 1], "substitutions.windows must be increasing.");
                 Check(d.Substitutions.MaxWindows >= 0, "substitutions.maxWindows must be >= 0.");
+            }
+
+            var ps = j.Object(root, "penaltyShootout", "root");
+            if (ps != null)
+            {
+                j.Keys(ps, "penaltyShootout", "scoreChance", "maxScoreChance", "takerExponent", "keeperExponent", "kicksPerTeam", "maxSuddenDeathRounds");
+                d.PenaltyShootout = new PenaltyShootoutRules
+                {
+                    ScoreChance = j.Float(ps, "scoreChance", "penaltyShootout"),
+                    MaxScoreChance = j.Float(ps, "maxScoreChance", "penaltyShootout"),
+                    TakerExponent = j.Float(ps, "takerExponent", "penaltyShootout"),
+                    KeeperExponent = j.Float(ps, "keeperExponent", "penaltyShootout"),
+                    KicksPerTeam = j.Int(ps, "kicksPerTeam", "penaltyShootout"),
+                    MaxSuddenDeathRounds = j.Int(ps, "maxSuddenDeathRounds", "penaltyShootout"),
+                };
+                Check(d.PenaltyShootout.ScoreChance > 0f && d.PenaltyShootout.ScoreChance <= d.PenaltyShootout.MaxScoreChance && d.PenaltyShootout.MaxScoreChance < 1f, "penaltyShootout: 0 < scoreChance <= maxScoreChance < 1.");
+                Check(d.PenaltyShootout.KicksPerTeam > 0 && d.PenaltyShootout.MaxSuddenDeathRounds > 0, "penaltyShootout kicks/rounds must be > 0.");
             }
 
             return j.Ok ? Result<MatchRulesDefinition>.Ok(d) : Result<MatchRulesDefinition>.Fail(j.Errors);

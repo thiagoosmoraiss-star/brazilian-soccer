@@ -41,6 +41,7 @@ namespace Game.Career.World
                 clubIds.Add(c.Id);
                 if (!clubNames.Add(c.Name)) Fail($"Duplicate club name {c.Name}.");
                 if (c.ShortName == null || c.ShortName.Length != 3 || !shortNames.Add(c.ShortName)) Fail($"Invalid or duplicate short name {c.ShortName}.");
+                else foreach (char ch in c.ShortName) if (ch < 'A' || ch > 'Z') Fail($"Short name {c.ShortName} must be 3 ASCII capital letters.");
                 if (!Uf.IsValid(c.Uf)) Fail($"Club {c.Name} has invalid UF {c.Uf}.");
                 if (c.DivisionIndex < 0 || c.DivisionIndex >= g.Divisions.Count) { Fail($"Club {c.Name} has invalid division."); continue; }
                 perDivision[c.DivisionIndex]++;

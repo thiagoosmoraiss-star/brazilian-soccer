@@ -1,0 +1,49 @@
+{
+  "schemaVersion": 1,
+  "minDaysBetweenMatches": 3,
+  "leagueStart": {
+    "month": 4,
+    "weekday": "Saturday"
+  },
+  "leagueIntervalDays": 7,
+  "cupRounds": [
+    {
+      "month": 3,
+      "weekday": "Wednesday"
+    },
+    {
+      "month": 5,
+      "weekday": "Wednesday"
+    },
+    {
+      "month": 7,
+      "weekday": "Wednesday"
+    },
+    {
+      "month": 9,
+      "weekday": "Wednesday"
+    },
+    {
+      "month": 11,
+      "weekday": "Wednesday"
+    }
+  ],
+  "transferWindows": [
+    {
+      "openMonth": 1,
+      "openDay": 1,
+      "closeMonth": 1,
+      "closeDay": 31
+    },
+    {
+      "openMonth": 7,
+      "openDay": 1,
+      "closeMonth": 7,
+      "closeDay": 31
+    }
+  ],
+  "seasonEnd": {
+    "month": 12,
+    "day": 15
+  }
+}

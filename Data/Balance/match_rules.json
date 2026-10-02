@@ -228,5 +228,13 @@
     "energyThreshold": 85,
     "maxTiredSubstitutions": 4,
     "benchOvrMargin": 5
+  },
+  "penaltyShootout": {
+    "scoreChance": 0.75,
+    "maxScoreChance": 0.95,
+    "takerExponent": 0.5,
+    "keeperExponent": 0.5,
+    "kicksPerTeam": 5,
+    "maxSuddenDeathRounds": 30
   }
 }

@@ -50,6 +50,8 @@ namespace Game.Tests.Career
 
         public static int Int(string name) => Ranges()[name].Value<int>();
 
+        public static IReadOnlyList<int> Ints(string name) => Ranges()[name].Values<int>().ToList();
+
         public static IReadOnlyList<ulong> Seeds() => Ranges()["seeds"].Values<ulong>().ToList();
     }
 }

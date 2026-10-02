@@ -19,9 +19,13 @@ namespace Game.Core.Contracts.Match
         public int DurationMinutes { get; }
         public int MaxSubstitutions { get; }
         public ulong Seed { get; }
+        /// <summary>Knockout match: a draw is decided by a penalty shootout.</summary>
+        public bool RequiresWinner { get; }
 
-        public MatchSetup(MatchTeamSetup home, MatchTeamSetup away, bool neutralVenue, int durationMinutes, int maxSubstitutions, ulong seed)
+        public MatchSetup(MatchTeamSetup home, MatchTeamSetup away, bool neutralVenue, int durationMinutes, int maxSubstitutions, ulong seed,
+            bool requiresWinner = false)
         {
+            RequiresWinner = requiresWinner;
             Home = home ?? throw new ArgumentNullException(nameof(home));
             Away = away ?? throw new ArgumentNullException(nameof(away));
             if (maxSubstitutions < 0) throw new ArgumentOutOfRangeException(nameof(maxSubstitutions));

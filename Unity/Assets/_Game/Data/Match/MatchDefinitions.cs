@@ -34,6 +34,18 @@ namespace Game.Data.Match
         public InjuryRules Injuries { get; internal set; }
         public RatingRules Ratings { get; internal set; }
         public SubstitutionRules Substitutions { get; internal set; }
+        public PenaltyShootoutRules PenaltyShootout { get; internal set; }
+    }
+
+    /// <summary>Penalty shootout for knockout draws (X-41): 5 kicks each, then sudden death.</summary>
+    public sealed class PenaltyShootoutRules
+    {
+        public float ScoreChance { get; internal set; }
+        public float MaxScoreChance { get; internal set; }
+        public float TakerExponent { get; internal set; }
+        public float KeeperExponent { get; internal set; }
+        public int KicksPerTeam { get; internal set; }
+        public int MaxSuddenDeathRounds { get; internal set; }
     }
 
     public sealed class ConditionRules

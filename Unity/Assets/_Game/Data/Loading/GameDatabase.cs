@@ -13,11 +13,15 @@ namespace Game.Data.Loading
         public System.Collections.Generic.IReadOnlyList<Match.FormationDefinition> Formations { get; }
         public Match.MatchRulesDefinition MatchRules { get; }
         public Match.QuickSimDefinition QuickSim { get; }
+        public Competitions.CompetitionsDefinition Competitions { get; }
+        public Competitions.CalendarDefinition Calendar { get; }
 
         internal GameDatabase(string sourceDescription, Effects.Balance balance, Ovr.OvrDefinition ovr, World.WorldDefinition world,
             System.Collections.Generic.IReadOnlyList<Match.FormationDefinition> formations, Match.MatchRulesDefinition matchRules,
-            Match.QuickSimDefinition quickSim)
+            Match.QuickSimDefinition quickSim, Competitions.CompetitionsDefinition competitions, Competitions.CalendarDefinition calendar)
         {
+            Competitions = competitions;
+            Calendar = calendar;
             Formations = formations;
             MatchRules = matchRules;
             QuickSim = quickSim;

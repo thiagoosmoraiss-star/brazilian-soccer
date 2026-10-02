@@ -106,4 +106,4 @@ Uma funcionalidade só está pronta quando cumpre `DEFINITION_OF_DONE.md`. Compi
 
 ## 14. Etapa atual
 
-**Track B — B2 QuickSim** (em validação: `dotnet test` verde; falta a validação na Unity). B1 — Mundo e dados e Stage 0 — Foundation concluídas. Atualize esta seção quando a etapa mudar.
+**Track B — B3 Calendário e competições** (em validação: `dotnet test` verde; falta a validação na Unity). B2 — QuickSim concluída e validada (`dotnet test` 242/242; EditMode, PlayMode e Player verdes na Unity). B1 e Stage 0 concluídas. Atualize esta seção quando a etapa mudar.

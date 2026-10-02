@@ -119,6 +119,8 @@ namespace Game.Tests.Career
             Assert.AreEqual("SER", WorldGenerator.ShortName("Serra dos Ventos", used));
             Assert.AreEqual("CDO", WorldGenerator.ShortName("Campo Dourado do Oeste", used));
             Assert.AreEqual("SEV", WorldGenerator.ShortName("Serra Verde", used)); // SER taken
+            Assert.AreEqual("VAR", WorldGenerator.ShortName("Várzea Serena", used), "accents removed independently of the platform");
+            Assert.AreEqual("ACA", WorldGenerator.ShortName("Açaí Grande", used));
         }
 
         /// <summary>Canonical text dump of every generated field (order-sensitive).</summary>

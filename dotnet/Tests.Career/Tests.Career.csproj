@@ -18,6 +18,7 @@
     <ProjectReference Include="../Core/Core.csproj" />
     <ProjectReference Include="../Data/Data.csproj" />
     <ProjectReference Include="../Rules/Rules.csproj" />
+    <ProjectReference Include="../Simulation/Simulation.csproj" />
     <ProjectReference Include="../Career/Career.csproj" />
   </ItemGroup>
 </Project>

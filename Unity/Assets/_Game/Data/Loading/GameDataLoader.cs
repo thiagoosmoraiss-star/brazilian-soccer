@@ -1,6 +1,7 @@
 using System;
 using System.Collections.Generic;
 using Game.Core.Results;
+using Game.Data.Competitions;
 using Game.Data.Effects;
 using Game.Data.Match;
 using Game.Data.Ovr;
@@ -25,6 +26,8 @@ namespace Game.Data.Loading
         public const string FormationsFile = "Formations/formations.json";
         public const string MatchRulesFile = "Balance/match_rules.json";
         public const string QuickSimFile = "Balance/quicksim.json";
+        public const string CompetitionsFile = "Competitions/competitions.json";
+        public const string CalendarFile = "Competitions/calendar.json";
 
         public const string MissingFile = "MISSING_FILE";
         public const string ReadFailed = "READ_FAILED";
@@ -32,7 +35,7 @@ namespace Game.Data.Loading
         public static readonly IReadOnlyList<string> RequiredFiles = new[]
         {
             EffectsFile, OvrFile, NamesFile, CitiesFile, ClubTemplatesFile, CrestTemplatesFile, GenerationFile,
-            FormationsFile, MatchRulesFile, QuickSimFile,
+            FormationsFile, MatchRulesFile, QuickSimFile, CompetitionsFile, CalendarFile,
         };
 
         /// <summary>Reads and deserializes the effect definitions (syntax and structure only).</summary>
@@ -86,6 +89,18 @@ namespace Game.Data.Loading
             return text.IsSuccess ? MatchDataReaders.ReadQuickSim(text.Value) : Result<QuickSimDefinition>.Fail(text.Errors);
         }
 
+        public static Result<CompetitionsDefinition> LoadCompetitions(IDataSource source)
+        {
+            var text = ReadText(source, CompetitionsFile);
+            return text.IsSuccess ? CompetitionReaders.ReadCompetitions(text.Value) : Result<CompetitionsDefinition>.Fail(text.Errors);
+        }
+
+        public static Result<CalendarDefinition> LoadCalendar(IDataSource source)
+        {
+            var text = ReadText(source, CalendarFile);
+            return text.IsSuccess ? CompetitionReaders.ReadCalendar(text.Value) : Result<CalendarDefinition>.Fail(text.Errors);
+        }
+
         private static Result<string> ReadText(IDataSource source, string file)
         {
             if (source == null) throw new ArgumentNullException(nameof(source));
@@ -110,6 +125,8 @@ namespace Game.Data.Loading
             var formations = LoadFormations(source);
             var matchRules = LoadMatchRules(source);
             var quickSim = LoadQuickSim(source);
+            var competitions = LoadCompetitions(source);
+            var calendar = LoadCalendar(source);
 
             var errors = new List<Error>();
             errors.AddRange(catalog.Errors);
@@ -118,10 +135,12 @@ namespace Game.Data.Loading
             errors.AddRange(formations.Errors);
             errors.AddRange(matchRules.Errors);
             errors.AddRange(quickSim.Errors);
+            errors.AddRange(competitions.Errors);
+            errors.AddRange(calendar.Errors);
             if (errors.Count > 0) return Result<GameDatabase>.Fail(errors);
 
             return Result<GameDatabase>.Ok(new GameDatabase(source.Description, new Balance(catalog.Value), ovr.Value, world.Value,
-                formations.Value, matchRules.Value, quickSim.Value));
+                formations.Value, matchRules.Value, quickSim.Value, competitions.Value, calendar.Value));
         }
 
         /// <summary>Deserializes and validates the effect definitions against <paramref name="schema"/>.</summary>

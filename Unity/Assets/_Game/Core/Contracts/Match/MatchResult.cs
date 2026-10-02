@@ -16,10 +16,17 @@ namespace Game.Core.Contracts.Match
         public TeamMatchStats HomeStats { get; }
         public TeamMatchStats AwayStats { get; }
         public IReadOnlyList<PlayerMatchStats> PlayerStats { get; }
+        /// <summary>Penalty shootout score when a knockout match ended level; null otherwise.</summary>
+        public int? HomePenalties { get; }
+        public int? AwayPenalties { get; }
 
         public MatchResult(int homeGoals, int awayGoals, IReadOnlyList<MatchEvent> events,
-            TeamMatchStats homeStats, TeamMatchStats awayStats, IReadOnlyList<PlayerMatchStats> playerStats)
+            TeamMatchStats homeStats, TeamMatchStats awayStats, IReadOnlyList<PlayerMatchStats> playerStats,
+            int? homePenalties = null, int? awayPenalties = null)
         {
+            if (homePenalties.HasValue != awayPenalties.HasValue) throw new ArgumentException("Both shootout scores are required.");
+            HomePenalties = homePenalties;
+            AwayPenalties = awayPenalties;
             HomeGoals = homeGoals;
             AwayGoals = awayGoals;
             Events = Copy(events);
@@ -29,6 +36,11 @@ namespace Game.Core.Contracts.Match
         }
 
         public int Goals(MatchSide side) => side == MatchSide.Home ? HomeGoals : AwayGoals;
+
+        /// <summary>Winner including the shootout; null for a draw without shootout.</summary>
+        public MatchSide? Winner =>
+            HomeGoals != AwayGoals ? (HomeGoals > AwayGoals ? MatchSide.Home : MatchSide.Away)
+            : HomePenalties.HasValue ? (HomePenalties > AwayPenalties ? MatchSide.Home : MatchSide.Away) : (MatchSide?)null;
         public TeamMatchStats Stats(MatchSide side) => side == MatchSide.Home ? HomeStats : AwayStats;
 
         private static T[] Copy<T>(IReadOnlyList<T> source)

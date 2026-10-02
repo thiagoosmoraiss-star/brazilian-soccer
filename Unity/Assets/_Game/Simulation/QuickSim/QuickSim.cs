@@ -76,7 +76,7 @@ namespace Game.Simulation.QuickSim
             private readonly Dictionary<Id, PlayerAcc> _acc = new Dictionary<Id, PlayerAcc>();
             private readonly List<PlayerAcc> _order = new List<PlayerAcc>();
             private readonly List<MatchEvent> _events = new List<MatchEvent>();
-            private readonly Rng _possession, _chances, _discipline, _injuries, _ratings, _subs;
+            private readonly Rng _possession, _chances, _discipline, _injuries, _ratings, _subs, _shootout;
             private readonly float[] _weights = new float[16];
             private int _minute;
 
@@ -94,6 +94,7 @@ namespace Game.Simulation.QuickSim
                 _injuries = streams.Get("QuickSim.Injuries");
                 _ratings = streams.Get("QuickSim.Ratings");
                 _subs = streams.Get("QuickSim.Substitutions");
+                _shootout = streams.Get("QuickSim.Shootout");
                 _home = CreateTeam(MatchSide.Home, setup.Home);
                 _away = CreateTeam(MatchSide.Away, setup.Away);
             }
@@ -523,9 +524,32 @@ namespace Game.Simulation.QuickSim
                         a.ShotsOnTarget, a.Fouls, a.Yellows, a.Red, rating, (float)Math.Round(a.Energy, 1), a.Injury));
                 }
 
+                int? homePens = null, awayPens = null;
+                if (_setup.RequiresWinner && _home.Goals == _away.Goals)
+                {
+                    var (h, a) = PenaltyShootout.Play(R, Takers(_home), Keeper(_home)?.Setup.Attributes.ToArray(),
+                        Takers(_away), Keeper(_away)?.Setup.Attributes.ToArray(), _shootout);
+                    homePens = h;
+                    awayPens = a;
+                }
+
                 float homePossession = (float)Math.Round(100.0 * _home.PossessionMinutes / minutes, 1);
                 return new MatchResult(_home.Goals, _away.Goals, _events,
-                    Stats(_home, homePossession), Stats(_away, (float)Math.Round(100f - homePossession, 1)), players);
+                    Stats(_home, homePossession), Stats(_away, (float)Math.Round(100f - homePossession, 1)), players, homePens, awayPens);
+            }
+
+            /// <summary>Shootout order: players on the pitch, best penalty takers (lowest PenaltyAimWobble) first.</summary>
+            private List<int[]> Takers(Team team)
+            {
+                var list = new List<FieldPlayer>(team.OnField);
+                list.Sort((a, b) =>
+                {
+                    int c = R.EffectRatio(Effect.PenaltyAimWobble, a.Setup.Attributes).CompareTo(R.EffectRatio(Effect.PenaltyAimWobble, b.Setup.Attributes));
+                    return c != 0 ? c : a.Setup.PlayerId.CompareTo(b.Setup.PlayerId);
+                });
+                var takers = new List<int[]>(list.Count);
+                foreach (var fp in list) takers.Add(fp.Setup.Attributes.ToArray());
+                return takers;
             }
 
             private static TeamMatchStats Stats(Team t, float possession) =>

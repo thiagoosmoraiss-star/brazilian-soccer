@@ -1,0 +1,42 @@
+{
+  "schemaVersion": 1,
+  "league": {
+    "id": "liga",
+    "name": "Liga Nacional",
+    "pointsWin": 3,
+    "pointsDraw": 1,
+    "tiebreakers": [
+      "Wins",
+      "GoalDifference",
+      "GoalsFor",
+      "HeadToHead",
+      "Cards",
+      "Draw"
+    ],
+    "cardWeights": {
+      "yellow": 1,
+      "red": 3
+    },
+    "promoted": 4,
+    "relegated": 4
+  },
+  "cup": {
+    "id": "copa",
+    "name": "Copa Nacional",
+    "clubs": 32,
+    "qualifiersPerDivision": 8,
+    "home": "LowerDivision",
+    "finalNeutral": true,
+    "firstSeasonQualification": "SquadOvr"
+  },
+  "matchRules": {
+    "benchSize": 9,
+    "maxSubstitutions": 5,
+    "durationMinutes": 6,
+    "aiTactic": {
+      "mentality": 3,
+      "defensiveLine": 2,
+      "pressure": 2
+    }
+  }
+}

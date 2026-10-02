@@ -1,0 +1,17 @@
+<Project Sdk="Microsoft.NET.Sdk">
+  <!-- Dev tool (B3): run full seasons headless and print tables, promotions and cup results. -->
+  <PropertyGroup>
+    <OutputType>Exe</OutputType>
+    <TargetFramework>net8.0</TargetFramework>
+    <AssemblyName>CareerSim</AssemblyName>
+    <RootNamespace>Game.Tools.CareerSim</RootNamespace>
+    <InvariantGlobalization>true</InvariantGlobalization>
+  </PropertyGroup>
+  <ItemGroup>
+    <Compile Include="*.cs" />
+  </ItemGroup>
+  <ItemGroup>
+    <ProjectReference Include="../Career/Career.csproj" />
+    <ProjectReference Include="../Simulation/Simulation.csproj" />
+  </ItemGroup>
+</Project>
