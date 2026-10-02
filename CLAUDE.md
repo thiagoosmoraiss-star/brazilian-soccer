@@ -106,4 +106,4 @@ Uma funcionalidade só está pronta quando cumpre `DEFINITION_OF_DONE.md`. Compi
 
 ## 14. Etapa atual
 
-**Track B — B1 Mundo e dados** (D-01 = Track B). Stage 0 — Foundation concluída e validada (`dotnet test`, EditMode e PlayMode na Unity). Atualize esta seção quando a etapa mudar.
+**Track B — B1 Mundo e dados: concluída** e validada (`dotnet test` 192/192; EditMode e PlayMode verdes na Unity). Próxima etapa prevista: **B2 — QuickSim**, aguardando autorização explícita. Stage 0 — Foundation concluída. Atualize esta seção quando a etapa mudar.
