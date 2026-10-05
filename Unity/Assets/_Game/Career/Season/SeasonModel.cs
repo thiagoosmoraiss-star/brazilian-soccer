@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Generic;
+using Game.Career.World;
 using Game.Core.Ids;
 
 namespace Game.Career.Season
@@ -119,6 +120,8 @@ namespace Game.Career.Season
         public bool Finished => NextEntry >= Calendar.Count;
         /// <summary>Matches played by each club this season (minutes share for development).</summary>
         public Dictionary<Id, int> ClubMatches { get; } = new Dictionary<Id, int>();
+        /// <summary>This season's cash movements (B6, X-44); archived as a net total per club at season end.</summary>
+        public List<LedgerEntry> Ledger { get; } = new List<LedgerEntry>();
 
         public IEnumerable<Fixture> AllFixtures()
         {
@@ -139,5 +142,7 @@ namespace Game.Career.Season
         public Id CupRunnerUp { get; internal set; }
         public IReadOnlyList<Id> CupQualified { get; internal set; }
         public IReadOnlyList<Id> Retired { get; internal set; }
+        /// <summary>Net cash movement per club this season (B6, X-44): the sum of its ledger entries.</summary>
+        public IReadOnlyDictionary<Id, long> SeasonNetByClub { get; internal set; }
     }
 }

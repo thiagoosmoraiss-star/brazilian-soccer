@@ -13,6 +13,7 @@
   <ItemGroup>
     <ProjectReference Include="../Career/Career.csproj" />
     <ProjectReference Include="../Career.Market/Career.Market.csproj" />
+    <ProjectReference Include="../Career.Economy/Career.Economy.csproj" />
     <ProjectReference Include="../Simulation/Simulation.csproj" />
   </ItemGroup>
 </Project>

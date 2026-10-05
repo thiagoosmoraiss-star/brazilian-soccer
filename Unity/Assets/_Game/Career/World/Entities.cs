@@ -47,11 +47,46 @@ namespace Game.Career.World
         public int Reputation { get; internal set; }
         /// <summary>Displayed reputation, 1-5 stars.</summary>
         public int Stars { get; internal set; }
-        /// <summary>Season budget, baseline v1 in fictional R$ (split into wage cap/transfer funds in B6).</summary>
+        /// <summary>Transfer-fund/wage-cap base for the market (`Market.Budget`, B5): synced from <see cref="Balance"/>
+        /// at every month end (B6, X-44): max(0, Balance), never below zero.</summary>
         public long Budget { get; internal set; }
         public Stadium Stadium { get; internal set; }
         /// <summary>Fan base size.</summary>
         public int Fans { get; internal set; }
+
+        /// <summary>Real cash (B6, X-44): always equal to the sum of this season's ledger entries plus every
+        /// previous season's net (TEST_PLAN: "saldo = soma do livro").</summary>
+        public long Balance { get; internal set; }
+        /// <summary>Consecutive months this club has closed with a negative <see cref="Balance"/>.</summary>
+        public int MonthsNegativeCash { get; internal set; }
+        /// <summary>GAME_DESIGN §11: flagged after `cashAlert.alertMonths` consecutive negative months.</summary>
+        public bool CashAlert { get; internal set; }
+        /// <summary>GAME_DESIGN §11: the market (B5) stops signing for this club after `cashAlert.transferLockoutMonths`.</summary>
+        public bool TransferLockout { get; internal set; }
+    }
+
+    public enum LedgerCategory
+    {
+        Tv = 0,
+        Ticketing = 1,
+        Sponsorship = 2,
+        Prizes = 3,
+        TransferIn = 4,
+        Wages = 5,
+        Maintenance = 6,
+        TransferOut = 7,
+    }
+
+    /// <summary>One cash movement (B6, X-44, TECHNICAL_SPEC §13): the club's <see cref="Club.Balance"/> is always the
+    /// sum of its ledger entries. Only the current season's entries are kept (archived as a net total per season,
+    /// TECHNICAL_SPEC §11); positive = revenue, negative = expense.</summary>
+    public sealed class LedgerEntry
+    {
+        public Id Id { get; internal set; }
+        public Id ClubId { get; internal set; }
+        public DateTime Date { get; internal set; }
+        public LedgerCategory Category { get; internal set; }
+        public long Amount { get; internal set; }
     }
 
     public enum Foot

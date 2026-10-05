@@ -65,7 +65,7 @@ namespace Game.Career.Market
             var m = db.Market;
             foreach (var club in world.Clubs.OrderBy(c => c.Id.Value))
             {
-                if (IsManaged(state, club.Id)) continue;
+                if (IsManaged(state, club.Id) || club.TransferLockout) continue;
                 int signed = 0;
                 while (world.SquadOf(club.Id).Count < m.Squad.Min && signed < m.Ai.MaxSigningsPerClubPerWindow)
                 {
@@ -100,7 +100,7 @@ namespace Game.Career.Market
             int proposalsToManaged = 0;
             foreach (var buyer in world.Clubs.OrderBy(c => c.Id.Value))
             {
-                if (IsManaged(state, buyer.Id)) continue;
+                if (IsManaged(state, buyer.Id) || buyer.TransferLockout) continue;
                 int need = m.Squad.Min - world.SquadOf(buyer.Id).Count;
                 int signed = 0;
                 while (need > 0 && signed < m.Ai.MaxSigningsPerClubPerWindow)
@@ -117,8 +117,9 @@ namespace Game.Career.Market
                         Id = state.Ids.Next(), PlayerId = player.Id, ClubId = buyer.Id, Wage = result.Wage,
                         StartYear = date.Year, EndYear = date.Year + length - 1,
                     });
-                    seller.Budget += result.Fee;
-                    buyer.Budget -= result.Fee;
+                    // B6, X-44: real cash move; Budget itself is re-synced from Balance at the next month end.
+                    LedgerBook.Post(state, seller.Id, date, LedgerCategory.TransferIn, result.Fee);
+                    LedgerBook.Post(state, buyer.Id, date, LedgerCategory.TransferOut, -result.Fee);
                     spent[buyer.Id] = (spent.TryGetValue(buyer.Id, out var s) ? s : 0) + result.Fee;
                     need--; signed++;
                 }
@@ -180,7 +181,7 @@ namespace Game.Career.Market
                 float form = p.Condition.Form ?? 6f;
                 long fee = (long)(MarketRules.Value(db.Market, club.DivisionIndex, ovr, age, p.Potential,
                     contract.YearsLeft(date.Year), form) * m.ValueMultiplier);
-                club.Budget += fee; // fictional sale abroad; B6 replaces this proxy with a real ledger entry.
+                LedgerBook.Post(state, clubId, date, LedgerCategory.TransferIn, fee); // fictional sale abroad (B6, X-44).
                 world.RemovePlayer(p.Id);
             }
         }

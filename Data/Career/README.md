@@ -36,3 +36,18 @@ Transfer market (B5, baseline v1, X-43): value, reference wage, negotiation, con
 | `youthForeignSale` | Chance per window that a high-potential youth under `maxAge` is sold to a fictional foreign club (GAME_DESIGN §10) | 0–1 chance |
 
 `CareerState.ManagedClubId` (X-43): when set, the market never signs, sells or trims that club; AI interest in its players becomes a `TransferProposal` instead (no UI to act on them yet — Track C). Left `null` (every headless test and tool), every club is AI-run.
+
+## `economy.json`
+
+Club economy (B6, baseline v1, X-44): TV, gate, sponsorship, maintenance, prizes and the negative-cash thresholds. Recalibrate here; no code change needed.
+
+| Section | Controls | Valid values |
+| --- | --- | --- |
+| `tv` | Fictional R$ per match played, by division | Non-empty |
+| `ticketing` | Share of the fan base attending a home match, ticket price by division, bonus share on a win | 0–1 for the shares |
+| `sponsorship` | The single MVP sponsor, fictional R$ per season by division, spread monthly | Non-empty |
+| `maintenance` | Fictional R$ per season by `Stadium.Level` (1–10), spread monthly | Non-empty |
+| `prizes` | Paid at season end: league champion (`base × leagueChampionMultiplier[division]`, GAME_DESIGN §11 ratios D=1/C=3/B=8/A=40), cup winner/runner-up (`base × cupWinnerMultiplier`/`cupRunnerUpMultiplier`, Copa=25) | `base` > 0 |
+| `cashAlert` | Consecutive negative months before `Club.CashAlert` (1) and before `Club.TransferLockout` (3) — the market (B5) stops signing for a locked-out club | `alertMonths` ≤ `transferLockoutMonths` |
+
+Every revenue and expense goes through `Game.Career.Season.LedgerBook.Post` (including the market's transfer fees), so `Club.Balance` is always exactly the sum of the season's ledger plus every earlier season's archived net (`SeasonSummary.SeasonNetByClub`). `Club.Budget` (the market's funding figure) is re-synced from `Balance` at every month end and at season end: `max(0, Balance)`. The 6-month confidence drop from GAME_DESIGN §11 needs the board/confidence system (B7, pending) and is not implemented yet (see `DECISIONS.md`).

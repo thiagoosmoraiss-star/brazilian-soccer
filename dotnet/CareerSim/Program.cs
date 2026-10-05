@@ -27,7 +27,8 @@ namespace Game.Tools.CareerSim
             var db = GameDataLoader.Load(new DirectoryDataSource(root));
             if (!db.IsSuccess) { Console.Error.WriteLine(db); return 1; }
             var quickSim = new Game.Simulation.QuickSim.QuickSim(db.Value);
-            var career = CareerSimulator.Start(db.Value, seed, quickSim.Simulate, new Game.Career.Market.TransferWindow());
+            var career = CareerSimulator.Start(db.Value, seed, quickSim.Simulate, new Game.Career.Market.TransferWindow(),
+                new Game.Career.Economy.EconomySystem());
             string Name(Game.Core.Ids.Id id) => career.State.Club(id).ShortName;
 
             var sw = System.Diagnostics.Stopwatch.StartNew();
@@ -73,7 +74,17 @@ namespace Game.Tools.CareerSim
             double age = players.Average(p => p.BirthDate.AgeOn(year, 1, 1));
             int maxOvr = players.Max(p => Game.Rules.Ovr.OvrCalculator.Rating(db.Ovr, p.AttributeSpan, p.MainPosition));
             double squad = w.Clubs.Average(c => w.SquadOf(c.Id).Count);
+            var balanceByDivision = w.DivisionNames.Select((name, d) =>
+                $"{name} {w.Clubs.Where(c => c.DivisionIndex == d).Average(c => c.Balance) / 1_000_000.0:0.0}M").ToArray();
+            int lockedOut = w.Clubs.Count(c => c.TransferLockout);
+            var wageByDivision = w.DivisionNames.Select((name, d) =>
+            {
+                double avgWage = w.Clubs.Where(c => c.DivisionIndex == d).Average(c => w.SquadOf(c.Id).Sum(p => w.ContractOf(p.Id)?.Wage ?? 0));
+                return $"{name} {avgWage / 1_000_000.0:0.0}M";
+            }).ToArray();
+            Console.WriteLine($"  [{label}] wage bill/season {string.Join(" | ", wageByDivision)}");
             Console.WriteLine($"  [{label}] top-22 OVR {string.Join(" | ", parts)} | players {players.Count} (squad {squad:0.0}) | age {age:0.0} | max OVR {maxOvr} | above potential {above}");
+            Console.WriteLine($"  [{label}] balance {string.Join(" | ", balanceByDivision)} | locked out {lockedOut}");
         }
     }
 }

@@ -23,6 +23,7 @@ namespace Game.Career.Season
         private readonly MatchRules _rules;
         private readonly Func<MatchSetup, MatchResult> _resolve;
         private readonly ITransferWindow _market;
+        private readonly IEconomySystem _economy;
 
         public CareerState State { get; }
         private LeagueDefinition League => _db.Competitions.League;
@@ -31,23 +32,27 @@ namespace Game.Career.Season
 
         /// <param name="resolve">Match resolver (QuickSim in the career; tests may inject another).</param>
         /// <param name="market">Transfer window driver (B5, X-43); null runs the career without a market.</param>
-        private CareerSimulator(GameDatabase db, CareerState state, Func<MatchSetup, MatchResult> resolve, ITransferWindow market)
+        /// <param name="economy">Club economy driver (B6, X-44); null runs the career without an economy.</param>
+        private CareerSimulator(GameDatabase db, CareerState state, Func<MatchSetup, MatchResult> resolve, ITransferWindow market,
+            IEconomySystem economy)
         {
             _db = db;
             _rules = new MatchRules(db);
             _resolve = resolve;
             _market = market;
+            _economy = economy;
             State = state;
         }
 
         /// <summary>New career: generates the world and the first season.</summary>
-        public static CareerSimulator Start(GameDatabase db, ulong seed, Func<MatchSetup, MatchResult> resolve, ITransferWindow market = null)
+        public static CareerSimulator Start(GameDatabase db, ulong seed, Func<MatchSetup, MatchResult> resolve, ITransferWindow market = null,
+            IEconomySystem economy = null)
         {
             if (db == null) throw new ArgumentNullException(nameof(db));
             if (resolve == null) throw new ArgumentNullException(nameof(resolve));
             var world = WorldGenerator.Generate(db, seed);
             var state = new CareerState { Seed = seed, World = world, Ids = new IdAllocator(world.LastIssuedId) };
-            var sim = new CareerSimulator(db, state, resolve, market);
+            var sim = new CareerSimulator(db, state, resolve, market, economy);
             Youth.Intake(db, world, state.Ids, world.StartYear, regularIntake: false, sim.SeasonRng("Youth", world.StartYear));
             state.Season = sim.CreateSeason(world.StartYear, sim.FirstSeasonCupQualifiers());
             return sim;
@@ -66,6 +71,7 @@ namespace Game.Career.Season
                 case CalendarEntryKind.CupRound: PlayCupRound(season, entry); break;
                 case CalendarEntryKind.WeeklyDevelopment: WeeklyDevelopment(season, entry.Date); break;
                 case CalendarEntryKind.TransferWindowOpen: _market?.Run(State, _db, entry.Date, State.Seed); break;
+                case CalendarEntryKind.MonthEnd: _economy?.MonthEnd(State, _db, entry.Date); break;
                 case CalendarEntryKind.YouthIntake:
                     var created = Youth.Intake(_db, State.World, State.Ids, season.Year, regularIntake: true, SeasonRng("Youth", season.Year));
                     YouthIntakeHappened?.Invoke(created);
@@ -399,6 +405,12 @@ namespace Game.Career.Season
             foreach (var t in tables)
                 for (int i = 0; i < CupDef.QualifiersPerDivision && i < t.Count; i++) nextCup.Add(t[i]);
 
+            // B6: league and cup prizes, then archive the season's ledger as a net total per club (X-44).
+            _economy?.SeasonEnd(State, _db, tables, season.Cup.Winner, season.Cup.RunnerUp, season.Year);
+            var seasonNet = new Dictionary<Id, long>();
+            foreach (var entry in season.Ledger)
+                seasonNet[entry.ClubId] = (seasonNet.TryGetValue(entry.ClubId, out var n) ? n : 0) + entry.Amount;
+
             State.History.Add(new SeasonSummary
             {
                 Year = season.Year,
@@ -409,6 +421,7 @@ namespace Game.Career.Season
                 CupRunnerUp = season.Cup.RunnerUp,
                 CupQualified = season.Cup.Qualified,
                 Retired = retired,
+                SeasonNetByClub = seasonNet,
             });
             State.Season = CreateSeason(season.Year + 1, nextCup);
         }

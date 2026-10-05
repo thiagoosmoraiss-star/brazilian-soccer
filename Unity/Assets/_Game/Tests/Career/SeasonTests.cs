@@ -46,7 +46,7 @@ namespace Game.Tests.Career
             if (Careers.TryGetValue(seed, out var list)) return list;
             var db = CareerTestData.Db();
             var quickSim = new Game.Simulation.QuickSim.QuickSim(db);
-            var career = CareerSimulator.Start(db, seed, quickSim.Simulate, new Game.Career.Market.TransferWindow());
+            var career = CareerSimulator.Start(db, seed, quickSim.Simulate, new Game.Career.Market.TransferWindow(), new Game.Career.Economy.EconomySystem());
             var violations = Violations[seed] = new List<string>();
             var floor = FloorBreaches[seed] = new List<string>();
             var youthCounts = YouthIntakeCounts[seed] = new Dictionary<(int Year, Id Club), int>();
@@ -309,7 +309,7 @@ namespace Game.Tests.Career
             var cfg = JObject.Parse(System.IO.File.ReadAllText(System.IO.Path.Combine(CareerTestData.DataRoot(), "TestRanges", "development.json")))["careerStability"];
             ulong seed = cfg["seed"].Value<ulong>();
             var db = CareerTestData.Db();
-            var career = CareerSimulator.Start(db, seed, new Game.Simulation.QuickSim.QuickSim(db).Simulate, new Game.Career.Market.TransferWindow());
+            var career = CareerSimulator.Start(db, seed, new Game.Simulation.QuickSim.QuickSim(db).Simulate, new Game.Career.Market.TransferWindow(), new Game.Career.Economy.EconomySystem());
             var w = career.State.World;
             int top = cfg["top"].Value<int>();
             double[] Top() => w.DivisionNames.Select((_, d) => w.Clubs.Where(c => c.DivisionIndex == d)
@@ -335,7 +335,7 @@ namespace Game.Tests.Career
             var db = CareerTestData.Db();
             string Run()
             {
-                var career = CareerSimulator.Start(db, 99, new Game.Simulation.QuickSim.QuickSim(db).Simulate, new Game.Career.Market.TransferWindow());
+                var career = CareerSimulator.Start(db, 99, new Game.Simulation.QuickSim.QuickSim(db).Simulate, new Game.Career.Market.TransferWindow(), new Game.Career.Economy.EconomySystem());
                 var a = career.PlaySeason();
                 var b = career.PlaySeason();
                 return string.Join("|", new[] { a, b }.Select(x =>

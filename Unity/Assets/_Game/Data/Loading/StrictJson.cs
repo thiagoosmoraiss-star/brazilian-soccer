@@ -179,6 +179,22 @@ namespace Game.Data.Loading
             return list;
         }
 
+        public long AsLong(JToken t, string path)
+        {
+            if (t != null && t.Type == JTokenType.Integer) return t.Value<long>();
+            Fail(InvalidStructure, path + " must be an integer.");
+            return 0;
+        }
+
+        public List<long> LongList(JToken parent, string name, string path)
+        {
+            var list = new List<long>();
+            var arr = Array(parent, name, path);
+            if (arr == null) return list;
+            for (int i = 0; i < arr.Count; i++) list.Add(AsLong(arr[i], $"{path}.{name}[{i}]"));
+            return list;
+        }
+
         public List<float> FloatList(JToken parent, string name, string path)
         {
             var list = new List<float>();
