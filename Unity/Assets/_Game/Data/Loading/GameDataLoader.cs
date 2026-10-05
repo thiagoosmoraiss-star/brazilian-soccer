@@ -29,6 +29,7 @@ namespace Game.Data.Loading
         public const string CompetitionsFile = "Competitions/competitions.json";
         public const string CalendarFile = "Competitions/calendar.json";
         public const string DevelopmentFile = "Career/development.json";
+        public const string MarketFile = "Career/market.json";
 
         public const string MissingFile = "MISSING_FILE";
         public const string ReadFailed = "READ_FAILED";
@@ -36,7 +37,7 @@ namespace Game.Data.Loading
         public static readonly IReadOnlyList<string> RequiredFiles = new[]
         {
             EffectsFile, OvrFile, NamesFile, CitiesFile, ClubTemplatesFile, CrestTemplatesFile, GenerationFile,
-            FormationsFile, MatchRulesFile, QuickSimFile, CompetitionsFile, CalendarFile, DevelopmentFile,
+            FormationsFile, MatchRulesFile, QuickSimFile, CompetitionsFile, CalendarFile, DevelopmentFile, MarketFile,
         };
 
         /// <summary>Reads and deserializes the effect definitions (syntax and structure only).</summary>
@@ -108,6 +109,12 @@ namespace Game.Data.Loading
             return text.IsSuccess ? DevelopmentReader.Read(text.Value) : Result<Career.DevelopmentDefinition>.Fail(text.Errors);
         }
 
+        public static Result<Career.MarketDefinition> LoadMarket(IDataSource source)
+        {
+            var text = ReadText(source, MarketFile);
+            return text.IsSuccess ? MarketReader.Read(text.Value) : Result<Career.MarketDefinition>.Fail(text.Errors);
+        }
+
         private static Result<string> ReadText(IDataSource source, string file)
         {
             if (source == null) throw new ArgumentNullException(nameof(source));
@@ -135,6 +142,7 @@ namespace Game.Data.Loading
             var competitions = LoadCompetitions(source);
             var calendar = LoadCalendar(source);
             var development = LoadDevelopment(source);
+            var market = LoadMarket(source);
 
             var errors = new List<Error>();
             errors.AddRange(catalog.Errors);
@@ -146,10 +154,11 @@ namespace Game.Data.Loading
             errors.AddRange(competitions.Errors);
             errors.AddRange(calendar.Errors);
             errors.AddRange(development.Errors);
+            errors.AddRange(market.Errors);
             if (errors.Count > 0) return Result<GameDatabase>.Fail(errors);
 
             return Result<GameDatabase>.Ok(new GameDatabase(source.Description, new Balance(catalog.Value), ovr.Value, world.Value,
-                formations.Value, matchRules.Value, quickSim.Value, competitions.Value, calendar.Value, development.Value));
+                formations.Value, matchRules.Value, quickSim.Value, competitions.Value, calendar.Value, development.Value, market.Value));
         }
 
         /// <summary>Deserializes and validates the effect definitions against <paramref name="schema"/>.</summary>

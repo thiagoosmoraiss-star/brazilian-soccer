@@ -12,6 +12,7 @@
   </ItemGroup>
   <ItemGroup>
     <ProjectReference Include="../Career/Career.csproj" />
+    <ProjectReference Include="../Career.Market/Career.Market.csproj" />
     <ProjectReference Include="../Simulation/Simulation.csproj" />
   </ItemGroup>
 </Project>

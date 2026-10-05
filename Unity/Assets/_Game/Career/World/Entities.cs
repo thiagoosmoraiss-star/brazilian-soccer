@@ -167,13 +167,19 @@ namespace Game.Career.World
     }
 
     /// <summary>
-    /// Minimal player-club link (§4.1 "Player - Club via Contract"). Terms (wage, length, clauses) are added in B5.
+    /// Player-club link (§4.1 "Player - Club via Contract"). Terms (B5, X-43): season wage in fictional R$ and the
+    /// years covered (inclusive). A player with no <see cref="Contract"/> in <see cref="WorldState"/> is a free agent.
     /// </summary>
     public sealed class Contract
     {
         public Id Id { get; internal set; }
         public Id PlayerId { get; internal set; }
         public Id ClubId { get; internal set; }
+        public long Wage { get; internal set; }
+        public int StartYear { get; internal set; }
+        /// <summary>Last season year covered by the contract (inclusive).</summary>
+        public int EndYear { get; internal set; }
+        public int YearsLeft(int year) => Math.Max(0, EndYear - year + 1);
     }
 
     /// <summary>The world: part of the CareerState. References are Ids only. Squads change from B4 (youth, retirements).</summary>
@@ -195,23 +201,40 @@ namespace Game.Career.World
 
         private Dictionary<Id, List<Player>> _squads;
         private Dictionary<Id, Id> _clubOf;
+        private Dictionary<Id, Contract> _contractOf;
 
         internal void AddPlayer(Player player, Contract contract)
         {
             PlayerList.Add(player);
-            ContractList.Add(contract);
-            LastIssuedId = Math.Max(LastIssuedId, Math.Max(player.Id.Value, contract.Id.Value));
-            _squads = null;
-            _clubOf = null;
+            if (contract != null) ContractList.Add(contract);
+            LastIssuedId = Math.Max(LastIssuedId, Math.Max(player.Id.Value, contract?.Id.Value ?? 0));
+            InvalidateIndex();
         }
 
         internal void RemovePlayer(Id playerId)
         {
             PlayerList.RemoveAll(p => p.Id == playerId);
             ContractList.RemoveAll(c => c.PlayerId == playerId);
-            _squads = null;
-            _clubOf = null;
+            InvalidateIndex();
         }
+
+        /// <summary>Moves (or signs) a player onto <see cref="Contract.ClubId"/>, replacing any existing contract (B5).</summary>
+        internal void SetContract(Contract contract)
+        {
+            ContractList.RemoveAll(c => c.PlayerId == contract.PlayerId);
+            ContractList.Add(contract);
+            LastIssuedId = Math.Max(LastIssuedId, contract.Id.Value);
+            InvalidateIndex();
+        }
+
+        /// <summary>Ends a player's contract: the player becomes a free agent (B5), still part of <see cref="Players"/>.</summary>
+        internal void ReleasePlayer(Id playerId)
+        {
+            ContractList.RemoveAll(c => c.PlayerId == playerId);
+            InvalidateIndex();
+        }
+
+        private void InvalidateIndex() { _squads = null; _clubOf = null; _contractOf = null; }
 
         /// <summary>Players under contract with the club (index rebuilt after squad changes).</summary>
         public IReadOnlyList<Player> SquadOf(Id clubId)
@@ -226,20 +249,39 @@ namespace Game.Career.World
             return _clubOf.TryGetValue(playerId, out var c) ? c : Id.None;
         }
 
+        /// <summary>The player's current contract, or null for a free agent (B5).</summary>
+        public Contract ContractOf(Id playerId)
+        {
+            if (_contractOf == null) BuildIndex();
+            return _contractOf.TryGetValue(playerId, out var c) ? c : null;
+        }
+
+        /// <summary>Players with no active contract (B5 free agents).</summary>
+        public IReadOnlyList<Player> FreeAgents()
+        {
+            if (_clubOf == null) BuildIndex();
+            var result = new List<Player>();
+            foreach (var p in PlayerList) if (!_clubOf.ContainsKey(p.Id)) result.Add(p);
+            return result;
+        }
+
         private void BuildIndex()
         {
             var byId = new Dictionary<Id, Player>();
             foreach (var p in PlayerList) byId[p.Id] = p;
             var squads = new Dictionary<Id, List<Player>>();
             var clubOf = new Dictionary<Id, Id>();
+            var contractOf = new Dictionary<Id, Contract>();
             foreach (var c in ContractList)
             {
                 if (!squads.TryGetValue(c.ClubId, out var list)) squads[c.ClubId] = list = new List<Player>();
                 list.Add(byId[c.PlayerId]);
                 clubOf[c.PlayerId] = c.ClubId;
+                contractOf[c.PlayerId] = c;
             }
             _squads = squads;
             _clubOf = clubOf;
+            _contractOf = contractOf;
         }
     }
 }

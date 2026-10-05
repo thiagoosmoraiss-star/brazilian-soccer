@@ -27,7 +27,7 @@ namespace Game.Tools.CareerSim
             var db = GameDataLoader.Load(new DirectoryDataSource(root));
             if (!db.IsSuccess) { Console.Error.WriteLine(db); return 1; }
             var quickSim = new Game.Simulation.QuickSim.QuickSim(db.Value);
-            var career = CareerSimulator.Start(db.Value, seed, quickSim.Simulate);
+            var career = CareerSimulator.Start(db.Value, seed, quickSim.Simulate, new Game.Career.Market.TransferWindow());
             string Name(Game.Core.Ids.Id id) => career.State.Club(id).ShortName;
 
             var sw = System.Diagnostics.Stopwatch.StartNew();

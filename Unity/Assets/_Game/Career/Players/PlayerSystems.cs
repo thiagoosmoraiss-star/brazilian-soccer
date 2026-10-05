@@ -293,7 +293,7 @@ namespace Game.Career.Players
             var pot = db.World.Generation.Potential;
             int potential = ovr + rng.NextInt(d.YouthPotentialAboveOvr.Min, d.YouthPotentialAboveOvr.Max + 1);
             player.Potential = Math.Max(Math.Max(ovr, pot.Min), Math.Min(pot.Max, potential));
-            world.AddPlayer(player, new Contract { Id = ids.Next(), PlayerId = player.Id, ClubId = club.Id });
+            world.AddPlayer(player, WorldGenerator.NewContract(db, club, player, year, rng, ids));
             return player;
         }
     }

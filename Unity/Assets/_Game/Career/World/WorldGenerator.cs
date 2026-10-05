@@ -8,6 +8,7 @@ using Game.Data.Effects;
 using Game.Data.Loading;
 using Game.Data.Ovr;
 using Game.Data.World;
+using Game.Rules.Market;
 using Game.Rules.Ovr;
 
 namespace Game.Career.World
@@ -20,6 +21,7 @@ namespace Game.Career.World
     {
         public const string ClubStream = "WorldGen.Clubs";
         public const string PlayerStream = "WorldGen.Players";
+        public const string ContractStream = "WorldGen.Contracts";
 
         private static readonly Attr[] GoalkeepingAttributes =
             { Attr.GkReflexes, Attr.GkPositioning, Attr.GkAerial, Attr.GkHandling };
@@ -32,6 +34,7 @@ namespace Game.Career.World
             var streams = new RngStreams(seed);
             var clubRng = streams.Get(ClubStream);
             var playerRng = streams.Get(PlayerStream);
+            var contractRng = streams.Get(ContractStream);
             var ids = new IdAllocator();
 
             var clubs = new List<Club>();
@@ -59,7 +62,7 @@ namespace Game.Career.World
             }
 
             for (int i = 0; i < clubs.Count; i++)
-                GenerateSquad(db.Ovr, def, clubs[i], clubMeans[i], playerRng, ids, players, contracts);
+                GenerateSquad(db, def, clubs[i], clubMeans[i], playerRng, contractRng, ids, players, contracts);
 
             return new WorldState
             {
@@ -174,9 +177,10 @@ namespace Game.Career.World
 
         private enum SquadRole { Regular, Youth, Veteran }
 
-        private static void GenerateSquad(OvrDefinition ovr, WorldDefinition def, Club club, float clubMean, Rng rng,
+        private static void GenerateSquad(GameDatabase db, WorldDefinition def, Club club, float clubMean, Rng rng, Rng contractRng,
             IdAllocator ids, List<Player> players, List<Contract> contracts)
         {
+            var ovr = db.Ovr;
             var sq = def.Generation.Squad;
             int n = sq.Slots.Count;
             var roles = new SquadRole[n];
@@ -215,8 +219,26 @@ namespace Game.Career.World
                 var player = CreatePlayer(ovr, def, slot.Position, clubMean + offsets[i] - meanOffset,
                     rng.NextInt(age.Min, age.Max + 1), roles[i] == SquadRole.Youth, rng, ids);
                 players.Add(player);
-                contracts.Add(new Contract { Id = ids.Next(), PlayerId = player.Id, ClubId = club.Id });
+                contracts.Add(NewContract(db, club, player, def.Generation.StartYear, contractRng, ids));
             }
+        }
+
+        /// <summary>Initial contract terms (B5, X-43): reference wage by OVR/reputation/division, a random length.</summary>
+        internal static Contract NewContract(GameDatabase db, Club club, Player player, int startYear, Rng rng, IdAllocator ids)
+        {
+            int ovrRating = OvrCalculator.Rating(db.Ovr, player.AttributeSpan, player.MainPosition);
+            long wage = MarketRules.WageReference(db.Market, club.DivisionIndex, club.Reputation, ovrRating);
+            var years = db.Market.Contracts.NewSigningYears;
+            int length = rng.NextInt(years.Min, years.Max + 1);
+            return new Contract
+            {
+                Id = ids.Next(),
+                PlayerId = player.Id,
+                ClubId = club.Id,
+                Wage = wage,
+                StartYear = startYear,
+                EndYear = startYear + length - 1,
+            };
         }
 
         internal static Player CreatePlayer(OvrDefinition ovr, WorldDefinition def, Position position, float targetOvr,

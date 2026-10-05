@@ -231,6 +231,23 @@ namespace Game.Data.Loading
             return w;
         }
 
+        /// <summary>Piecewise-linear curve written as an array of [x, y] pairs (reused format from effects.json).</summary>
+        public Effects.PiecewiseLinearCurve Curve(JToken parent, string name, string path)
+        {
+            var arr = Array(parent, name, path);
+            if (arr == null) return null;
+            var points = new List<Effects.CurvePoint>();
+            for (int i = 0; i < arr.Count; i++)
+            {
+                string p = $"{path}.{name}[{i}]";
+                if (!(arr[i] is JArray pair) || pair.Count != 2) { Fail(InvalidStructure, p + " must be an [x, y] pair."); continue; }
+                points.Add(new Effects.CurvePoint(AsFloat(pair[0], p + "[0]"), AsFloat(pair[1], p + "[1]")));
+            }
+            for (int i = 1; i < points.Count; i++)
+                if (points[i].X <= points[i - 1].X) Fail(InvalidStructure, $"{path}.{name}: x values must strictly increase.");
+            return new Effects.PiecewiseLinearCurve(points);
+        }
+
         /// <summary>Exact, case-sensitive enum name (no numeric aliases).</summary>
         public bool TryEnum<T>(string text, string path, out T value) where T : struct, Enum
         {

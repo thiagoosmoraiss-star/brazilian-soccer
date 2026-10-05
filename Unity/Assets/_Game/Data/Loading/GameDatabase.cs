@@ -16,12 +16,14 @@ namespace Game.Data.Loading
         public Competitions.CompetitionsDefinition Competitions { get; }
         public Competitions.CalendarDefinition Calendar { get; }
         public Career.DevelopmentDefinition Development { get; }
+        public Career.MarketDefinition Market { get; }
 
         internal GameDatabase(string sourceDescription, Effects.Balance balance, Ovr.OvrDefinition ovr, World.WorldDefinition world,
             System.Collections.Generic.IReadOnlyList<Match.FormationDefinition> formations, Match.MatchRulesDefinition matchRules,
             Match.QuickSimDefinition quickSim, Competitions.CompetitionsDefinition competitions, Competitions.CalendarDefinition calendar,
-            Career.DevelopmentDefinition development)
+            Career.DevelopmentDefinition development, Career.MarketDefinition market)
         {
+            Market = market;
             Development = development;
             Competitions = competitions;
             Calendar = calendar;

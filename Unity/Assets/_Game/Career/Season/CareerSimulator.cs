@@ -22,6 +22,7 @@ namespace Game.Career.Season
         private readonly GameDatabase _db;
         private readonly MatchRules _rules;
         private readonly Func<MatchSetup, MatchResult> _resolve;
+        private readonly ITransferWindow _market;
 
         public CareerState State { get; }
         private LeagueDefinition League => _db.Competitions.League;
@@ -29,22 +30,24 @@ namespace Game.Career.Season
         private CompetitionMatchRules MatchRulesDef => _db.Competitions.MatchRules;
 
         /// <param name="resolve">Match resolver (QuickSim in the career; tests may inject another).</param>
-        private CareerSimulator(GameDatabase db, CareerState state, Func<MatchSetup, MatchResult> resolve)
+        /// <param name="market">Transfer window driver (B5, X-43); null runs the career without a market.</param>
+        private CareerSimulator(GameDatabase db, CareerState state, Func<MatchSetup, MatchResult> resolve, ITransferWindow market)
         {
             _db = db;
             _rules = new MatchRules(db);
             _resolve = resolve;
+            _market = market;
             State = state;
         }
 
         /// <summary>New career: generates the world and the first season.</summary>
-        public static CareerSimulator Start(GameDatabase db, ulong seed, Func<MatchSetup, MatchResult> resolve)
+        public static CareerSimulator Start(GameDatabase db, ulong seed, Func<MatchSetup, MatchResult> resolve, ITransferWindow market = null)
         {
             if (db == null) throw new ArgumentNullException(nameof(db));
             if (resolve == null) throw new ArgumentNullException(nameof(resolve));
             var world = WorldGenerator.Generate(db, seed);
             var state = new CareerState { Seed = seed, World = world, Ids = new IdAllocator(world.LastIssuedId) };
-            var sim = new CareerSimulator(db, state, resolve);
+            var sim = new CareerSimulator(db, state, resolve, market);
             Youth.Intake(db, world, state.Ids, world.StartYear, regularIntake: false, sim.SeasonRng("Youth", world.StartYear));
             state.Season = sim.CreateSeason(world.StartYear, sim.FirstSeasonCupQualifiers());
             return sim;
@@ -62,8 +65,10 @@ namespace Game.Career.Season
                 case CalendarEntryKind.LeagueRound: PlayLeagueRound(season, entry); break;
                 case CalendarEntryKind.CupRound: PlayCupRound(season, entry); break;
                 case CalendarEntryKind.WeeklyDevelopment: WeeklyDevelopment(season, entry.Date); break;
+                case CalendarEntryKind.TransferWindowOpen: _market?.Run(State, _db, entry.Date, State.Seed); break;
                 case CalendarEntryKind.YouthIntake:
-                    Youth.Intake(_db, State.World, State.Ids, season.Year, regularIntake: true, SeasonRng("Youth", season.Year));
+                    var created = Youth.Intake(_db, State.World, State.Ids, season.Year, regularIntake: true, SeasonRng("Youth", season.Year));
+                    YouthIntakeHappened?.Invoke(created);
                     break;
                 case CalendarEntryKind.SeasonEnd: season.NextEntry++; SeasonTransition(); return entry;
             }
@@ -275,6 +280,12 @@ namespace Game.Career.Season
         public event Action<Fixture, MatchSetup, MatchResult> MatchPlayed;
 
         /// <summary>
+        /// Raised right after a yearly youth intake, with the players just created (B4/B5): since some may leave
+        /// the same year (e.g. sold abroad, B5 X-43), this is the reliable way to count the actual intake.
+        /// </summary>
+        public event Action<IReadOnlyList<Player>> YouthIntakeHappened;
+
+        /// <summary>
         /// Available players (not injured, not suspended in this competition) with their condition. If fewer than 11 are
         /// available, the least-affected unavailable players fill the gap (a match always has 11 starters).
         /// </summary>
@@ -374,6 +385,13 @@ namespace Game.Career.Season
             {
                 var club = State.World.ClubOf(p.Id);
                 ConditionSystem.NewSeason(_db.Development, p, season.ClubMatches.TryGetValue(club, out int n) ? n : 0);
+            }
+
+            // B5: contracts ending this season that the market did not renew become free agents (X-43).
+            foreach (var p in State.World.Players)
+            {
+                var contract = State.World.ContractOf(p.Id);
+                if (contract != null && contract.EndYear <= season.Year) State.World.ReleasePlayer(p.Id);
             }
 
             // X-40: next cup = top N of each division's final table.

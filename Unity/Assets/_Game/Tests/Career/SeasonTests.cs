@@ -27,7 +27,6 @@ namespace Game.Tests.Career
             public int PlayersAbovePotential;
             public int OldestAge;
             public Dictionary<Id, int> SquadSize;
-            public Dictionary<Id, HashSet<Id>> SquadIds;
             public Dictionary<Id, int> Goalkeepers;
             public double[] Top22ByDivision;
         }
@@ -37,6 +36,8 @@ namespace Game.Tests.Career
         private static readonly Dictionary<ulong, List<string>> FloorBreaches = new Dictionary<ulong, List<string>>();
 
         private static readonly Dictionary<ulong, List<SeasonRecord>> Careers = new Dictionary<ulong, List<SeasonRecord>>();
+        private static readonly Dictionary<ulong, Dictionary<(int Year, Id Club), int>> YouthIntakeCounts =
+            new Dictionary<ulong, Dictionary<(int Year, Id Club), int>>();
 
         private static IEnumerable<ulong> Seeds() => CareerTestData.Ints("careerSeeds").Select(x => (ulong)x);
 
@@ -45,9 +46,19 @@ namespace Game.Tests.Career
             if (Careers.TryGetValue(seed, out var list)) return list;
             var db = CareerTestData.Db();
             var quickSim = new Game.Simulation.QuickSim.QuickSim(db);
-            var career = CareerSimulator.Start(db, seed, quickSim.Simulate);
+            var career = CareerSimulator.Start(db, seed, quickSim.Simulate, new Game.Career.Market.TransferWindow());
             var violations = Violations[seed] = new List<string>();
             var floor = FloorBreaches[seed] = new List<string>();
+            var youthCounts = YouthIntakeCounts[seed] = new Dictionary<(int Year, Id Club), int>();
+            career.YouthIntakeHappened += created =>
+            {
+                int year = career.State.Season.Year;
+                foreach (var p in created)
+                {
+                    var key = (year, career.State.World.ClubOf(p.Id));
+                    youthCounts[key] = youthCounts.TryGetValue(key, out var n) ? n + 1 : 1;
+                }
+            };
             var dev = db.Development;
             career.LineupsSelected += (f, setup) =>
             {
@@ -82,7 +93,6 @@ namespace Game.Tests.Career
                 record.PlayersAbovePotential = w.Players.Count(p => Game.Rules.Ovr.OvrCalculator.Rating(db.Ovr, p.AttributeSpan, p.MainPosition) > p.Potential);
                 record.OldestAge = w.Players.Max(p => p.BirthDate.AgeOn(endYear, 12, 31));
                 record.SquadSize = w.Clubs.ToDictionary(c => c.Id, c => w.SquadOf(c.Id).Count);
-                record.SquadIds = w.Clubs.ToDictionary(c => c.Id, c => new HashSet<Id>(w.SquadOf(c.Id).Select(p => p.Id)));
                 record.Goalkeepers = w.Clubs.ToDictionary(c => c.Id, c => w.SquadOf(c.Id).Count(p => p.MainPosition == Game.Data.Definitions.Position.GOL));
                 record.Top22ByDivision = w.DivisionNames.Select((_, d) => w.Clubs.Where(c => c.DivisionIndex == d)
                     .Average(c => w.SquadOf(c.Id).Select(p => (double)Game.Rules.Ovr.OvrCalculator.Rating(db.Ovr, p.AttributeSpan, p.MainPosition))
@@ -269,15 +279,19 @@ namespace Game.Tests.Career
         [TestCaseSource(nameof(Seeds))]
         public void EveryClub_ReceivesTheYearlyYouthIntake(ulong seed)
         {
+            // Counted from the YouthIntakeHappened event, not from squad membership: a created youth can leave the
+            // same year (e.g. sold abroad, B5 X-43), which the old squad-diff check would have missed as a non-intake.
             var d = CareerTestData.Db().Development;
             var records = Career(seed);
+            var counts = YouthIntakeCounts[seed];
+            var clubIds = records[0].DivisionAtStart.Keys;
             for (int s = 1; s < records.Count; s++)
             {
-                // No transfers before B5: every new player in a squad comes from the youth intake.
-                foreach (var kv in records[s].SquadIds)
+                int year = records[s].Season.Year;
+                foreach (var clubId in clubIds)
                 {
-                    int newcomers = kv.Value.Count(id => !records[s - 1].SquadIds[kv.Key].Contains(id));
-                    Assert.GreaterOrEqual(newcomers, d.YouthPerClubPerYear, $"seed={seed} year={records[s].Season.Year} club={kv.Key}");
+                    int n = counts.TryGetValue((year, clubId), out var c) ? c : 0;
+                    Assert.GreaterOrEqual(n, d.YouthPerClubPerYear, $"seed={seed} year={year} club={clubId}");
                 }
             }
         }
@@ -295,7 +309,7 @@ namespace Game.Tests.Career
             var cfg = JObject.Parse(System.IO.File.ReadAllText(System.IO.Path.Combine(CareerTestData.DataRoot(), "TestRanges", "development.json")))["careerStability"];
             ulong seed = cfg["seed"].Value<ulong>();
             var db = CareerTestData.Db();
-            var career = CareerSimulator.Start(db, seed, new Game.Simulation.QuickSim.QuickSim(db).Simulate);
+            var career = CareerSimulator.Start(db, seed, new Game.Simulation.QuickSim.QuickSim(db).Simulate, new Game.Career.Market.TransferWindow());
             var w = career.State.World;
             int top = cfg["top"].Value<int>();
             double[] Top() => w.DivisionNames.Select((_, d) => w.Clubs.Where(c => c.DivisionIndex == d)
@@ -321,7 +335,7 @@ namespace Game.Tests.Career
             var db = CareerTestData.Db();
             string Run()
             {
-                var career = CareerSimulator.Start(db, 99, new Game.Simulation.QuickSim.QuickSim(db).Simulate);
+                var career = CareerSimulator.Start(db, 99, new Game.Simulation.QuickSim.QuickSim(db).Simulate, new Game.Career.Market.TransferWindow());
                 var a = career.PlaySeason();
                 var b = career.PlaySeason();
                 return string.Join("|", new[] { a, b }.Select(x =>

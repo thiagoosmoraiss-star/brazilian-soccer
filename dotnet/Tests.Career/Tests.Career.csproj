@@ -20,5 +20,6 @@
     <ProjectReference Include="../Rules/Rules.csproj" />
     <ProjectReference Include="../Simulation/Simulation.csproj" />
     <ProjectReference Include="../Career/Career.csproj" />
+    <ProjectReference Include="../Career.Market/Career.Market.csproj" />
   </ItemGroup>
 </Project>
