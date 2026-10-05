@@ -106,4 +106,4 @@ Uma funcionalidade só está pronta quando cumpre `DEFINITION_OF_DONE.md`. Compi
 
 ## 14. Etapa atual
 
-**Track B — B5 Mercado** (em validação: `dotnet test` verde; falta a validação na Unity). B4 — Jogadores na carreira concluída e validada (EditMode, PlayMode e Player verdes na Unity). B3, B2, B1 e Stage 0 concluídas. Atualize esta seção quando a etapa mudar.
+**Track B — B5 Mercado concluída e validada** (`dotnet test` verde; EditMode verde na Unity, incluindo `Slow`). B4, B3, B2, B1 e Stage 0 concluídas. Próxima etapa: B6 — Economia. Atualize esta seção quando a etapa mudar.

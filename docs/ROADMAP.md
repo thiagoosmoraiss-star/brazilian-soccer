@@ -2,7 +2,7 @@
 
 Fonte: Especificação Técnica §20. **O Claude Code trabalha somente na etapa atual.** Nada de etapas futuras, mesmo que pareça rápido ou útil. Cada etapa termina quando cumpre seus critérios e o `DEFINITION_OF_DONE.md`.
 
-**Etapa atual:** B5 — Mercado (ver `CLAUDE.md` §14). D-01 decidida: Track B primeiro. Com uma pessoa só, as trilhas são sequenciais; em paralelo apenas se houver mais de um desenvolvedor.
+**Etapa atual:** B6 — Economia (ver `CLAUDE.md` §14). D-01 decidida: Track B primeiro. Com uma pessoa só, as trilhas são sequenciais; em paralelo apenas se houver mais de um desenvolvedor.
 
 Regras comuns a todas as etapas:
 
