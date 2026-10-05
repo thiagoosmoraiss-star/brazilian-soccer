@@ -169,6 +169,10 @@ namespace Game.Career.Market
                 if (clubId.IsNone || IsManaged(state, clubId)) continue;
                 int age = p.BirthDate.AgeOn(date.Year, date.Month, date.Day);
                 if (p.Potential < m.MinPotential || age > m.MaxAge || rng.NextDouble() >= m.ChancePerWindow) continue;
+                // Never sell the club below development.json's goalkeeper minimum (no window-level top-up for it).
+                if (p.MainPosition == Position.GOL
+                    && world.SquadOf(clubId).Count(sq => sq.MainPosition == Position.GOL) <= db.Development.MinGoalkeepers)
+                    continue;
 
                 var club = state.Club(clubId);
                 var contract = world.ContractOf(p.Id);
