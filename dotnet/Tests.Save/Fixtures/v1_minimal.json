@@ -1,0 +1,86 @@
+{
+  "schemaVersion": 1,
+  "seed": "123",
+  "ids": { "lastIssued": 2 },
+  "managedClubId": null,
+  "proposals": [],
+  "world": {
+    "seed": "123",
+    "startYear": 2026,
+    "lastIssuedId": 2,
+    "divisionNames": ["D"],
+    "clubs": [
+      {
+        "id": 1,
+        "name": "Clube Teste",
+        "shortName": "CTE",
+        "city": "Cidade",
+        "uf": "SP",
+        "colors": { "primaryId": "red", "primaryHex": "#FF0000", "secondaryId": "white", "secondaryHex": "#FFFFFF" },
+        "crest": { "shapeId": "shield", "symbolId": "star", "primaryColorId": "red", "secondaryColorId": "white" },
+        "divisionIndex": 0,
+        "divisionName": "D",
+        "reputation": 100,
+        "stars": 1,
+        "budget": 1000,
+        "stadium": { "level": 1, "capacity": 3000 },
+        "fans": 1000,
+        "trainingCenterLevel": 1,
+        "balance": 0,
+        "monthsNegativeCash": 0,
+        "cashAlert": false,
+        "transferLockout": false
+      }
+    ],
+    "players": [
+      {
+        "id": 2,
+        "firstName": "Joao",
+        "lastName": "Silva",
+        "nationality": "BRA",
+        "birthDate": "2000-01-01",
+        "heightCm": 180,
+        "preferredFoot": "Right",
+        "weakFoot": 3,
+        "avatarSeed": "456",
+        "attributes": [50, 50, 50, 50, 50, 50, 50, 50, 50, 50, 50, 50, 50, 50, 50, 50, 50, 50],
+        "potential": 60,
+        "mainPosition": "GOL",
+        "secondaryPositions": [],
+        "condition": {
+          "energy": 100.0,
+          "energyDate": null,
+          "morale": 3,
+          "recentRatings": [],
+          "injury": "None",
+          "injuryMatchesLeft": 0,
+          "injuredUntil": null,
+          "yellowCount": [0, 0],
+          "suspendedMatchCount": [0, 0],
+          "seasonAppearances": 0,
+          "seasonMinutes": 0,
+          "seasonGoals": 0,
+          "seasonRatingSum": 0.0,
+          "previousMinutesShare": 0.0,
+          "developmentProgress": 0.0
+        }
+      }
+    ],
+    "contracts": [],
+    "managers": [],
+    "staff": [],
+    "facilityProjects": []
+  },
+  "season": {
+    "year": 2026,
+    "calendar": [],
+    "nextEntry": 0,
+    "leagues": [],
+    "cup": { "qualified": [], "rounds": [], "roundCount": 0, "winner": 0, "runnerUp": 0 },
+    "clubFormations": {},
+    "clubMatches": {},
+    "ledger": [],
+    "objectives": {}
+  },
+  "history": []
+}

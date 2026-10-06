@@ -99,6 +99,13 @@ namespace Game.Data.Loading
             return null;
         }
 
+        public JArray AsArray(JToken t, string path)
+        {
+            if (t is JArray a) return a;
+            Fail(InvalidStructure, path + " must be an array.");
+            return null;
+        }
+
         public string String(JToken parent, string name, string path) => AsString(parent?[name], $"{path}.{name}");
 
         public string AsString(JToken t, string path)

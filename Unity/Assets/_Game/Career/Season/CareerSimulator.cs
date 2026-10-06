@@ -58,6 +58,17 @@ namespace Game.Career.Season
             return sim;
         }
 
+        /// <summary>Resumes a career from an already-loaded <see cref="CareerState"/> (B8: Save/Load). The state's
+        /// world and season are kept as they are; nothing is regenerated.</summary>
+        public static CareerSimulator Resume(GameDatabase db, CareerState state, Func<MatchSetup, MatchResult> resolve, ITransferWindow market = null,
+            IEconomySystem economy = null)
+        {
+            if (db == null) throw new ArgumentNullException(nameof(db));
+            if (state == null) throw new ArgumentNullException(nameof(state));
+            if (resolve == null) throw new ArgumentNullException(nameof(resolve));
+            return new CareerSimulator(db, state, resolve, market, economy);
+        }
+
         // ---------------- Advancing ----------------
 
         /// <summary>Processes the next calendar entry. Returns it (a new season starts after SeasonEnd).</summary>

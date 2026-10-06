@@ -106,4 +106,4 @@ Uma funcionalidade só está pronta quando cumpre `DEFINITION_OF_DONE.md`. Compi
 
 ## 14. Etapa atual
 
-**Track B — B8 Save** (ainda não iniciada). B7 — Diretoria, reputação, instalações, staff concluída e validada (EditMode verde na Unity, incluindo `Slow`). B6, B5, B4, B3, B2, B1 e Stage 0 concluídas. Atualize esta seção quando a etapa mudar.
+**Track B — B8 Save** (em validação: `dotnet test` verde — Tests.Unit 160, Tests.Simulation 37, Tests.Career 143, Tests.Save 13; falta a validação na Unity). B7 — Diretoria, reputação, instalações, staff concluída e validada (EditMode verde na Unity, incluindo `Slow`). B6, B5, B4, B3, B2, B1 e Stage 0 concluídas. Atualize esta seção quando a etapa mudar.
