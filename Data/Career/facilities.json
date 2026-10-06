@@ -1,0 +1,14 @@
+{
+  "schemaVersion": 1,
+  "stadium": {
+    "upgradeCostPerLevel": [500000, 900000, 1500000, 2500000, 4000000, 6000000, 9000000, 13000000, 18000000],
+    "upgradeDurationMonths": 4,
+    "minimumLevelByDivision": [6, 4, 2, 1]
+  },
+  "trainingCenter": {
+    "initialLevelByDivision": [4, 3, 2, 1],
+    "upgradeCostPerLevel": [300000, 700000, 1500000, 3000000],
+    "upgradeDurationMonths": 3,
+    "developmentFactorByLevel": [0.85, 0.95, 1.0, 1.1, 1.25]
+  }
+}

@@ -23,6 +23,8 @@ namespace Game.Tests.Career
             public Season Season;
             public SeasonSummary Summary;
             public Dictionary<Id, int> DivisionAtStart;
+            /// <summary>Stadium level at the moment promotion was decided (B7, X-45: the stadium requirement gate).</summary>
+            public Dictionary<Id, int> StadiumLevelAtEnd;
             /// <summary>B4 snapshots at season end (after retirements, before the next youth intake).</summary>
             public int PlayersAbovePotential;
             public int OldestAge;
@@ -89,6 +91,7 @@ namespace Game.Tests.Career
                 };
                 record.Summary = career.PlaySeason();
                 var w = career.State.World;
+                record.StadiumLevelAtEnd = w.Clubs.ToDictionary(c => c.Id, c => c.Stadium.Level);
                 int endYear = record.Season.Year;
                 record.PlayersAbovePotential = w.Players.Count(p => Game.Rules.Ovr.OvrCalculator.Rating(db.Ovr, p.AttributeSpan, p.MainPosition) > p.Potential);
                 record.OldestAge = w.Players.Max(p => p.BirthDate.AgeOn(endYear, 12, 31));
@@ -119,25 +122,52 @@ namespace Game.Tests.Career
         public void PromotionAndRelegation_MatchTheFinalTables(ulong seed)
         {
             var league = CareerTestData.Db().Competitions.League;
+            var facilities = CareerTestData.Db().Facilities;
             var records = Career(seed);
             for (int s = 0; s + 1 < records.Count; s++)
             {
                 var tables = records[s].Summary.FinalTables;
+                var stadium = records[s].StadiumLevelAtEnd;
                 var next = records[s + 1].DivisionAtStart;
                 string ctx = $"seed={seed} year={records[s].Season.Year}";
+
+                // Division d-1's promotion set: the top eligible (stadium requirement, B7 X-45) clubs of division d,
+                // falling back to the best-ranked ineligible ones only if not enough are eligible (same cascade as
+                // CareerSimulator.SeasonTransition; the number of clubs per division never changes).
+                var expectedPromoted = new List<Id>[tables.Count];
+                for (int d = 1; d < tables.Count; d++)
+                {
+                    int minStadium = Game.Rules.Board.BoardRules.StadiumMinimumLevel(facilities, d - 1);
+                    // Never dip into tables[d]'s own relegation zone (mirrors CareerSimulator.SeasonTransition).
+                    int candidatePoolSize = d < tables.Count - 1 ? tables[d].Count - league.Relegated : tables[d].Count;
+                    var eligible = new List<Id>();
+                    var ineligible = new List<Id>();
+                    for (int i = 0; i < candidatePoolSize; i++)
+                    {
+                        var id = tables[d][i];
+                        (stadium[id] >= minStadium ? eligible : ineligible).Add(id);
+                    }
+                    var chosen = new List<Id>();
+                    chosen.AddRange(eligible.Take(league.Promoted));
+                    if (chosen.Count < league.Promoted) chosen.AddRange(ineligible.Take(league.Promoted - chosen.Count));
+                    expectedPromoted[d] = chosen;
+                }
+
                 for (int d = 0; d < tables.Count; d++)
                 {
                     var t = tables[d];
                     for (int pos = 0; pos < t.Count; pos++)
                     {
                         int expected = d;
-                        if (d > 0 && pos < league.Promoted) expected = d - 1;
+                        if (d > 0 && expectedPromoted[d].Contains(t[pos])) expected = d - 1;
                         if (d < tables.Count - 1 && pos >= t.Count - league.Relegated) expected = d + 1;
                         Assert.AreEqual(expected, next[t[pos]], $"{ctx} division={d} position={pos + 1}");
                     }
                 }
                 Assert.AreEqual(league.Promoted * (tables.Count - 1), records[s].Summary.Promoted.Count, ctx);
-                CollectionAssert.AreEquivalent(records[s].Summary.Promoted, tables.Skip(1).SelectMany(t => t.Take(league.Promoted)), ctx);
+                var allExpectedPromoted = new List<Id>();
+                for (int d = 1; d < tables.Count; d++) allExpectedPromoted.AddRange(expectedPromoted[d]);
+                CollectionAssert.AreEquivalent(records[s].Summary.Promoted, allExpectedPromoted, ctx);
             }
         }
 

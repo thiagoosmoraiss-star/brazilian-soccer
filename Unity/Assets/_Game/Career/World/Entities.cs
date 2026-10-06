@@ -53,6 +53,8 @@ namespace Game.Career.World
         public Stadium Stadium { get; internal set; }
         /// <summary>Fan base size.</summary>
         public int Fans { get; internal set; }
+        /// <summary>Training Center level 1-5 (GAME_DESIGN §8, B7, X-45).</summary>
+        public int TrainingCenterLevel { get; internal set; }
 
         /// <summary>Real cash (B6, X-44): always equal to the sum of this season's ledger entries plus every
         /// previous season's net (TEST_PLAN: "saldo = soma do livro").</summary>
@@ -75,6 +77,71 @@ namespace Game.Career.World
         Wages = 5,
         Maintenance = 6,
         TransferOut = 7,
+        /// <summary>Staff wages (B7, X-45).</summary>
+        StaffWages = 8,
+        /// <summary>A facility upgrade's one-time cost (B7, X-45).</summary>
+        FacilityInvestment = 9,
+    }
+
+    public enum StaffRole
+    {
+        Physio = 0,
+        Assistant = 1,
+        Scout = 2,
+    }
+
+    /// <summary>One of a club's three technical-staff roles (GAME_DESIGN §7, B7, X-45): always filled by the market AI.</summary>
+    public sealed class StaffMember
+    {
+        public Id Id { get; internal set; }
+        public Id ClubId { get; internal set; }
+        public StaffRole Role { get; internal set; }
+        /// <summary>Level 1-5.</summary>
+        public int Level { get; internal set; }
+    }
+
+    public enum FacilityType
+    {
+        Stadium = 0,
+        TrainingCenter = 1,
+    }
+
+    /// <summary>An in-progress facility upgrade (GAME_DESIGN §8: "obras com custo, tempo"; B7, X-45).</summary>
+    public sealed class FacilityProject
+    {
+        public Id Id { get; internal set; }
+        public Id ClubId { get; internal set; }
+        public FacilityType Type { get; internal set; }
+        public int TargetLevel { get; internal set; }
+        public DateTime CompletesOn { get; internal set; }
+    }
+
+    public enum ObjectiveType
+    {
+        Promote = 0,
+        AvoidRelegation = 1,
+        BreakEven = 2,
+    }
+
+    /// <summary>A club's season objective (GAME_DESIGN §6, B7, X-45): set at season start, evaluated at season end.</summary>
+    public sealed class Objective
+    {
+        public Id ClubId { get; internal set; }
+        public int Year { get; internal set; }
+        public ObjectiveType Type { get; internal set; }
+        /// <summary>Set once the season ends.</summary>
+        public bool? Achieved { get; internal set; }
+    }
+
+    /// <summary>The club's manager (GAME_DESIGN §6, B7, X-45): confidence drives dismissal; a new manager (same club,
+    /// automatic simulation) resets it rather than ending the career, which only a human save would end.</summary>
+    public sealed class Manager
+    {
+        public Id Id { get; internal set; }
+        public Id ClubId { get; internal set; }
+        /// <summary>0-100; below `board.json`'s dismissalThreshold at a season end is a dismissal.</summary>
+        public int Confidence { get; internal set; }
+        public int Dismissals { get; internal set; }
     }
 
     /// <summary>One cash movement (B6, X-44, TECHNICAL_SPEC §13): the club's <see cref="Club.Balance"/> is always the
@@ -228,8 +295,19 @@ namespace Game.Career.World
         public IReadOnlyList<Club> Clubs { get; internal set; }
         internal List<Player> PlayerList = new List<Player>();
         internal List<Contract> ContractList = new List<Contract>();
+        internal List<Manager> ManagerList = new List<Manager>();
+        internal List<StaffMember> StaffList = new List<StaffMember>();
+        internal List<FacilityProject> FacilityProjectList = new List<FacilityProject>();
         public IReadOnlyList<Player> Players => PlayerList;
         public IReadOnlyList<Contract> Contracts => ContractList;
+        public IReadOnlyList<Manager> Managers => ManagerList;
+        public IReadOnlyList<StaffMember> StaffMembers => StaffList;
+        public IReadOnlyList<FacilityProject> FacilityProjects => FacilityProjectList;
+
+        public Manager ManagerOf(Id clubId) { foreach (var m in ManagerList) if (m.ClubId == clubId) return m; return null; }
+        public StaffMember StaffOf(Id clubId, StaffRole role) { foreach (var s in StaffList) if (s.ClubId == clubId && s.Role == role) return s; return null; }
+        public FacilityProject ActiveProjectOf(Id clubId, FacilityType type)
+        { foreach (var p in FacilityProjectList) if (p.ClubId == clubId && p.Type == type) return p; return null; }
 
         /// <summary>Age on 1 January of the start year (season = calendar year, GAME_DESIGN §4).</summary>
         public int AgeAtStart(Player p) => p.BirthDate.AgeOn(StartYear, 1, 1);

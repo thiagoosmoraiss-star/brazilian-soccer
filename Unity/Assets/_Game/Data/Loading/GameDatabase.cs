@@ -18,12 +18,19 @@ namespace Game.Data.Loading
         public Career.DevelopmentDefinition Development { get; }
         public Career.MarketDefinition Market { get; }
         public Career.EconomyDefinition Economy { get; }
+        public Board.BoardDefinition Board { get; }
+        public Career.FacilitiesDefinition Facilities { get; }
+        public Career.StaffDefinition Staff { get; }
 
         internal GameDatabase(string sourceDescription, Effects.Balance balance, Ovr.OvrDefinition ovr, World.WorldDefinition world,
             System.Collections.Generic.IReadOnlyList<Match.FormationDefinition> formations, Match.MatchRulesDefinition matchRules,
             Match.QuickSimDefinition quickSim, Competitions.CompetitionsDefinition competitions, Competitions.CalendarDefinition calendar,
-            Career.DevelopmentDefinition development, Career.MarketDefinition market, Career.EconomyDefinition economy)
+            Career.DevelopmentDefinition development, Career.MarketDefinition market, Career.EconomyDefinition economy,
+            Board.BoardDefinition board, Career.FacilitiesDefinition facilities, Career.StaffDefinition staff)
         {
+            Staff = staff;
+            Facilities = facilities;
+            Board = board;
             Economy = economy;
             Market = market;
             Development = development;

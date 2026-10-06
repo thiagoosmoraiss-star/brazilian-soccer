@@ -106,4 +106,4 @@ Uma funcionalidade só está pronta quando cumpre `DEFINITION_OF_DONE.md`. Compi
 
 ## 14. Etapa atual
 
-**Track B — B6 Economia concluída e validada** (`dotnet test` verde; EditMode verde na Unity, incluindo `Slow`). B5, B4, B3, B2, B1 e Stage 0 concluídas. Próxima etapa: B7 — Diretoria, reputação, instalações, staff. Atualize esta seção quando a etapa mudar.
+**Track B — B7 Diretoria, reputação, instalações, staff** (em validação: `dotnet test` verde; falta a validação na Unity). B6 — Economia concluída e validada (EditMode verde na Unity, incluindo `Slow`). B5, B4, B3, B2, B1 e Stage 0 concluídas. Atualize esta seção quando a etapa mudar.

@@ -33,8 +33,13 @@ namespace Game.Career.Players
             return d.NoMinutesFactor + (1f - d.NoMinutesFactor) * t;
         }
 
-        /// <summary>One week of development for one player.</summary>
-        public static void Week(GameDatabase db, Player p, int age, float minutesShare, Rng rng)
+        /// <summary>
+        /// One week of development for one player. <paramref name="trainingCenterFactor"/> and
+        /// <paramref name="assistantFactor"/> come from the club's facilities and staff (B7, X-45); development.json's
+        /// own factors stay neutral (1.0) and simply compose with them.
+        /// </summary>
+        public static void Week(GameDatabase db, Player p, int age, float minutesShare, Rng rng,
+            float trainingCenterFactor = 1f, float assistantFactor = 1f)
         {
             var d = db.Development;
             float rate = RatePerYear(d, age);
@@ -45,7 +50,7 @@ namespace Game.Career.Players
                 float gap = p.Potential - ovr;
                 if (gap <= 0f) { p.Condition.DevelopmentProgress = 0f; return; }
                 delta = rate * Math.Min(1f, gap / d.PotentialGapForFullGrowth) * MinutesFactor(d, minutesShare)
-                        * d.TrainingCenterFactor * d.AssistantCoachFactor / d.WeeksPerYear;
+                        * d.TrainingCenterFactor * trainingCenterFactor * d.AssistantCoachFactor * assistantFactor / d.WeeksPerYear;
             }
             else delta = rate / d.WeeksPerYear;
             AddProgress(db, p, delta, rng);
@@ -119,12 +124,13 @@ namespace Game.Career.Players
     /// <summary>Condition between matches: energy recovery, availability, and the effects of a played match.</summary>
     public static class ConditionSystem
     {
-        public static float EnergyAt(DevelopmentDefinition d, Player p, DateTime date)
+        /// <summary><paramref name="physioFactor"/> is the club's physio multiplier (GAME_DESIGN §7, B7, X-45).</summary>
+        public static float EnergyAt(DevelopmentDefinition d, Player p, DateTime date, float physioFactor = 1f)
         {
             var c = p.Condition;
             if (!c.EnergyDate.HasValue) return c.Energy;
             double days = Math.Max(0, (date - c.EnergyDate.Value).TotalDays);
-            return (float)Math.Min(100.0, c.Energy + days * d.EnergyRecoveryPerDay);
+            return (float)Math.Min(100.0, c.Energy + days * d.EnergyRecoveryPerDay * physioFactor);
         }
 
         public static bool Available(Player p, CompetitionKind kind, DateTime date) =>

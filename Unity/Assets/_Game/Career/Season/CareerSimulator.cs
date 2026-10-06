@@ -71,7 +71,11 @@ namespace Game.Career.Season
                 case CalendarEntryKind.CupRound: PlayCupRound(season, entry); break;
                 case CalendarEntryKind.WeeklyDevelopment: WeeklyDevelopment(season, entry.Date); break;
                 case CalendarEntryKind.TransferWindowOpen: _market?.Run(State, _db, entry.Date, State.Seed); break;
-                case CalendarEntryKind.MonthEnd: _economy?.MonthEnd(State, _db, entry.Date); break;
+                case CalendarEntryKind.MonthEnd:
+                    _economy?.MonthEnd(State, _db, entry.Date);
+                    Game.Career.Board.Facilities.MonthEnd(_db, State, entry.Date);
+                    Game.Career.Board.Staff.MonthEnd(_db, State, entry.Date);
+                    break;
                 case CalendarEntryKind.YouthIntake:
                     var created = Youth.Intake(_db, State.World, State.Ids, season.Year, regularIntake: true, SeasonRng("Youth", season.Year));
                     YouthIntakeHappened?.Invoke(created);
@@ -156,7 +160,9 @@ namespace Game.Career.Season
             if (entries[entries.Count - 1].Kind != CalendarEntryKind.SeasonEnd)
                 throw new InvalidOperationException("calendar.json: a match or window falls after the season end date.");
 
-            return new Season { Year = year, Calendar = entries, Leagues = leagues, Cup = cup, ClubFormations = formations };
+            var season = new Season { Year = year, Calendar = entries, Leagues = leagues, Cup = cup, ClubFormations = formations };
+            Game.Career.Board.Objectives.Assign(_db, State, season);
+            return season;
         }
 
         private Fixture NewFixture(CompetitionKind kind, int division, int round, DateTime date, Id home, Id away, bool neutral)
@@ -300,10 +306,11 @@ namespace Game.Career.Season
             var d = _db.Development;
             var available = new List<MatchPlayerSetup>();
             var others = new List<Player>();
+            float physioFactor = Game.Career.Board.Staff.PhysioEnergyMultiplier(_db, State.World, club);
             foreach (var p in State.World.SquadOf(club))
             {
                 if (ConditionSystem.Available(p, kind, date))
-                    available.Add(MatchSetupFactory.ToMatchPlayer(p, ConditionSystem.EnergyAt(d, p, date), p.Condition.Morale, p.Condition.Form));
+                    available.Add(MatchSetupFactory.ToMatchPlayer(p, ConditionSystem.EnergyAt(d, p, date, physioFactor), p.Condition.Morale, p.Condition.Form));
                 else others.Add(p);
             }
             if (available.Count < MatchTeamSetup.StarterCount)
@@ -315,7 +322,7 @@ namespace Game.Career.Season
                     return ka != kb ? ka.CompareTo(kb) : a.Id.CompareTo(b.Id);
                 });
                 for (int i = 0; i < others.Count && available.Count < MatchTeamSetup.StarterCount; i++)
-                    available.Add(MatchSetupFactory.ToMatchPlayer(others[i], ConditionSystem.EnergyAt(d, others[i], date), others[i].Condition.Morale, others[i].Condition.Form));
+                    available.Add(MatchSetupFactory.ToMatchPlayer(others[i], ConditionSystem.EnergyAt(d, others[i], date, physioFactor), others[i].Condition.Morale, others[i].Condition.Form));
             }
             return available;
         }
@@ -330,7 +337,14 @@ namespace Game.Career.Season
                 int clubMatches = season.ClubMatches.TryGetValue(club, out int n) ? n : 0;
                 // Early in a season the previous season's share stands in for the minutes played.
                 float share = clubMatches >= 5 ? Math.Min(1f, p.Condition.SeasonMinutes / (90f * clubMatches)) : p.Condition.PreviousMinutesShare;
-                Development.Week(_db, p, age, share, rng);
+                float trainingCenterFactor = 1f, assistantFactor = 1f;
+                var clubEntity = State.Club(club);
+                if (clubEntity != null)
+                {
+                    trainingCenterFactor = Game.Rules.Board.BoardRules.TrainingCenterFactor(_db.Facilities, clubEntity.TrainingCenterLevel);
+                    assistantFactor = Game.Career.Board.Staff.AssistantFactor(_db, State.World, club);
+                }
+                Development.Week(_db, p, age, share, rng, trainingCenterFactor, assistantFactor);
             }
         }
 
@@ -365,18 +379,27 @@ namespace Game.Career.Season
                 tables.Add(order);
             }
 
-            // X-39: the top N of each lower division swap with the bottom N of the division above.
+            // X-39: the top N of each lower division swap with the bottom N of the division above, unless the
+            // stadium requirement (B7, X-45) isn't met: that club stays and the next eligible one is promoted
+            // instead (the number of clubs per division never changes).
             var promoted = new List<Id>();
             var relegated = new List<Id>();
             for (int d = 1; d < tables.Count; d++)
             {
                 var below = tables[d];
                 var above = tables[d - 1];
-                for (int i = 0; i < League.Promoted; i++)
-                {
-                    promoted.Add(below[i]);
-                    relegated.Add(above[above.Count - 1 - i]);
-                }
+                int minStadium = Game.Rules.Board.BoardRules.StadiumMinimumLevel(_db.Facilities, d - 1);
+                // The fallback must never reach into below's own relegation zone (computed independently, further
+                // down, when this same division is treated as "above"): that would both promote and relegate it.
+                int candidatePoolSize = d < tables.Count - 1 ? below.Count - League.Relegated : below.Count;
+                var eligible = new List<Id>();
+                var ineligible = new List<Id>();
+                for (int i = 0; i < candidatePoolSize; i++)
+                    (State.Club(below[i]).Stadium.Level >= minStadium ? eligible : ineligible).Add(below[i]);
+                int taken = 0;
+                for (int i = 0; i < eligible.Count && taken < League.Promoted; i++, taken++) promoted.Add(eligible[i]);
+                for (int i = 0; i < ineligible.Count && taken < League.Promoted; i++, taken++) promoted.Add(ineligible[i]);
+                for (int i = 0; i < League.Promoted; i++) relegated.Add(above[above.Count - 1 - i]);
             }
             var divisionNames = State.World.DivisionNames;
             foreach (var id in promoted) { var c = State.Club(id); c.DivisionIndex--; c.DivisionName = divisionNames[c.DivisionIndex]; }
@@ -411,7 +434,7 @@ namespace Game.Career.Season
             foreach (var entry in season.Ledger)
                 seasonNet[entry.ClubId] = (seasonNet.TryGetValue(entry.ClubId, out var n) ? n : 0) + entry.Amount;
 
-            State.History.Add(new SeasonSummary
+            var summary = new SeasonSummary
             {
                 Year = season.Year,
                 FinalTables = tables,
@@ -422,7 +445,10 @@ namespace Game.Career.Season
                 CupQualified = season.Cup.Qualified,
                 Retired = retired,
                 SeasonNetByClub = seasonNet,
-            });
+            };
+            // B7: objectives vs. outcome, confidence and dismissals (new manager, same club, X-45).
+            summary.Dismissed = Game.Career.Board.Objectives.Evaluate(_db, State, season, summary);
+            State.History.Add(summary);
             State.Season = CreateSeason(season.Year + 1, nextCup);
         }
     }

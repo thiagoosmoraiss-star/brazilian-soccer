@@ -8,6 +8,7 @@ using Game.Data.Effects;
 using Game.Data.Loading;
 using Game.Data.Ovr;
 using Game.Data.World;
+using Game.Rules.Board;
 using Game.Rules.Market;
 using Game.Rules.Ovr;
 
@@ -40,6 +41,8 @@ namespace Game.Career.World
             var clubs = new List<Club>();
             var players = new List<Player>();
             var contracts = new List<Contract>();
+            var managers = new List<Manager>();
+            var staff = new List<StaffMember>();
             var divisionNames = new List<string>();
             foreach (var d in g.Divisions) divisionNames.Add(d.Name);
 
@@ -56,8 +59,17 @@ namespace Game.Career.World
                 {
                     var city = def.Cities[cityOrder[cityCursor++]];
                     float strength = (float)clubRng.NextDouble();
-                    clubs.Add(CreateClub(def, div, di, city, strength, clubRng, ids, usedShortNames));
+                    var club = CreateClub(def, div, di, city, strength, clubRng, ids, usedShortNames);
+                    clubs.Add(club);
                     clubMeans.Add(Lerp(div.SquadOvrMean.Min, div.SquadOvrMean.Max, strength));
+
+                    // B7 (X-45): Training Center, manager and full technical staff, at a level the division affords.
+                    club.TrainingCenterLevel = BoardRules.LevelForDivision(db.Facilities.TrainingCenter.InitialLevelByDivision, di);
+                    managers.Add(new Manager { Id = ids.Next(), ClubId = club.Id, Confidence = db.Board.Confidence.Initial });
+                    int staffLevel = BoardRules.LevelForDivision(db.Staff.InitialLevelByDivision, di);
+                    staff.Add(new StaffMember { Id = ids.Next(), ClubId = club.Id, Role = StaffRole.Physio, Level = staffLevel });
+                    staff.Add(new StaffMember { Id = ids.Next(), ClubId = club.Id, Role = StaffRole.Assistant, Level = staffLevel });
+                    staff.Add(new StaffMember { Id = ids.Next(), ClubId = club.Id, Role = StaffRole.Scout, Level = staffLevel });
                 }
             }
 
@@ -73,6 +85,8 @@ namespace Game.Career.World
                 Clubs = clubs,
                 PlayerList = players,
                 ContractList = contracts,
+                ManagerList = managers,
+                StaffList = staff,
             };
         }
 

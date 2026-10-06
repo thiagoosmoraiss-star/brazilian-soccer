@@ -50,4 +50,32 @@ Club economy (B6, baseline v1, X-44): TV, gate, sponsorship, maintenance, prizes
 | `prizes` | Paid at season end: league champion (`base × leagueChampionMultiplier[division]`, GAME_DESIGN §11 ratios D=1/C=3/B=8/A=40), cup winner/runner-up (`base × cupWinnerMultiplier`/`cupRunnerUpMultiplier`, Copa=25) | `base` > 0 |
 | `cashAlert` | Consecutive negative months before `Club.CashAlert` (1) and before `Club.TransferLockout` (3) — the market (B5) stops signing for a locked-out club | `alertMonths` ≤ `transferLockoutMonths` |
 
-Every revenue and expense goes through `Game.Career.Season.LedgerBook.Post` (including the market's transfer fees), so `Club.Balance` is always exactly the sum of the season's ledger plus every earlier season's archived net (`SeasonSummary.SeasonNetByClub`). `Club.Budget` (the market's funding figure) is re-synced from `Balance` at every month end and at season end: `max(0, Balance)`. The 6-month confidence drop from GAME_DESIGN §11 needs the board/confidence system (B7, pending) and is not implemented yet (see `DECISIONS.md`).
+Every revenue and expense goes through `Game.Career.Season.LedgerBook.Post` (including the market's transfer fees), so `Club.Balance` is always exactly the sum of the season's ledger plus every earlier season's archived net (`SeasonSummary.SeasonNetByClub`). `Club.Budget` (the market's funding figure) is re-synced from `Balance` at every month end and at season end: `max(0, Balance)`.
+
+## `facilities.json`
+
+Stadium and Training Center (B7, baseline v1, X-45). Recalibrate here; no code change needed.
+
+| Section | Controls | Valid values |
+| --- | --- | --- |
+| `stadium` | Upgrade cost by current level (1-10), construction duration (months), minimum level required to play in a division (MVP_SCOPE's access requirement; blocks promotion, not relegation) | Non-empty |
+| `trainingCenter` | Starting level by division (world generation, B1, predates the CT), upgrade cost by current level (1-5), duration, development multiplier by level (replaces development.json's neutral `TrainingCenterFactor`) | `developmentFactorByLevel` needs exactly 5 entries |
+
+One upgrade project at a time per facility per club (`Game.Career.World.FacilityProject`); the market AI (`Game.Career.Board.Facilities`) queues one every month whenever the club can afford it and is below the maximum level, and applies it once its `CompletesOn` date is reached.
+
+## `staff.json`
+
+Physio, assistant coach and scout (B7, baseline v1, X-45): every club keeps all three filled. Recalibrate here; no code change needed.
+
+| Section | Controls | Valid values |
+| --- | --- | --- |
+| `initialLevelByDivision` | Starting level (1-5) by division, the same for all three roles | Non-empty |
+| `wagePerLevel` | Season wage by level, the same scale for all three roles | Exactly 5 entries |
+| `upgradeCostPerLevel` | Cost to go from level N to N+1 | Exactly 4 entries |
+| `physio` | Energy-recovery-per-day multiplier by level (GAME_DESIGN §7: "energia, lesões"; the injury effect is out of B7's scope, D-19b) | Exactly 5 entries |
+| `assistant` | Development multiplier by level (replaces development.json's neutral `AssistantCoachFactor`) | Exactly 5 entries |
+| `scout` | Narrows `MarketRules.ScoutPotentialRange`'s (B5) half-width by level; not yet called by anything (no UI/AI flow consumes scouting yet) | Exactly 5 entries |
+
+## `Data/Board/board.json`
+
+Season objectives and manager confidence (B7, baseline v1, X-45). One objective per club per season (Promote, AvoidRelegation or BreakEven, from the previous season's table position — or squad OVR for the first season, same pattern as X-40's cup qualifiers), evaluated at season end: met adds confidence, missed subtracts it. Below `dismissalThreshold`, the club gets a new manager (`resetAfterDismissal`) — the automatic simulation never ends a club's story, unlike a human save (GAME_DESIGN §6: "a carreira só termina com demissão"). `GAME_DESIGN`'s 4 difficulty levels and the news text that would narrate all this are out of scope (D-17b, pending; news is presentation, Track C).

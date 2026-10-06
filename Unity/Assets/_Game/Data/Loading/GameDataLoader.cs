@@ -31,6 +31,9 @@ namespace Game.Data.Loading
         public const string DevelopmentFile = "Career/development.json";
         public const string MarketFile = "Career/market.json";
         public const string EconomyFile = "Career/economy.json";
+        public const string BoardFile = "Board/board.json";
+        public const string FacilitiesFile = "Career/facilities.json";
+        public const string StaffFile = "Career/staff.json";
 
         public const string MissingFile = "MISSING_FILE";
         public const string ReadFailed = "READ_FAILED";
@@ -39,6 +42,7 @@ namespace Game.Data.Loading
         {
             EffectsFile, OvrFile, NamesFile, CitiesFile, ClubTemplatesFile, CrestTemplatesFile, GenerationFile,
             FormationsFile, MatchRulesFile, QuickSimFile, CompetitionsFile, CalendarFile, DevelopmentFile, MarketFile, EconomyFile,
+            BoardFile, FacilitiesFile, StaffFile,
         };
 
         /// <summary>Reads and deserializes the effect definitions (syntax and structure only).</summary>
@@ -122,6 +126,24 @@ namespace Game.Data.Loading
             return text.IsSuccess ? EconomyReader.Read(text.Value) : Result<Career.EconomyDefinition>.Fail(text.Errors);
         }
 
+        public static Result<Board.BoardDefinition> LoadBoard(IDataSource source)
+        {
+            var text = ReadText(source, BoardFile);
+            return text.IsSuccess ? BoardReader.Read(text.Value) : Result<Board.BoardDefinition>.Fail(text.Errors);
+        }
+
+        public static Result<Career.FacilitiesDefinition> LoadFacilities(IDataSource source)
+        {
+            var text = ReadText(source, FacilitiesFile);
+            return text.IsSuccess ? FacilitiesReader.Read(text.Value) : Result<Career.FacilitiesDefinition>.Fail(text.Errors);
+        }
+
+        public static Result<Career.StaffDefinition> LoadStaff(IDataSource source)
+        {
+            var text = ReadText(source, StaffFile);
+            return text.IsSuccess ? StaffReader.Read(text.Value) : Result<Career.StaffDefinition>.Fail(text.Errors);
+        }
+
         private static Result<string> ReadText(IDataSource source, string file)
         {
             if (source == null) throw new ArgumentNullException(nameof(source));
@@ -151,6 +173,9 @@ namespace Game.Data.Loading
             var development = LoadDevelopment(source);
             var market = LoadMarket(source);
             var economy = LoadEconomy(source);
+            var board = LoadBoard(source);
+            var facilities = LoadFacilities(source);
+            var staff = LoadStaff(source);
 
             var errors = new List<Error>();
             errors.AddRange(catalog.Errors);
@@ -164,11 +189,14 @@ namespace Game.Data.Loading
             errors.AddRange(development.Errors);
             errors.AddRange(market.Errors);
             errors.AddRange(economy.Errors);
+            errors.AddRange(board.Errors);
+            errors.AddRange(facilities.Errors);
+            errors.AddRange(staff.Errors);
             if (errors.Count > 0) return Result<GameDatabase>.Fail(errors);
 
             return Result<GameDatabase>.Ok(new GameDatabase(source.Description, new Balance(catalog.Value), ovr.Value, world.Value,
                 formations.Value, matchRules.Value, quickSim.Value, competitions.Value, calendar.Value, development.Value, market.Value,
-                economy.Value));
+                economy.Value, board.Value, facilities.Value, staff.Value));
         }
 
         /// <summary>Deserializes and validates the effect definitions against <paramref name="schema"/>.</summary>

@@ -1,0 +1,15 @@
+{
+  "schemaVersion": 1,
+  "initialLevelByDivision": [3, 2, 2, 1],
+  "wagePerLevel": [15000, 35000, 70000, 130000, 220000],
+  "upgradeCostPerLevel": [50000, 120000, 250000, 450000],
+  "physio": {
+    "energyRecoveryMultiplierByLevel": [0.85, 0.95, 1.0, 1.1, 1.2]
+  },
+  "assistant": {
+    "developmentFactorByLevel": [0.85, 0.95, 1.0, 1.1, 1.25]
+  },
+  "scout": {
+    "potentialRangeNarrowingByLevel": [1.0, 0.85, 0.7, 0.55, 0.4]
+  }
+}

@@ -122,6 +122,8 @@ namespace Game.Career.Season
         public Dictionary<Id, int> ClubMatches { get; } = new Dictionary<Id, int>();
         /// <summary>This season's cash movements (B6, X-44); archived as a net total per club at season end.</summary>
         public List<LedgerEntry> Ledger { get; } = new List<LedgerEntry>();
+        /// <summary>This season's objective per club (B7, X-45): set at season start, evaluated at season end.</summary>
+        public Dictionary<Id, Objective> Objectives { get; } = new Dictionary<Id, Objective>();
 
         public IEnumerable<Fixture> AllFixtures()
         {
@@ -144,5 +146,7 @@ namespace Game.Career.Season
         public IReadOnlyList<Id> Retired { get; internal set; }
         /// <summary>Net cash movement per club this season (B6, X-44): the sum of its ledger entries.</summary>
         public IReadOnlyDictionary<Id, long> SeasonNetByClub { get; internal set; }
+        /// <summary>Clubs whose manager was dismissed at this season end (B7, X-45).</summary>
+        public IReadOnlyList<Id> Dismissed { get; internal set; }
     }
 }

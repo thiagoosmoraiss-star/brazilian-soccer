@@ -1,0 +1,14 @@
+{
+  "schemaVersion": 1,
+  "objectives": {
+    "promoteTopPositions": 4,
+    "avoidRelegationBottomPositions": 4
+  },
+  "confidence": {
+    "initial": 50,
+    "objectiveMetBonus": 20,
+    "objectiveMissedPenalty": 25,
+    "dismissalThreshold": 20,
+    "resetAfterDismissal": 50
+  }
+}
