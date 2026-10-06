@@ -23,7 +23,7 @@ Nome de trabalho: **ACESSO** (PENDENTE: verificação de marca e disponibilidade
 - Save em JSON + gzip, com migrações versionadas.
 - Controle de versão: Git + Git LFS (D-06). Hospedagem (GitHub, GitLab etc.) não decidida e não necessária agora.
 
-Não introduza tecnologia, pacote ou dependência fora desta lista sem decisão registrada em `DECISIONS.md`. JSON: Newtonsoft JSON (D-11). Item ainda PENDENTE (ver `DECISIONS.md`): uso do Cinemachine.
+Não introduza tecnologia, pacote ou dependência fora desta lista sem decisão registrada em `DECISIONS.md`. JSON: Newtonsoft JSON (D-11). Câmera de jogo: Cinemachine (D-10, X-48).
 
 ## 4. Fontes de verdade e hierarquia
 
