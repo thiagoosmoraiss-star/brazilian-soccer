@@ -64,7 +64,7 @@ namespace Game.App.Dev
             _player = new MatchPlayerSetup(new Id(1), Enumerable.Repeat(Ovr, AttrInfo.Count).ToArray(), 0, Array.Empty<int>(), 100f, 3, null);
 
             _body = new PlayerBody { Position = new System.Numerics.Vector3(0f, 0f, 0f) };
-            _ball = new Ball { Position = new System.Numerics.Vector3(2f, 0f, 0f), State = BallState.Dead };
+            _ball = new Ball { Position = new System.Numerics.Vector3(2f, 0f, 0f), State = BallState.Rolling };
             _draw = new UnityDebugDraw();
 
             _input = gameObject.AddComponent<InputAdapter>();
