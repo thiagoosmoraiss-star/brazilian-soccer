@@ -43,3 +43,35 @@ Used by `Game.Match.Pitch` and `Game.Match.BallPhysics` (TECHNICAL_SPEC §6, GAM
 | --- | --- | --- |
 | `pitch` | Field length/width (105×68 m), goal width/height (7.32×2.44 m, real-world fact, not a balance number), post radius | `goalWidth` < `width`; all > 0 |
 | `ball` | Radius (0.11 m); gravity; rolling friction deceleration and the speed below which it is treated as stopped; air drag while airborne ("arrasto leve"); bounce vertical restitution (GAME_DESIGN: 0.45–0.60) and horizontal retention (~0.85), and the vertical speed below which a bounce settles into rolling; post/crossbar restitution; net damping; spin's lateral acceleration coefficient and decay per second (only applied while airborne — colocado, cruzamento, falta); the step distance that triggers sub-stepping ("sub-passos só em chute forte") and its cap | 0 < restitution/retention/damping < 1; the rest > 0 |
+
+## movement.json — non-attribute movement coefficients (A2, baseline v1, X-49)
+
+Used by `Game.Match.Movement`/`Possession`/`DribbleSystem`. Attribute-dependent values (sprint speed, jog speed, accel/decel time, turn loss, touch distance, feint success...) come from the `Effect` catalog (`effects.json`, already baseline v1 since Stage 0) via `Balance.Eval`, not from this file.
+
+| Field | Controls | Valid values |
+| --- | --- | --- |
+| `playerRadius` | Player circle radius (GAME_DESIGN §25: ~0.4 m), real-world fact not a balance number | > 0 |
+| `possessionCaptureRadius` | Distance within which a player picks up a loose ball | > 0 |
+| `turnNoLossMaxDegrees` / `turnMediumLossMaxDegrees` | Turn-angle bands (GAME_DESIGN §18: ≤45° no loss, 45-90° medium, >90° sharp) | medium > no-loss |
+| `mediumTurnSpeedLossFlat` | Flat speed loss for a 45-90° turn (15-30%); sharper turns use `Effect.TurnSpeedLoss`/`TurnSpeedLossWithBall` (40-60%) instead | 0–1 |
+| `withBallSpeedPenaltyShortTouch` / `withBallSpeedPenaltyLongTouch` | Dribble speed penalty, short vs. long touch (GAME_DESIGN §18: -10% to -5%) | 0–1 |
+| `sprintBurstTouchMultiplier` | How much farther the ball sits ahead during a sprint burst ("arrancada, toque longo") | ≥ 1 |
+| `feintPulseMaxSeconds` | Body-feint input window (GAME_DESIGN §21: < 0.25 s) | > 0 |
+| `sprintMemorySeconds` | Sprint keeps going this long after release if the stick is still pushed (GAME_DESIGN §17: 0.4 s) | ≥ 0 |
+| `inputBufferSeconds` | Input buffer (GAME_DESIGN §17: ~150 ms) | ≥ 0 |
+| `stopSpeedEpsilon` | Speed below which a player is considered stopped | > 0 |
+
+## fatigue.json — fatigue coefficients (A2, baseline v1, X-49)
+
+Used by `Game.Match.Fatigue`. The attribute-dependent part (Resistência → `Effect.EnergyDrainMult`) is already baseline v1 since Stage 0.
+
+| Field | Controls | Valid values |
+| --- | --- | --- |
+| `referenceDurationMinutes` | The duration `jogDrainPerMinuteAt6Min` is calibrated for (GAME_DESIGN §18: 6 min) | > 0 |
+| `jogDrainPerMinuteAt6Min` | Energy spent per minute jogging at that reference duration, before the Resistência multiplier | > 0 |
+| `sprintCostMultiplier` | Sprinting drains this many times the jog rate (GAME_DESIGN §18: 5-6x) | ≥ 1 |
+| `lowEnergyThreshold` | Energy fraction below which speed/acceleration are penalized (GAME_DESIGN §18: < 60%) | 0–1 |
+| `lowEnergySpeedPenalty` | Maximum penalty at 0 energy, scaling to 0 at the threshold (GAME_DESIGN §18: up to -12%) | 0–1 |
+| `halftimeRecovery` | Energy restored at half-time (GAME_DESIGN §18: +15-20) | ≥ 0 |
+
+Drain is normalized by the configured match duration (`referenceDurationMinutes / durationMinutes`), so total energy spent playing the same way for the whole match is equal at 4, 6 or 10 minutes (TECHNICAL_SPEC: "Gasto normalizado pela duração configurada").

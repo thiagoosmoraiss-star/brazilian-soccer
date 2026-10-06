@@ -1,0 +1,15 @@
+{
+  "schemaVersion": 1,
+  "playerRadius": 0.4,
+  "possessionCaptureRadius": 1.2,
+  "turnNoLossMaxDegrees": 45.0,
+  "turnMediumLossMaxDegrees": 90.0,
+  "mediumTurnSpeedLossFlat": 0.2,
+  "withBallSpeedPenaltyShortTouch": 0.10,
+  "withBallSpeedPenaltyLongTouch": 0.05,
+  "sprintBurstTouchMultiplier": 2.5,
+  "feintPulseMaxSeconds": 0.25,
+  "sprintMemorySeconds": 0.4,
+  "inputBufferSeconds": 0.15,
+  "stopSpeedEpsilon": 0.05
+}

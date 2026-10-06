@@ -1,0 +1,9 @@
+{
+  "schemaVersion": 1,
+  "referenceDurationMinutes": 6.0,
+  "jogDrainPerMinuteAt6Min": 3.0,
+  "sprintCostMultiplier": 5.5,
+  "lowEnergyThreshold": 0.6,
+  "lowEnergySpeedPenalty": 0.12,
+  "halftimeRecovery": 17.0
+}

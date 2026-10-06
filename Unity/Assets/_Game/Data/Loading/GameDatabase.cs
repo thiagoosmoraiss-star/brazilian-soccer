@@ -22,13 +22,18 @@ namespace Game.Data.Loading
         public Career.FacilitiesDefinition Facilities { get; }
         public Career.StaffDefinition Staff { get; }
         public Match.BallDefinition Ball { get; }
+        public Match.MovementDefinition Movement { get; }
+        public Match.FatigueDefinition Fatigue { get; }
 
         internal GameDatabase(string sourceDescription, Effects.Balance balance, Ovr.OvrDefinition ovr, World.WorldDefinition world,
             System.Collections.Generic.IReadOnlyList<Match.FormationDefinition> formations, Match.MatchRulesDefinition matchRules,
             Match.QuickSimDefinition quickSim, Competitions.CompetitionsDefinition competitions, Competitions.CalendarDefinition calendar,
             Career.DevelopmentDefinition development, Career.MarketDefinition market, Career.EconomyDefinition economy,
-            Board.BoardDefinition board, Career.FacilitiesDefinition facilities, Career.StaffDefinition staff, Match.BallDefinition ball)
+            Board.BoardDefinition board, Career.FacilitiesDefinition facilities, Career.StaffDefinition staff, Match.BallDefinition ball,
+            Match.MovementDefinition movement, Match.FatigueDefinition fatigue)
         {
+            Movement = movement;
+            Fatigue = fatigue;
             Ball = ball;
             Staff = staff;
             Facilities = facilities;
