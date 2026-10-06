@@ -3,7 +3,8 @@
     "rootNamespace": "Game.Input",
     "references": [
         "Core",
-        "Match"
+        "Match",
+        "Unity.InputSystem"
     ],
     "includePlatforms": [],
     "excludePlatforms": [],

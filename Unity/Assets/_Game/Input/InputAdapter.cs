@@ -1,4 +1,3 @@
-using System.Numerics;
 using Game.Match;
 using UnityEngine;
 using UnityEngine.InputSystem;
@@ -25,7 +24,7 @@ namespace Game.Input
         private bool _dragging;
 
         /// <summary>Direction only (not clamped to length 1 beyond the stick's own radius); Z is always 0.</summary>
-        public Vector2 MoveIntent { get; private set; }
+        public System.Numerics.Vector2 MoveIntent { get; private set; }
         public bool SprintHeld { get; private set; }
 
         private void Update()
@@ -44,13 +43,13 @@ namespace Game.Input
                 pointerPos = Mouse.current.position.ReadValue();
             }
 
-            var rawMove = Vector2.Zero;
+            var rawMove = System.Numerics.Vector2.Zero;
             if (pressed)
             {
                 if (!_dragging) { _dragging = true; _origin = pointerPos; }
                 UnityEngine.Vector2 delta = pointerPos - _origin;
                 if (delta.magnitude > Deadzone * MaxRadiusPixels)
-                    rawMove = new Vector2(delta.x / MaxRadiusPixels, delta.y / MaxRadiusPixels);
+                    rawMove = new System.Numerics.Vector2(delta.x / MaxRadiusPixels, delta.y / MaxRadiusPixels);
             }
             else
             {

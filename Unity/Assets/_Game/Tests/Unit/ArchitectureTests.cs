@@ -31,7 +31,7 @@ namespace Game.Tests.Unit
         private static readonly Dictionary<string, string[]> UnityAllowed = new Dictionary<string, string[]>
         {
             ["App"] = PureAllowed.Keys.Concat(new[] { "UI", "Presentation", "Input", "Audio" }).ToArray(),
-            ["Input"] = new[] { "Core", "Match" },
+            ["Input"] = new[] { "Core", "Match", "Unity.InputSystem" },
             ["Presentation"] = new[] { "Core", "Data", "Match" },
             ["Audio"] = new[] { "Core", "Match" },
             ["UI"] = new[] { "Core", "Data", "Career", "Career.Market", "Career.Economy", "Simulation" },
