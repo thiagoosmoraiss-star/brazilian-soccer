@@ -19,5 +19,8 @@ namespace Game.Match
         public bool Sprinting;
         /// <summary>Seconds left in a sharp-turn stun (TECHNICAL_SPEC: perda de velocidade + 0,2-0,4 s em curva > 90°).</summary>
         public float TurnStunRemaining;
+        /// <summary>Set by a kick: the kicker cannot recapture the ball until it has left his capture radius once
+        /// (otherwise the ball, still at his feet on the kick step, would be caught straight back).</summary>
+        public bool IgnoreBallUntilClear;
     }
 }

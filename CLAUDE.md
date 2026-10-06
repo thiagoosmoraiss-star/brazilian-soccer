@@ -106,4 +106,4 @@ Uma funcionalidade só está pronta quando cumpre `DEFINITION_OF_DONE.md`. Compi
 
 ## 14. Etapa atual
 
-**Track A — A2 Movimento e posse: concluída e validada** (`dotnet test` verde — Tests.Unit 205, Tests.Simulation 37, Tests.Career 143, Tests.Save 13; validado na Unity: EditMode verde e sandbox `Game.App.Dev.PlayerSandbox` confirmado — analógico flutuante, sprint, captura de posse e condução da bola). A1 — Física da bola concluída e validada. Track B concluída (B1–B8). Próxima etapa: A3 — Passe e chute. Atualize esta seção quando a etapa mudar.
+**Track A — A3 Passe e chute** (em validação: `dotnet test` verde — Tests.Unit 244, Tests.Simulation 37, Tests.Career 143, Tests.Save 13; falta a validação na Unity: EditMode e o sandbox `Game.App.Dev.PassingSandbox` — passe, enfiada, chute, botões em tela). A1 e A2 concluídas e validadas. Track B concluída (B1–B8). Atualize esta seção quando a etapa mudar.

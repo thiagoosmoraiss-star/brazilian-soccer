@@ -39,7 +39,7 @@ namespace Game.App.Dev
             if (!dbResult.IsSuccess) { _error = dbResult.ToString(); Debug.LogError("BallSandbox: " + _error); return; }
 
             var def = dbResult.Value.Ball;
-            _pitch = new Pitch(def.Pitch.Length, def.Pitch.Width, def.Pitch.GoalWidth, def.Pitch.GoalHeight, def.Pitch.PostRadius);
+            _pitch = Pitch.From(def.Pitch);
             _cfg = def.Ball;
             _draw = new UnityDebugDraw();
             ResetBall();

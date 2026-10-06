@@ -1,4 +1,6 @@
+using System;
 using System.Numerics;
+using Game.Data.Match;
 using Game.Match.Geometry;
 
 namespace Game.Match
@@ -6,8 +8,8 @@ namespace Game.Match
     /// <summary>
     /// Field geometry (TECHNICAL_SPEC §6: "Pitch | Geometria (105×68 m inicial), áreas, gols, zonas | Config").
     /// Centered on the origin; x = length (the two goal lines at ±<see cref="HalfLength"/>), y = width, z = height.
-    /// Areas/zones beyond the goal mouth are added by the stage that first needs them (A4+); A1 only needs enough
-    /// geometry for the ball: boundaries, goal mouth and the post/crossbar bars.
+    /// A1 added the boundaries, goal mouth and post/crossbar bars; A3 the penalty areas (shot error inside vs
+    /// outside the box). Other zones are added by the stage that first needs them.
     /// </summary>
     public sealed class Pitch
     {
@@ -16,6 +18,8 @@ namespace Game.Match
         public float GoalWidth { get; }
         public float GoalHeight { get; }
         public float PostRadius { get; }
+        public float PenaltyAreaDepth { get; }
+        public float PenaltyAreaWidth { get; }
 
         public float HalfLength { get; }
         public float HalfWidth { get; }
@@ -29,8 +33,11 @@ namespace Game.Match
         public readonly Segment3 HomeLeftPost, HomeRightPost, HomeCrossbar;
         public readonly Segment3 AwayLeftPost, AwayRightPost, AwayCrossbar;
 
-        public Pitch(float length, float width, float goalWidth, float goalHeight, float postRadius)
+        public Pitch(float length, float width, float goalWidth, float goalHeight, float postRadius,
+            float penaltyAreaDepth, float penaltyAreaWidth)
         {
+            PenaltyAreaDepth = penaltyAreaDepth;
+            PenaltyAreaWidth = penaltyAreaWidth;
             Length = length;
             Width = width;
             GoalWidth = goalWidth;
@@ -50,6 +57,23 @@ namespace Game.Match
             AwayLeftPost = new Segment3(new Vector3(AwayGoalLineX, -HalfGoalWidth, 0f), new Vector3(AwayGoalLineX, -HalfGoalWidth, GoalHeight));
             AwayRightPost = new Segment3(new Vector3(AwayGoalLineX, HalfGoalWidth, 0f), new Vector3(AwayGoalLineX, HalfGoalWidth, GoalHeight));
             AwayCrossbar = new Segment3(new Vector3(AwayGoalLineX, -HalfGoalWidth, GoalHeight), new Vector3(AwayGoalLineX, HalfGoalWidth, GoalHeight));
+        }
+
+        public static Pitch From(PitchParameters p)
+        {
+            if (p == null) throw new ArgumentNullException(nameof(p));
+            return new Pitch(p.Length, p.Width, p.GoalWidth, p.GoalHeight, p.PostRadius, p.PenaltyAreaDepth, p.PenaltyAreaWidth);
+        }
+
+        /// <summary>Goal line x of the end a side attacks (positive x = the away end).</summary>
+        public float AttackedGoalLineX(bool attackingPositiveX) => attackingPositiveX ? AwayGoalLineX : HomeGoalLineX;
+
+        /// <summary>True if (x, y) is inside the penalty area of the attacked end.</summary>
+        public bool InPenaltyArea(float x, float y, bool attackingPositiveX)
+        {
+            if (MathF.Abs(y) > PenaltyAreaWidth * 0.5f) return false;
+            return attackingPositiveX ? x >= HalfLength - PenaltyAreaDepth && x <= HalfLength
+                                      : x <= -HalfLength + PenaltyAreaDepth && x >= -HalfLength;
         }
 
         /// <summary>True if (y, z) is within the open goal mouth (strictly between the posts, at or below the crossbar).</summary>

@@ -96,10 +96,14 @@ namespace Game.Core.Contracts.Match
 
     /// <summary>
     /// A player as seen by the match: attribute values (18, indexed like the attribute enum), positions as
-    /// integer codes (indices of the position enum), and condition at kick-off.
+    /// integer codes (indices of the position enum), preferred foot, and condition at kick-off.
     /// </summary>
     public sealed class MatchPlayerSetup
     {
+        public const int MinWeakFoot = 1;
+        /// <summary>Weak foot 5 = two-footed (no weak-foot penalty).</summary>
+        public const int MaxWeakFoot = 5;
+
         public Id PlayerId { get; }
         private readonly int[] _attributes;
         public ReadOnlySpan<int> Attributes => _attributes;
@@ -112,13 +116,19 @@ namespace Game.Core.Contracts.Match
         public int Morale { get; }
         /// <summary>Form = average of the last ratings (0-10); null when the player has no recent ratings.</summary>
         public float? Form { get; }
+        public bool LeftFooted { get; }
+        /// <summary>Weak-foot quality 1-5 (5 = no penalty when kicking with the weak foot).</summary>
+        public int WeakFoot { get; }
 
         public MatchPlayerSetup(Id playerId, IReadOnlyList<int> attributes, int mainPosition, IReadOnlyList<int> secondaryPositions,
-            float energy, int morale, float? form)
+            float energy, int morale, float? form, bool leftFooted = false, int weakFoot = MaxWeakFoot)
         {
             if (attributes == null) throw new ArgumentNullException(nameof(attributes));
             if (energy < 0f || energy > 100f) throw new ArgumentOutOfRangeException(nameof(energy));
             if (morale < 1 || morale > 5) throw new ArgumentOutOfRangeException(nameof(morale));
+            if (weakFoot < MinWeakFoot || weakFoot > MaxWeakFoot) throw new ArgumentOutOfRangeException(nameof(weakFoot));
+            LeftFooted = leftFooted;
+            WeakFoot = weakFoot;
             PlayerId = playerId;
             _attributes = new int[attributes.Count];
             for (int i = 0; i < _attributes.Length; i++) _attributes[i] = attributes[i];

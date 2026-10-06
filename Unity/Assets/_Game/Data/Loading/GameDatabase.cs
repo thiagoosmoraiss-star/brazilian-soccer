@@ -24,14 +24,16 @@ namespace Game.Data.Loading
         public Match.BallDefinition Ball { get; }
         public Match.MovementDefinition Movement { get; }
         public Match.FatigueDefinition Fatigue { get; }
+        public Match.KickingDefinition Kicking { get; }
 
         internal GameDatabase(string sourceDescription, Effects.Balance balance, Ovr.OvrDefinition ovr, World.WorldDefinition world,
             System.Collections.Generic.IReadOnlyList<Match.FormationDefinition> formations, Match.MatchRulesDefinition matchRules,
             Match.QuickSimDefinition quickSim, Competitions.CompetitionsDefinition competitions, Competitions.CalendarDefinition calendar,
             Career.DevelopmentDefinition development, Career.MarketDefinition market, Career.EconomyDefinition economy,
             Board.BoardDefinition board, Career.FacilitiesDefinition facilities, Career.StaffDefinition staff, Match.BallDefinition ball,
-            Match.MovementDefinition movement, Match.FatigueDefinition fatigue)
+            Match.MovementDefinition movement, Match.FatigueDefinition fatigue, Match.KickingDefinition kicking)
         {
+            Kicking = kicking;
             Movement = movement;
             Fatigue = fatigue;
             Ball = ball;

@@ -25,7 +25,7 @@ namespace Game.Tests.Unit
             var body = new PlayerBody { Position = Vector3.Zero };
             var ball = new Ball { Position = new Vector3(0.5f, 0f, 0f), Velocity = new Vector3(2f, 0f, 0f), State = BallState.Rolling };
 
-            var ev = Possession.Step(body, ball, db.Movement);
+            var ev = Possession.Step(0, body, ball, db.Movement);
 
             Assert.AreEqual(PossessionEvent.Captured, ev);
             Assert.AreEqual(BallState.Controlled, ball.State);
@@ -39,7 +39,7 @@ namespace Game.Tests.Unit
             var body = new PlayerBody { Position = Vector3.Zero };
             var ball = new Ball { Position = new Vector3(50f, 0f, 0f), Velocity = new Vector3(2f, 0f, 0f), State = BallState.Rolling };
 
-            var ev = Possession.Step(body, ball, db.Movement);
+            var ev = Possession.Step(0, body, ball, db.Movement);
 
             Assert.AreEqual(PossessionEvent.None, ev);
             Assert.AreEqual(BallState.Rolling, ball.State, "possession must not change without a valid event.");
@@ -52,9 +52,47 @@ namespace Game.Tests.Unit
             var body = new PlayerBody { Position = Vector3.Zero };
             var ball = new Ball { Position = new Vector3(0.1f, 0f, 0f), State = BallState.Controlled };
 
-            var ev = Possession.Step(body, ball, db.Movement);
+            var ev = Possession.Step(0, body, ball, db.Movement);
 
             Assert.AreEqual(PossessionEvent.None, ev, "an already-controlled ball is not a fresh capture.");
+        }
+
+        [Test]
+        public void BallAboveCaptureHeight_IsNotCaptured()
+        {
+            var db = Db();
+            var body = new PlayerBody { Position = Vector3.Zero };
+            var ball = new Ball { Position = new Vector3(0.5f, 0f, db.Movement.PossessionCaptureMaxHeight + 0.5f), State = BallState.Airborne };
+
+            Assert.AreEqual(PossessionEvent.None, Possession.Step(0, body, ball, db.Movement), "headers come in A9; feet/chest only.");
+        }
+
+        [Test]
+        public void Capture_RecordsTheOwnerAndLastTouch()
+        {
+            var db = Db();
+            var body = new PlayerBody { Position = Vector3.Zero };
+            var ball = new Ball { Position = new Vector3(0.5f, 0f, 0f), State = BallState.Rolling };
+
+            Possession.Step(3, body, ball, db.Movement);
+
+            Assert.AreEqual(3, ball.Owner);
+            Assert.AreEqual(3, ball.LastTouch);
+        }
+
+        [Test]
+        public void Kicker_IgnoresTheBallUntilItHasLeftHisRadius()
+        {
+            var db = Db();
+            var body = new PlayerBody { Position = Vector3.Zero };
+            var ball = new Ball { Position = new Vector3(0.5f, 0f, 0f), State = BallState.Controlled, Owner = 0 };
+            Possession.Kick(0, body, ball, new Vector3(10f, 0f, 0f));
+
+            Assert.AreEqual(PossessionEvent.None, Possession.Step(0, body, ball, db.Movement));
+            ball.Position = new Vector3(5f, 0f, 0f);
+            Possession.Step(0, body, ball, db.Movement);
+            ball.Position = new Vector3(0.5f, 0f, 0f);
+            Assert.AreEqual(PossessionEvent.Captured, Possession.Step(0, body, ball, db.Movement), "once clear, the ball can be won back.");
         }
 
         [Test]
@@ -64,7 +102,7 @@ namespace Game.Tests.Unit
             var body = new PlayerBody { Position = Vector3.Zero };
             var ball = new Ball { Position = Vector3.Zero, State = BallState.Dead };
 
-            var ev = Possession.Step(body, ball, db.Movement);
+            var ev = Possession.Step(0, body, ball, db.Movement);
 
             Assert.AreEqual(PossessionEvent.None, ev, "a dead ball stays fixed until the restart (TECHNICAL_SPEC §6).");
             Assert.AreEqual(BallState.Dead, ball.State);

@@ -18,7 +18,7 @@ namespace Game.Tests.Unit
             var r = GameDataLoader.LoadBall(new DirectoryDataSource(TestPaths.DataRoot()));
             Assert.IsTrue(r.IsSuccess, r.ToString());
             var def = r.Value;
-            var pitch = new Pitch(def.Pitch.Length, def.Pitch.Width, def.Pitch.GoalWidth, def.Pitch.GoalHeight, def.Pitch.PostRadius);
+            var pitch = Pitch.From(def.Pitch);
             return (pitch, def.Ball);
         }
 

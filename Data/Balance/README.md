@@ -52,6 +52,7 @@ Used by `Game.Match.Movement`/`Possession`/`DribbleSystem`. Attribute-dependent 
 | --- | --- | --- |
 | `playerRadius` | Player circle radius (GAME_DESIGN §25: ~0.4 m), real-world fact not a balance number | > 0 |
 | `possessionCaptureRadius` | Distance within which a player picks up a loose ball | > 0 |
+| `possessionCaptureMaxHeight` | A ball above this height can't be controlled with feet/chest (A3; headers are A9) | > 0 |
 | `turnNoLossMaxDegrees` / `turnMediumLossMaxDegrees` | Turn-angle bands (GAME_DESIGN §18: ≤45° no loss, 45-90° medium, >90° sharp) | medium > no-loss |
 | `mediumTurnSpeedLossFlat` | Flat speed loss for a 45-90° turn (15-30%); sharper turns use `Effect.TurnSpeedLoss`/`TurnSpeedLossWithBall` (40-60%) instead | 0–1 |
 | `withBallSpeedPenaltyShortTouch` / `withBallSpeedPenaltyLongTouch` | Dribble speed penalty, short vs. long touch (GAME_DESIGN §18: -10% to -5%) | 0–1 |
@@ -75,3 +76,60 @@ Used by `Game.Match.Fatigue`. The attribute-dependent part (Resistência → `Ef
 | `halftimeRecovery` | Energy restored at half-time (GAME_DESIGN §18: +15-20) | ≥ 0 |
 
 Drain is normalized by the configured match duration (`referenceDurationMinutes / durationMinutes`), so total energy spent playing the same way for the whole match is equal at 4, 6 or 10 minutes (TECHNICAL_SPEC: "Gasto normalizado pela duração configurada").
+
+## ball.json — pitch additions (A3, X-50)
+
+| Field | Controls | Valid values |
+| --- | --- | --- |
+| `penaltyAreaDepth` / `penaltyAreaWidth` | Penalty box (real-world 16.5 × 40.32 m); decides `ShotAngleErrorInBox` (Finalização) vs `ShotAngleErrorOutOfBox` (Chute de longe) | goalWidth < width < pitch width; depth < half length |
+
+## kicking.json — passes and shots (A3, baseline v1, X-50)
+
+Used by `Game.Match.PassSystem`/`ShotSystem`, `Game.Rules.Match.KickErrorRules` and (timings) the `InputAdapter`. Attribute-dependent values (`PassAngleError`, `PassPowerError`, `PassBallSpeed`, `ThroughBallError`, `LeadCalcError`, `ShotAngleErrorInBox/OutOfBox`, `ShotPowerMax`, `PressureErrorMult`) come from `effects.json`. Error is the product of the factors below (GAME_DESIGN §19/§20: "Erro = produto de fatores"), sampled from a bell-shaped (triangular) distribution with a per-system RNG stream.
+
+**common**
+
+| Field | Controls | Valid values |
+| --- | --- | --- |
+| `tapMaxSeconds` | Release within this = tap (automatic force) | > 0 |
+| `weakFootAngleDegrees` | Kick aimed beyond this toward the preferred-foot side uses the weak foot (X-50) | 0–180 |
+| `orientationFreeAngleDegrees` | No orientation/balance penalty within this angle of the facing | 0–180 |
+| `lowEnergyThreshold` | Energy (0–100) below which precision drops (GAME_DESIGN §18: < 40%) | 0–100 |
+
+**pass**
+
+| Field | Controls | Valid values |
+| --- | --- | --- |
+| `coneHalfAngleDegrees` | Semi assistance cone (GAME_DESIGN §19: ±25°) | 0–90 |
+| `coneDistanceWeightDegPerMeter` | Target score = angle + distance × this (lowest wins) | ≥ 0 |
+| `maxTargetDistance` | Teammates farther than this are not targeted | > 0 |
+| `spacePassDistance` | Tapped pass into space (nobody in the cone) | > 0 |
+| `arrivalSpeed` / `throughArrivalSpeed` | Speed left when the ball reaches the receiver / lead point (× `PassBallSpeed`) | > 0 |
+| `minSpeed` / `maxSpeed` | Launch speed range; a held pass maps the bar onto it | max > min > 0 |
+| `powerBarSeconds` | Hold time for 100% on a held pass | > 0 |
+| `throughLeadDistance` | Lead ahead of a static receiver on a through ball (× `LeadCalcError`) | ≥ 0 |
+| `pressureRadius` | Opponent closer than this = pressure (GAME_DESIGN: < 2 m; × `PressureErrorMult` 1.3–1.8) | > 0 |
+| `orientationMaxErrorPenalty` | Body orientation, up to +60% | ≥ 0 |
+| `weakFootMaxErrorPenalty` | Weak foot 1 → +50%, weak foot 5 → 0 | ≥ 0 |
+| `firstTimeErrorPenalty` | De primeira +25% | ≥ 0 |
+| `lowEnergyMaxErrorPenalty` | Up to +10% at 0 energy | ≥ 0 |
+| `distanceReference` / `distanceErrorPerMeter` | Error grows linearly beyond the reference distance | ≥ 0 |
+
+**shot**
+
+| Field | Controls | Valid values |
+| --- | --- | --- |
+| `powerBarSeconds` | Full bar (GAME_DESIGN §20: ~0.8 s) | > 0 |
+| `minSpeed` | Speed at 0% power; 100% = `Effect.ShotPowerMax` (Chute de longe) | > 0 |
+| `idealPowerMax` | Above this the vertical error grows (ideal 40–75%) | 0–1 |
+| `overPowerVerticalErrorDegrees` | Extra upward error at 100% | ≥ 0 |
+| `verticalErrorFraction` | Vertical error = horizontal error × this | ≥ 0 |
+| `targetHeight` / `cornerInset` | Corner aimed at: this high, this far inside the post | > 0 / ≥ 0 |
+| `aimNeutralThreshold` | Stick sideways component below this = neutral → assistance picks the far corner | 0–1 |
+| `pressureRadius` / `pressureErrorScale` / `pressurePowerLoss` | GAME_DESIGN §20: < 1.5 m, +40–100% error, −10% power | > 0 / ≥ 0 / 0–1 |
+| `orientationMaxErrorPenalty` | "Equilíbrio" | ≥ 0 |
+| `weakFootMaxErrorPenalty` | +0–60% | ≥ 0 |
+| `weakFootPowerLossMin` / `weakFootPowerLossMax` | −10% (weak foot 4) to −25% (weak foot 1) | min ≤ max < 1 |
+| `firstTimeErrorPenalty` | De primeira +20% | ≥ 0 |
+| `lowEnergyMaxErrorPenalty` | Up to +10% at 0 energy | ≥ 0 |
+| `distanceReference` / `distanceErrorPerMeter` | Error grows beyond ~the box edge (X-50: keeps a shot from midfield rarely on target) | ≥ 0 |

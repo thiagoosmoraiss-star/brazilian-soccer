@@ -8,6 +8,9 @@ namespace Game.Data.Match
         public float GoalWidth { get; internal set; }
         public float GoalHeight { get; internal set; }
         public float PostRadius { get; internal set; }
+        /// <summary>Penalty area depth from the goal line (A3: "Finalização (área)" vs "Chute de longe (fora)").</summary>
+        public float PenaltyAreaDepth { get; internal set; }
+        public float PenaltyAreaWidth { get; internal set; }
     }
 
     /// <summary>Ball physics coefficients (Data/Balance/ball.json, A1, baseline v1, X-47; TECHNICAL_SPEC §6,

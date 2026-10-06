@@ -5,7 +5,9 @@
     "width": 68.0,
     "goalWidth": 7.32,
     "goalHeight": 2.44,
-    "postRadius": 0.06
+    "postRadius": 0.06,
+    "penaltyAreaDepth": 16.5,
+    "penaltyAreaWidth": 40.32
   },
   "ball": {
     "radius": 0.11,

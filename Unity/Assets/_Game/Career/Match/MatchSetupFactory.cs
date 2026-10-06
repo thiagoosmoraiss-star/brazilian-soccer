@@ -25,7 +25,8 @@ namespace Game.Career.Match
         {
             var secondary = new int[p.SecondaryPositions.Count];
             for (int i = 0; i < secondary.Length; i++) secondary[i] = (int)p.SecondaryPositions[i];
-            return new MatchPlayerSetup(p.Id, p.Attributes, (int)p.MainPosition, secondary, energy, morale, form);
+            return new MatchPlayerSetup(p.Id, p.Attributes, (int)p.MainPosition, secondary, energy, morale, form,
+                p.PreferredFoot == Foot.Left, p.WeakFoot);
         }
 
         /// <summary>Team from an explicit candidate list (available players with their condition).</summary>

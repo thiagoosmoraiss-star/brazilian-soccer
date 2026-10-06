@@ -7,6 +7,8 @@ namespace Game.Data.Match
     {
         public float PlayerRadius { get; internal set; }
         public float PossessionCaptureRadius { get; internal set; }
+        /// <summary>A ball above this height cannot be controlled with the feet/chest (headers come in A9).</summary>
+        public float PossessionCaptureMaxHeight { get; internal set; }
         public float TurnNoLossMaxDegrees { get; internal set; }
         public float TurnMediumLossMaxDegrees { get; internal set; }
         /// <summary>Flat speed loss for a 45-90° turn (GAME_DESIGN §18: 15-30%); sharper turns use the

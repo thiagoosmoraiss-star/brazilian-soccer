@@ -1,0 +1,49 @@
+{
+  "schemaVersion": 1,
+  "common": {
+    "tapMaxSeconds": 0.2,
+    "weakFootAngleDegrees": 45.0,
+    "orientationFreeAngleDegrees": 30.0,
+    "lowEnergyThreshold": 40.0
+  },
+  "pass": {
+    "coneHalfAngleDegrees": 25.0,
+    "coneDistanceWeightDegPerMeter": 0.5,
+    "maxTargetDistance": 45.0,
+    "spacePassDistance": 12.0,
+    "arrivalSpeed": 6.0,
+    "minSpeed": 6.0,
+    "maxSpeed": 26.0,
+    "powerBarSeconds": 1.0,
+    "throughLeadDistance": 5.0,
+    "throughArrivalSpeed": 3.0,
+    "pressureRadius": 2.0,
+    "orientationMaxErrorPenalty": 0.6,
+    "weakFootMaxErrorPenalty": 0.5,
+    "firstTimeErrorPenalty": 0.25,
+    "lowEnergyMaxErrorPenalty": 0.1,
+    "distanceReference": 10.0,
+    "distanceErrorPerMeter": 0.01
+  },
+  "shot": {
+    "powerBarSeconds": 0.8,
+    "minSpeed": 8.0,
+    "idealPowerMax": 0.75,
+    "overPowerVerticalErrorDegrees": 12.0,
+    "verticalErrorFraction": 0.5,
+    "targetHeight": 0.8,
+    "cornerInset": 0.6,
+    "aimNeutralThreshold": 0.3,
+    "pressureRadius": 1.5,
+    "pressureErrorScale": 1.25,
+    "pressurePowerLoss": 0.1,
+    "orientationMaxErrorPenalty": 0.6,
+    "weakFootMaxErrorPenalty": 0.6,
+    "weakFootPowerLossMin": 0.1,
+    "weakFootPowerLossMax": 0.25,
+    "firstTimeErrorPenalty": 0.2,
+    "lowEnergyMaxErrorPenalty": 0.1,
+    "distanceReference": 16.0,
+    "distanceErrorPerMeter": 0.07
+  }
+}

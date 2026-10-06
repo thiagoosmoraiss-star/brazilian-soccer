@@ -56,7 +56,7 @@ namespace Game.App.Dev
             if (!dbResult.IsSuccess) { _error = dbResult.ToString(); Debug.LogError("PlayerSandbox: " + _error); return; }
             var db = dbResult.Value;
 
-            _pitch = new Pitch(db.Ball.Pitch.Length, db.Ball.Pitch.Width, db.Ball.Pitch.GoalWidth, db.Ball.Pitch.GoalHeight, db.Ball.Pitch.PostRadius);
+            _pitch = Pitch.From(db.Ball.Pitch);
             _ballCfg = db.Ball.Ball;
             _mv = db.Movement;
             _fatigue = db.Fatigue;
@@ -68,6 +68,9 @@ namespace Game.App.Dev
             _draw = new UnityDebugDraw();
 
             _input = gameObject.AddComponent<InputAdapter>();
+            _input.Configure(new KickTimings(db.Kicking.Common.TapMaxSeconds, db.Kicking.Pass.PowerBarSeconds, db.Kicking.Shot.PowerBarSeconds),
+                db.Movement.SprintMemorySeconds);
+            _input.ShowButtons = false;
 
             _playerVisual = GameObject.CreatePrimitive(PrimitiveType.Capsule);
             _playerVisual.name = "Player (A2 sandbox)";
@@ -118,7 +121,7 @@ namespace Game.App.Dev
                 bool longTouch = DribbleSystem.IsLongTouch(_body);
                 Movement.Step(_body, _balance, _player, move, sprint, hasBall, longTouch, _mv, _fatigue, FixedDt);
                 Fatigue.Drain(_body, _balance, _player, sprint, _fatigue, 6f, FixedDt);
-                Possession.Step(_body, _ball, _mv);
+                Possession.Step(0, _body, _ball, _mv);
                 DribbleSystem.Step(_body, _ball, _balance, _player, _mv);
                 if (_ball.State != BallState.Controlled) BallPhysics.Step(_ball, _pitch, _ballCfg, FixedDt, _draw);
                 _accumulator -= FixedDt;

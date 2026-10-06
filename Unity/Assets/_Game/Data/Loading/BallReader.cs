@@ -21,7 +21,8 @@ namespace Game.Data.Loading
             var p = j.Object(root, "pitch", "root");
             if (p != null)
             {
-                j.Keys(p, "pitch", "length", "width", "goalWidth", "goalHeight", "postRadius");
+                j.Keys(p, "pitch", "length", "width", "goalWidth", "goalHeight", "postRadius",
+                    "penaltyAreaDepth", "penaltyAreaWidth");
                 def.Pitch = new PitchParameters
                 {
                     Length = j.Float(p, "length", "pitch"),
@@ -29,10 +30,14 @@ namespace Game.Data.Loading
                     GoalWidth = j.Float(p, "goalWidth", "pitch"),
                     GoalHeight = j.Float(p, "goalHeight", "pitch"),
                     PostRadius = j.Float(p, "postRadius", "pitch"),
+                    PenaltyAreaDepth = j.Float(p, "penaltyAreaDepth", "pitch"),
+                    PenaltyAreaWidth = j.Float(p, "penaltyAreaWidth", "pitch"),
                 };
                 Check(def.Pitch.Length > 0f && def.Pitch.Width > 0f && def.Pitch.GoalWidth > 0f
-                      && def.Pitch.GoalWidth < def.Pitch.Width && def.Pitch.GoalHeight > 0f && def.Pitch.PostRadius > 0f,
-                    "pitch values invalid (goalWidth must be less than width).");
+                      && def.Pitch.GoalWidth < def.Pitch.Width && def.Pitch.GoalHeight > 0f && def.Pitch.PostRadius > 0f
+                      && def.Pitch.PenaltyAreaDepth > 0f && def.Pitch.PenaltyAreaDepth < def.Pitch.Length * 0.5f
+                      && def.Pitch.PenaltyAreaWidth > def.Pitch.GoalWidth && def.Pitch.PenaltyAreaWidth < def.Pitch.Width,
+                    "pitch values invalid (goalWidth < penaltyAreaWidth < width, penaltyAreaDepth < half length).");
             }
 
             var b = j.Object(root, "ball", "root");

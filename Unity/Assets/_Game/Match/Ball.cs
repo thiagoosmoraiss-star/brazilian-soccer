@@ -38,16 +38,24 @@ namespace Game.Match
         /// <summary>Spin magnitude driving the lateral curve while <c>Airborne</c> (colocado, cruzamento, falta); decays over time.</summary>
         public float Spin;
         public BallState State = BallState.Dead;
+        /// <summary>Slot index of the player controlling the ball (-1 = nobody); only meaningful while <c>Controlled</c>.</summary>
+        public int Owner = NoPlayer;
+        /// <summary>Slot index of the last player to touch the ball (TECHNICAL_SPEC §6: "último toque"); -1 = none yet.</summary>
+        public int LastTouch = NoPlayer;
 
-        /// <summary>Sets the ball in motion (A1 has no players/ShotSystem yet; later stages kick through those).</summary>
+        public const int NoPlayer = -1;
+
+        /// <summary>Sets the ball in motion; players kick through <see cref="Possession.Kick"/>, which also records
+        /// the touch.</summary>
         public void Kick(Vector3 velocity, float spin)
         {
+            Owner = NoPlayer;
             Velocity = velocity;
             Spin = spin;
             State = velocity.Z > 0f || Position.Z > 0f ? BallState.Airborne : BallState.Rolling;
         }
 
-        public Ball Clone() => new Ball { Position = Position, Velocity = Velocity, Spin = Spin, State = State };
+        public Ball Clone() => new Ball { Position = Position, Velocity = Velocity, Spin = Spin, State = State, Owner = Owner, LastTouch = LastTouch };
 
         public void CopyFrom(Ball other)
         {
@@ -55,6 +63,8 @@ namespace Game.Match
             Velocity = other.Velocity;
             Spin = other.Spin;
             State = other.State;
+            Owner = other.Owner;
+            LastTouch = other.LastTouch;
         }
     }
 }
