@@ -106,4 +106,4 @@ Uma funcionalidade só está pronta quando cumpre `DEFINITION_OF_DONE.md`. Compi
 
 ## 14. Etapa atual
 
-**Track A — A1 Física da bola** (em validação: `dotnet test` verde — Tests.Unit 175, Tests.Simulation 37, Tests.Career 143, Tests.Save 13; falta a validação na Unity, incluindo o sandbox `Game.App.Dev.BallSandbox`). Track B concluída (B1–B8). Atualize esta seção quando a etapa mudar.
+**Track A — A2 Movimento e posse** (ainda não iniciada). A1 — Física da bola concluída e validada (EditMode verde na Unity, sandbox `Game.App.Dev.BallSandbox` conferido visualmente: chute, voo com gravidade, rolagem, cruzamento de linha). Track B concluída (B1–B8). Atualize esta seção quando a etapa mudar.

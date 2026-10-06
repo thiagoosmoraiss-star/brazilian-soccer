@@ -2,7 +2,7 @@
 
 Fonte: Especificação Técnica §20. **O Claude Code trabalha somente na etapa atual.** Nada de etapas futuras, mesmo que pareça rápido ou útil. Cada etapa termina quando cumpre seus critérios e o `DEFINITION_OF_DONE.md`.
 
-**Etapa atual:** Track B concluída (B1–B8). A1 — Física da bola (ver `CLAUDE.md` §14). D-01 decidida: Track B primeiro. Com uma pessoa só, as trilhas são sequenciais; em paralelo apenas se houver mais de um desenvolvedor.
+**Etapa atual:** A2 — Movimento e posse (ver `CLAUDE.md` §14). A1 concluída. Track B concluída (B1–B8). D-01 decidida: Track B primeiro. Com uma pessoa só, as trilhas são sequenciais; em paralelo apenas se houver mais de um desenvolvedor.
 
 Regras comuns a todas as etapas:
 
