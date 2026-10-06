@@ -77,14 +77,14 @@ namespace Game.App.Dev
         {
             if (_ball == null) return;
 
-            if (Input.GetKeyDown(KeyCode.Space))
+            if (UnityEngine.Input.GetKeyDown(KeyCode.Space))
             {
                 float yaw = AimYawDegrees * Mathf.Deg2Rad;
                 float loft = LoftDegrees * Mathf.Deg2Rad;
                 var dir = new System.Numerics.Vector3(Mathf.Cos(loft) * Mathf.Cos(yaw), Mathf.Cos(loft) * Mathf.Sin(yaw), Mathf.Sin(loft));
                 _ball.Kick(dir * Power, Spin);
             }
-            if (Input.GetKeyDown(KeyCode.R)) ResetBall();
+            if (UnityEngine.Input.GetKeyDown(KeyCode.R)) ResetBall();
 
             _accumulator += Time.deltaTime;
             while (_accumulator >= FixedDt)
