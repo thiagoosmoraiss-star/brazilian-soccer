@@ -23,6 +23,11 @@ namespace Game.App.Dev
     {
         private const float FixedDt = 1f / 50f; // GAME_DESIGN §25: passo fixo 50-60 Hz
 
+        /// <summary>Unity's primitive capsule has local half-height 1 (height 2, centered on its pivot); this
+        /// is also its Y localScale, so lifting the visual by this much puts its bottom at ground level
+        /// instead of partway underground (where it would visually swallow a ball resting on the ground).</summary>
+        private const float PlayerVisualHalfHeight = 0.9f;
+
         [Header("Player attributes (uniform, 1-99)")]
         public int Ovr = 70;
 
@@ -66,7 +71,7 @@ namespace Game.App.Dev
 
             _playerVisual = GameObject.CreatePrimitive(PrimitiveType.Capsule);
             _playerVisual.name = "Player (A2 sandbox)";
-            _playerVisual.transform.localScale = new Vector3(_mv.PlayerRadius * 2f, 0.9f, _mv.PlayerRadius * 2f);
+            _playerVisual.transform.localScale = new Vector3(_mv.PlayerRadius * 2f, PlayerVisualHalfHeight, _mv.PlayerRadius * 2f);
             Destroy(_playerVisual.GetComponent<Collider>());
             _playerVisual.GetComponent<Renderer>().material.color = Color.blue;
 
@@ -119,7 +124,7 @@ namespace Game.App.Dev
                 _accumulator -= FixedDt;
             }
 
-            _playerVisual.transform.position = ToUnity(_body.Position) + Vector3.up * 0.45f;
+            _playerVisual.transform.position = ToUnity(_body.Position) + Vector3.up * PlayerVisualHalfHeight;
             _ballVisual.transform.position = ToUnity(_ball.Position);
         }
 
