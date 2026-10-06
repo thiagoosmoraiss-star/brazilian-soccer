@@ -52,7 +52,7 @@ namespace Game.Tests.Unit
         {
             var m = Regex.Match(asmdefJson, "\"references\"\\s*:\\s*\\[(?<body>[^\\]]*)\\]");
             Assert.IsTrue(m.Success, "asmdef without references array");
-            return Regex.Matches(m.Groups["body"].Value, "\"([^\"]+)\"").Cast<Match>().Select(x => x.Groups[1].Value).ToArray();
+            return Regex.Matches(m.Groups["body"].Value, "\"([^\"]+)\"").Cast<System.Text.RegularExpressions.Match>().Select(x => x.Groups[1].Value).ToArray();
         }
 
         private static bool NoEngineReferences(string asmdefJson) =>
@@ -142,7 +142,7 @@ namespace Game.Tests.Unit
                 string csproj = Path.Combine(dotnet, kv.Key, kv.Key + ".csproj");
                 Assert.IsTrue(File.Exists(csproj), "Missing project: " + csproj);
                 var refs = Regex.Matches(File.ReadAllText(csproj), "ProjectReference Include=\"[^\"]*[\\\\/](?<n>[^\\\\/\"]+)\\.csproj\"")
-                    .Cast<Match>().Select(m => m.Groups["n"].Value).ToArray();
+                    .Cast<System.Text.RegularExpressions.Match>().Select(m => m.Groups["n"].Value).ToArray();
                 var illegal = refs.Except(kv.Value).ToArray();
                 Assert.IsEmpty(illegal, $"dotnet/{kv.Key} references forbidden projects: {string.Join(", ", illegal)}");
                 CollectionAssert.AreEquivalent(kv.Value, refs, $"dotnet/{kv.Key} must mirror {kv.Key}.asmdef");

@@ -106,4 +106,4 @@ Uma funcionalidade só está pronta quando cumpre `DEFINITION_OF_DONE.md`. Compi
 
 ## 14. Etapa atual
 
-**Track B concluída (B1–B8).** B8 — Save concluída e validada (EditMode verde na Unity). Próxima: **Track A — A1 Física da bola** (D-01: trilhas sequenciais com um só desenvolvedor). Atualize esta seção quando a etapa mudar.
+**Track A — A1 Física da bola** (em validação: `dotnet test` verde — Tests.Unit 175, Tests.Simulation 37, Tests.Career 143, Tests.Save 13; falta a validação na Unity, incluindo o sandbox `Game.App.Dev.BallSandbox`). Track B concluída (B1–B8). Atualize esta seção quando a etapa mudar.

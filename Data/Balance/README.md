@@ -34,3 +34,12 @@ Used by both engines through `Rules.Match.MatchRules` (TECHNICAL_SPEC §10: shar
 ## quicksim.json — QuickSim coefficients (B2, baseline v1, X-38)
 
 Minute slices; possession by Creation strength; dangerous-attack chance by Attack vs Defense; play types (open play, cross, long shot) with on-target and goal-given-on-target chances; blocks, corners, penalties; selection weights per position for shooters, headers, assists, crossers and foulers; tactic multipliers (mentality, line, pressure); home advantage; probability caps. Calibrated so league-like batches hit `Data/TestRanges/quicksim.json`. Inspect with `dotnet run --project dotnet/QuickSimReport -- --matches 10000`.
+
+## ball.json — field geometry + ball physics (A1, baseline v1, X-47)
+
+Used by `Game.Match.Pitch` and `Game.Match.BallPhysics` (TECHNICAL_SPEC §6, GAME_DESIGN §25: own deterministic physics, no PhysX).
+
+| Section | Controls | Valid values |
+| --- | --- | --- |
+| `pitch` | Field length/width (105×68 m), goal width/height (7.32×2.44 m, real-world fact, not a balance number), post radius | `goalWidth` < `width`; all > 0 |
+| `ball` | Radius (0.11 m); gravity; rolling friction deceleration and the speed below which it is treated as stopped; air drag while airborne ("arrasto leve"); bounce vertical restitution (GAME_DESIGN: 0.45–0.60) and horizontal retention (~0.85), and the vertical speed below which a bounce settles into rolling; post/crossbar restitution; net damping; spin's lateral acceleration coefficient and decay per second (only applied while airborne — colocado, cruzamento, falta); the step distance that triggers sub-stepping ("sub-passos só em chute forte") and its cap | 0 < restitution/retention/damping < 1; the rest > 0 |

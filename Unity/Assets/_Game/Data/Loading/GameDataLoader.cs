@@ -34,6 +34,7 @@ namespace Game.Data.Loading
         public const string BoardFile = "Board/board.json";
         public const string FacilitiesFile = "Career/facilities.json";
         public const string StaffFile = "Career/staff.json";
+        public const string BallFile = "Balance/ball.json";
 
         public const string MissingFile = "MISSING_FILE";
         public const string ReadFailed = "READ_FAILED";
@@ -42,7 +43,7 @@ namespace Game.Data.Loading
         {
             EffectsFile, OvrFile, NamesFile, CitiesFile, ClubTemplatesFile, CrestTemplatesFile, GenerationFile,
             FormationsFile, MatchRulesFile, QuickSimFile, CompetitionsFile, CalendarFile, DevelopmentFile, MarketFile, EconomyFile,
-            BoardFile, FacilitiesFile, StaffFile,
+            BoardFile, FacilitiesFile, StaffFile, BallFile,
         };
 
         /// <summary>Reads and deserializes the effect definitions (syntax and structure only).</summary>
@@ -144,6 +145,12 @@ namespace Game.Data.Loading
             return text.IsSuccess ? StaffReader.Read(text.Value) : Result<Career.StaffDefinition>.Fail(text.Errors);
         }
 
+        public static Result<BallDefinition> LoadBall(IDataSource source)
+        {
+            var text = ReadText(source, BallFile);
+            return text.IsSuccess ? BallReader.Read(text.Value) : Result<BallDefinition>.Fail(text.Errors);
+        }
+
         private static Result<string> ReadText(IDataSource source, string file)
         {
             if (source == null) throw new ArgumentNullException(nameof(source));
@@ -176,6 +183,7 @@ namespace Game.Data.Loading
             var board = LoadBoard(source);
             var facilities = LoadFacilities(source);
             var staff = LoadStaff(source);
+            var ball = LoadBall(source);
 
             var errors = new List<Error>();
             errors.AddRange(catalog.Errors);
@@ -192,11 +200,12 @@ namespace Game.Data.Loading
             errors.AddRange(board.Errors);
             errors.AddRange(facilities.Errors);
             errors.AddRange(staff.Errors);
+            errors.AddRange(ball.Errors);
             if (errors.Count > 0) return Result<GameDatabase>.Fail(errors);
 
             return Result<GameDatabase>.Ok(new GameDatabase(source.Description, new Balance(catalog.Value), ovr.Value, world.Value,
                 formations.Value, matchRules.Value, quickSim.Value, competitions.Value, calendar.Value, development.Value, market.Value,
-                economy.Value, board.Value, facilities.Value, staff.Value));
+                economy.Value, board.Value, facilities.Value, staff.Value, ball.Value));
         }
 
         /// <summary>Deserializes and validates the effect definitions against <paramref name="schema"/>.</summary>
