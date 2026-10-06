@@ -48,6 +48,24 @@ namespace Game.App.Dev
             _visual.name = "Ball (A1 sandbox)";
             _visual.transform.localScale = Vector3.one * (_cfg.Radius * 2f);
             Destroy(_visual.GetComponent<Collider>());
+            _visual.GetComponent<Renderer>().material.color = Color.red;
+
+            SetupCameraAndLight();
+        }
+
+        /// <summary>A brand-new empty scene has neither: without a light the ball renders black (looks like
+        /// nothing is there), and without the camera framing the whole pitch it is easy to be pointed at empty
+        /// space far from where the ball actually is.</summary>
+        private void SetupCameraAndLight()
+        {
+            var light = new GameObject("Sandbox Light").AddComponent<Light>();
+            light.type = LightType.Directional;
+            light.transform.rotation = Quaternion.Euler(50f, -30f, 0f);
+
+            var cam = Camera.main;
+            if (cam == null) cam = new GameObject("Sandbox Camera").AddComponent<Camera>();
+            cam.transform.position = new Vector3(0f, 55f, -85f);
+            cam.transform.LookAt(Vector3.zero);
         }
 
         private void ResetBall()
