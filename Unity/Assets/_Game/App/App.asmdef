@@ -15,7 +15,8 @@
         "UI",
         "Presentation",
         "Input",
-        "Audio"
+        "Audio",
+        "Unity.Cinemachine"
     ],
     "includePlatforms": [],
     "excludePlatforms": [],
