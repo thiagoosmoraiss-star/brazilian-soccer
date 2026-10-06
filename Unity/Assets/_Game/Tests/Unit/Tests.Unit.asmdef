@@ -5,6 +5,7 @@
         "Core",
         "Data",
         "Rules",
+        "Match",
         "UnityEngine.TestRunner",
         "UnityEditor.TestRunner"
     ],
