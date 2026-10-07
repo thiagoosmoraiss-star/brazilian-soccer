@@ -96,6 +96,21 @@ namespace Game.Tests.Unit
         }
 
         [Test]
+        public void KickAcrossTheBody_IsNotCaughtBackByTheKicker()
+        {
+            var db = Db();
+            var body = new PlayerBody { Position = Vector3.Zero };
+            // Dribbled ball at the edge of the radius, kicked back across the kicker (regression: the kicker caught his own shot).
+            var ball = new Ball { Position = new Vector3(1.3f, 0f, 0f), State = BallState.Controlled, Owner = 0 };
+            Possession.Kick(0, body, ball, new Vector3(-12f, 3f, 0f));
+            for (int i = 0; i < 20; i++)
+            {
+                Assert.AreEqual(PossessionEvent.None, Possession.Step(0, body, ball, db.Movement), $"step {i}");
+                ball.Position += ball.Velocity * (1f / 50f);
+            }
+        }
+
+        [Test]
         public void DeadBall_IsNeverCaptured()
         {
             var db = Db();

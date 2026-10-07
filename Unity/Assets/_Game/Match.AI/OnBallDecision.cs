@@ -48,15 +48,21 @@ namespace Game.Match.AI
             float noise = ai.DecisionNoise;
             if (nearestOpp < ai.ReceiverPressureRadius) noise *= balance.Eval(Effect.PressureErrorMult, holder.Setup.Attributes);
 
-            // Dribble: the heading with the most room, valued at where it leads.
+            // Dribble: headings fanned around the attack direction — within shooting range around the line to the goal,
+            // so near the byline the carrier cuts inside instead of running along it — the one with the most room valued
+            // at where it leads. A heading the pitch edge stops dead is no option.
             float bestValue = float.MinValue;
             var best = new OnBallDecisionResult(OnBallChoice.Dribble, -1, pos);
-            var fwd = team.Frame.Forward;
+            var goalCentre = team.Frame.TargetGoal;
+            var toGoal = new Vector2(goalCentre.X - pos.X, goalCentre.Y - pos.Y);
+            bool inRange = toGoal.LengthSquared() < ai.ShotRange * ai.ShotRange && toGoal.LengthSquared() > 1e-4f;
+            var fwd = inRange ? Vector2.Normalize(toGoal) : team.Frame.Forward;
             for (int h = 0; h < ai.DribbleHeadings; h++)
             {
                 float angle = (h - (ai.DribbleHeadings - 1) * 0.5f) * ai.DribbleSpreadDegrees * MathF.PI / 180f;
                 var dir = new Vector2(fwd.X * MathF.Cos(angle) - fwd.Y * MathF.Sin(angle), fwd.X * MathF.Sin(angle) + fwd.Y * MathF.Cos(angle));
                 var target = ClampToPitch(pos + new Vector3(dir.X, dir.Y, 0f) * ai.DribbleStep, pitch, ai.SidelineMargin);
+                if (Vector3.DistanceSquared(target, pos) < ai.DribbleStep * ai.DribbleStep * 0.25f) continue;
                 float success = MathUtil.Clamp01(NearestOpponentDistance(target, opponents) / ai.DribbleClearance);
                 float value = success * ai.DribbleRiskFactor * Threat(target, team, pitch, ai) + noise * KickErrorRules.Triangular(rng);
                 if (value > bestValue) { bestValue = value; best = new OnBallDecisionResult(OnBallChoice.Dribble, -1, target); }
@@ -88,7 +94,7 @@ namespace Game.Match.AI
             if (chance > 0f)
             {
                 var goal = team.Frame.TargetGoal;
-                float value = MathUtil.Clamp01(chance - LaneRisk(pos, goal, opponents, ai.PassLaneClearance)) + noise * KickErrorRules.Triangular(rng);
+                float value = chance * BlockSurvival(pos, goal, opponents, balance, ai.PassLaneClearance) + noise * KickErrorRules.Triangular(rng);
                 if (value >= ai.ShootChanceThreshold || value > bestValue) best = new OnBallDecisionResult(OnBallChoice.Shot, -1, goal);
             }
             return best;
@@ -142,6 +148,26 @@ namespace Game.Match.AI
                 if (d < clearance) risk += 1f - d / clearance;
             }
             return risk;
+        }
+
+        /// <summary>Probability a shot gets past the bodies in its lane: each opponent close to the line blocks it with his
+        /// <c>ShotBlockChance</c> (Desarme), scaled by how close to the line he stands.</summary>
+        public static float BlockSurvival(Vector3 from, Vector3 to, AiTeam opponents, Balance balance, float clearance)
+        {
+            var a = new Vector2(from.X, from.Y);
+            var ab = new Vector2(to.X, to.Y) - a;
+            float len2 = ab.LengthSquared();
+            float survive = 1f;
+            for (int i = 0; i < opponents.Players.Length; i++)
+            {
+                var o = opponents.Players[i];
+                var op = new Vector2(o.Body.Position.X, o.Body.Position.Y);
+                float t = len2 > 1e-6f ? MathUtil.Clamp01(Vector2.Dot(op - a, ab) / len2) : 0f;
+                float d = Vector2.Distance(a + ab * t, op);
+                if (d >= clearance) continue;
+                survive *= 1f - balance.Eval(Effect.ShotBlockChance, o.Setup.Attributes) * (1f - d / clearance);
+            }
+            return survive;
         }
 
         /// <summary>Next teammate (excluding the holder) by distance after (<paramref name="afterDistance"/>, <paramref name="afterIndex"/>).</summary>

@@ -379,6 +379,9 @@ namespace Game.Match.AI
             SetPossession(kicking);
         }
 
+        /// <summary>Puts a loose ball at <paramref name="p"/>'s feet (dev sandboxes and scenario tests).</summary>
+        public void PlaceBall(AiPlayer p) => GiveBall(p);
+
         private void GiveBall(AiPlayer p)
         {
             var facing = p.Body.Facing;

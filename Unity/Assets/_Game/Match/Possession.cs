@@ -29,7 +29,10 @@ namespace Game.Match
 
             if (body.IgnoreBallUntilClear)
             {
-                if (distSqr > radiusSqr) body.IgnoreBallUntilClear = false;
+                // Clear only once the ball is outside the radius AND moving away: a dribbled ball already sits at the
+                // edge of the radius when kicked, and a kick across the body would otherwise come straight back.
+                bool movingAway = -dx * ball.Velocity.X - dy * ball.Velocity.Y > 0f;
+                if (distSqr > radiusSqr && (movingAway || ball.Velocity.LengthSquared() < 1e-4f)) body.IgnoreBallUntilClear = false;
                 return PossessionEvent.None;
             }
             if (distSqr > radiusSqr) return PossessionEvent.None;

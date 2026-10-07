@@ -106,4 +106,4 @@ Uma funcionalidade só está pronta quando cumpre `DEFINITION_OF_DONE.md`. Compi
 
 ## 14. Etapa atual
 
-**Track A — A4 Posicionamento da IA** (em validação: `dotnet test` verde — Tests.Unit 262, Tests.Simulation 37, Tests.Career 143, Tests.Save 13; falta a validação na Unity: EditMode e o sandbox `Game.App.Dev.AiMatchSandbox` — assistir o 11×11). A1, A2 e A3 concluídas e validadas. Track B concluída (B1–B8). Atualize esta seção quando a etapa mudar.
+**Track A — A4 Posicionamento da IA** (em validação: `dotnet test` verde — Tests.Unit 269, Tests.Simulation 37, Tests.Career 143, Tests.Save 13; falta a validação na Unity: EditMode e o sandbox `Game.App.Dev.AiMatchSandbox` — assistir o 11×11). A1, A2 e A3 concluídas e validadas. Track B concluída (B1–B8). Atualize esta seção quando a etapa mudar.
