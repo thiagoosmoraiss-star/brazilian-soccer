@@ -19,6 +19,29 @@ namespace Game.Match.AI
         Goal = 4,
         Out = 5,
         Finished = 6,
+        Tackle = 7,
+    }
+
+    /// <summary>One step of the user's input for the controlled player (A5). Attack: move, sprint and released actions
+    /// (pass / through ball / shot, as in A3). Defense: hold "Contenção", tap "Trocar".</summary>
+    public readonly struct HumanInput
+    {
+        public static readonly HumanInput None = new HumanInput(System.Numerics.Vector2.Zero, false, ActionCommand.None, false, false);
+
+        public readonly System.Numerics.Vector2 Move;
+        public readonly bool Sprint;
+        public readonly ActionCommand Action;
+        public readonly bool ContainHeld;
+        public readonly bool SwitchPressed;
+
+        public HumanInput(System.Numerics.Vector2 move, bool sprint, ActionCommand action, bool containHeld, bool switchPressed)
+        {
+            Move = move;
+            Sprint = sprint;
+            Action = action;
+            ContainHeld = containHeld;
+            SwitchPressed = switchPressed;
+        }
     }
 
     /// <summary>Optional hook for tests/tools (no allocation: plain value arguments).</summary>
@@ -61,6 +84,8 @@ namespace Game.Match.AI
         private readonly FatigueDefinition _fatigue;
         private readonly KickingDefinition _kicking;
         private readonly AiDefinition _ai;
+        private readonly DefenseDefinition _defense;
+        private readonly PlayerBody[] _allBodies = new PlayerBody[2 * MatchTeamSetup.StarterCount];
         private readonly float _durationMinutes;
         private readonly Rng _passRng;
         private readonly Rng _shotRng;
@@ -69,6 +94,21 @@ namespace Game.Match.AI
         private long _step;
         private readonly long _totalSteps;
         private AiTeam _possession;
+        private bool _possessionChanged;
+        private float _secureTimer;
+
+        // Human control (A5): one side's selected player follows the user's input; everyone else stays AI.
+        public AiTeam HumanTeam { get; private set; }
+        public ControlSelection Control { get; private set; }
+        private readonly bool[] _eligible = new bool[MatchTeamSetup.StarterCount];
+        private readonly MatchPlayerSetup[] _humanSetups = new MatchPlayerSetup[MatchTeamSetup.StarterCount];
+        private ActionCommand _buffered = ActionCommand.None;
+        private float _bufferedAge;
+        private bool _bufferedWithoutBall;
+        private bool _ballWasLoose;
+        private bool _opponentPassed;
+        /// <summary>True when the user's last kick was a buffered "de primeira" one.</summary>
+        public bool LastKickFirstTime { get; private set; }
 
         public AiMatch(GameDatabase db, MatchSetup setup, float stepSeconds, IAiMatchObserver observer = null)
         {
@@ -81,6 +121,7 @@ namespace Game.Match.AI
             _fatigue = db.Fatigue;
             _kicking = db.Kicking;
             _ai = db.Ai;
+            _defense = db.Defense;
             _observer = observer;
             StepSeconds = stepSeconds;
             _durationMinutes = setup.DurationMinutes;
@@ -99,6 +140,7 @@ namespace Game.Match.AI
                 Players[i] = Home.Players[i];
                 Players[MatchTeamSetup.StarterCount + i] = Away.Players[i];
             }
+            for (int i = 0; i < Players.Length; i++) _allBodies[i] = Players[i].Body;
 
             _teamEvery = Every(_ai.TeamHz, stepSeconds);
             _roleEvery = Every(_ai.RoleHz, stepSeconds);
@@ -115,32 +157,84 @@ namespace Game.Match.AI
         public AiTeam Opponents(AiTeam team) => team == Home ? Away : Home;
         public AiTeam PossessionTeam => _possession;
 
-        public AiMatchEvent Step()
+        /// <summary>The user takes over <paramref name="side"/> (A5): control starts on its kick-off taker / holder.</summary>
+        public void EnableHuman(MatchSide side)
+        {
+            HumanTeam = side == MatchSide.Home ? Home : Away;
+            for (int i = 0; i < HumanTeam.Players.Length; i++)
+            {
+                _eligible[i] = !HumanTeam.Players[i].IsGoalkeeper; // the goalkeeper stays AI (manual only in penalties, A8)
+                _humanSetups[i] = HumanTeam.Players[i].Setup;
+            }
+            int start = 0;
+            for (int i = 0; i < HumanTeam.Players.Length; i++)
+                if (HumanTeam.Players[i].Slot.X > HumanTeam.Players[start].Slot.X) start = i;
+            if (Ball.LastTouch >= 0 && HumanTeam.Owns(Ball.LastTouch)) start = Ball.LastTouch - HumanTeam.Players[0].Global;
+            Control = new ControlSelection(start);
+        }
+
+        /// <summary>The player the user drives, or null in an all-AI match.</summary>
+        public AiPlayer Controlled => HumanTeam == null ? null : HumanTeam.Players[Control.Controlled];
+        /// <summary>The ring: who a manual switch would give control to (null when none).</summary>
+        public AiPlayer NextCandidate => HumanTeam == null || Control.Next < 0 ? null : HumanTeam.Players[Control.Next];
+
+        private bool IsHuman(AiPlayer p) => HumanTeam != null && p == Controlled;
+
+        public AiMatchEvent Step() => Step(HumanInput.None);
+
+        public AiMatchEvent Step(in HumanInput input)
         {
             if (Finished) return AiMatchEvent.Finished;
             float dt = StepSeconds;
             var ev = AiMatchEvent.None;
+            _possessionChanged = false;
+            _opponentPassed = false;
 
             UpdatePossessionTeam();
             Home.TransitionTimer = MathF.Max(0f, Home.TransitionTimer - dt);
             Away.TransitionTimer = MathF.Max(0f, Away.TransitionTimer - dt);
+            for (int i = 0; i < Players.Length; i++) DefenseSystem.Tick(Players[i].Body, dt);
+            _secureTimer = MathF.Max(0f, _secureTimer - dt);
+            if (HumanTeam != null)
+            {
+                Control.Tick(dt);
+                if (input.Action.Kind != ActionKind.None)
+                {
+                    _buffered = input.Action;
+                    _bufferedAge = 0f;
+                    _bufferedWithoutBall = Ball.Owner != Controlled.Global;
+                }
+            }
 
             // 2. AI: team (5 Hz), function (10 Hz), individual (10 Hz, staggered by player).
             if (_step % _teamEvery == 0) { TeamTick(Home); TeamTick(Away); }
             if (_step % _roleEvery == 0) { RoleTick(Home); RoleTick(Away); }
             float individualTick = _individualEvery * dt;
             for (int i = 0; i < Players.Length; i++)
-                if ((_step + i) % _individualEvery == 0) IndividualTick(Players[i], individualTick);
+                if ((_step + i) % _individualEvery == 0 && !IsHuman(Players[i])) IndividualTick(Players[i], individualTick);
 
-            // 3. Actions (the carrier's decision).
+            // 3. Actions: the carrier's decision (the user's buffered action when he is the carrier), then the
+            // defenders' automatic standing tackles.
             if (Ball.State == BallState.Controlled && Ball.Owner >= 0)
             {
-                var kick = OnBall(Players[Ball.Owner], dt);
+                var carrier = Players[Ball.Owner];
+                var kick = IsHuman(carrier) ? HumanOnBall(carrier, input) : OnBall(carrier, dt);
                 if (kick != AiMatchEvent.None) ev = kick;
             }
+            else if (_buffered.Kind != ActionKind.None)
+            {
+                _bufferedAge += dt;
+                if (_bufferedAge > _mv.InputBufferSeconds) _buffered = ActionCommand.None;
+            }
+            if (TryTackles()) ev = AiMatchEvent.Tackle;
 
-            // 4. Movement (+ fatigue).
-            for (int i = 0; i < Players.Length; i++) Move(Players[i], dt);
+            // 4. Movement (+ fatigue), then contact.
+            for (int i = 0; i < Players.Length; i++)
+            {
+                if (IsHuman(Players[i])) MoveHuman(Players[i], input, dt);
+                else Move(Players[i], dt);
+            }
+            Contact.Separate(_allBodies, _allBodies.Length, _mv.PlayerRadius);
 
             // Possession and dribble.
             if (Ball.State != BallState.Controlled)
@@ -150,10 +244,7 @@ namespace Game.Match.AI
                     int i = (int)((_step + k) % Players.Length); // rotating start: no side wins ties by index
                     var p = Players[i];
                     if (Possession.Step(i, p.Body, Ball, _mv) != PossessionEvent.Captured) continue;
-                    SetIntention(p, AiIntention.OnBall);
-                    p.DecisionTimer = _ai.DecisionIntervalSeconds;
-                    p.DribbleTimer = 0f;
-                    p.DribbleTarget = p.Body.Position;
+                    TakeBall(p);
                     if (ev == AiMatchEvent.None) ev = AiMatchEvent.Captured;
                     break;
                 }
@@ -172,6 +263,8 @@ namespace Game.Match.AI
                 else if (ballEvent == BallEvent.Out) { OnOut(); ev = AiMatchEvent.Out; }
             }
 
+            if (HumanTeam != null) UpdateControl(input);
+            _ballWasLoose = Ball.State != BallState.Controlled;
             _step++;
             return Finished && ev == AiMatchEvent.None ? AiMatchEvent.Finished : ev;
         }
@@ -188,6 +281,7 @@ namespace Game.Match.AI
             if (Ball.State == BallState.Controlled && Ball.Owner >= 0) now = Players[Ball.Owner].Team;
             else if (Ball.LastTouch >= 0) now = Players[Ball.LastTouch].Team;
             if (now == null || now == _possession) return;
+            _possessionChanged = true;
             SetPossession(now);
             TeamBrain.OnPossessionChanged(now, true, _ai);
             TeamBrain.OnPossessionChanged(Opponents(now), false, _ai);
@@ -284,6 +378,7 @@ namespace Game.Match.AI
                         PassKind.Ground, aim, ActionCommand.AutoPower, false, pressure, team.Frame.Forward, _passRng);
                     Ball.LastTouch = p.Global;
                     SetIntention(p, AiIntention.HoldShape);
+                    if (team != HumanTeam) _opponentPassed = true;
                     return AiMatchEvent.Pass;
                 }
                 case OnBallChoice.Shot:
@@ -297,6 +392,110 @@ namespace Game.Match.AI
                     p.DribbleTimer = _ai.MinDribbleSeconds;
                     return AiMatchEvent.None;
             }
+        }
+
+        private void TakeBall(AiPlayer p)
+        {
+            SetIntention(p, AiIntention.OnBall);
+            p.DecisionTimer = _ai.DecisionIntervalSeconds;
+            p.DribbleTimer = 0f;
+            p.DribbleTarget = p.Body.Position;
+            _secureTimer = _defense.PossessionSecureSeconds;
+            if (HumanTeam != null && p.Team == HumanTeam) Control.OnCaptured(p.Local);
+        }
+
+        /// <summary>Every defender of the side without the ball gets an automatic standing tackle (A5, no dice).</summary>
+        private bool TryTackles()
+        {
+            if (Ball.State != BallState.Controlled || Ball.Owner < 0 || _secureTimer > 0f) return false;
+            var carrier = Players[Ball.Owner];
+            var defenders = Opponents(carrier.Team);
+            int n = defenders.Players.Length;
+            for (int k = 0; k < n; k++)
+            {
+                var d = defenders.Players[(int)((_step + k) % n)]; // rotating start: no player wins ties by index
+                if (!DefenseSystem.TryStandingTackle(d.Global, d.Body, d.Setup, carrier.Body, carrier.Setup, Ball, _balance, _defense)) continue;
+                SetIntention(carrier, AiIntention.HoldShape);
+                TakeBall(d);
+                return true;
+            }
+            return false;
+        }
+
+        /// <summary>The user is the carrier: execute his buffered pass / through ball / shot (A3 rules).</summary>
+        private AiMatchEvent HumanOnBall(AiPlayer p, in HumanInput input)
+        {
+            if (_buffered.Kind == ActionKind.None) return AiMatchEvent.None;
+            var command = _buffered;
+            _buffered = ActionCommand.None;
+            LastKickFirstTime = _bufferedWithoutBall;
+            var team = p.Team;
+            float pressure = OnBallDecision.NearestOpponentDistance(p.Body.Position, Opponents(team));
+            if (command.Kind == ActionKind.Shot)
+            {
+                ShotSystem.Execute(p.Local, p.Body, Ball, p.Setup, _balance, _kicking, _ballCfg, Pitch, team.Frame.AttackingPositiveX,
+                    input.Move, command.Power, LastKickFirstTime, pressure, _shotRng);
+                Ball.LastTouch = p.Global;
+                return AiMatchEvent.Shot;
+            }
+            var kind = command.Kind == ActionKind.Through ? PassKind.Through : PassKind.Ground;
+            var pass = PassSystem.Execute(p.Local, team.Bodies, team.Bodies.Length, Ball, p.Setup, _balance, _kicking, _ballCfg, kind,
+                input.Move, command.Power, LastKickFirstTime, pressure, team.Frame.Forward, _passRng);
+            Ball.LastTouch = p.Global;
+            Control.OnPassReleased(p.Local, pass.Target, pass.PredictedStop, team.Bodies, team.Bodies.Length);
+            return AiMatchEvent.Pass;
+        }
+
+        /// <summary>The user's player: the stick, or — holding "Contenção" while the opponent has the ball — automatic
+        /// goal-side containment of the carrier (GAME_DESIGN §22).</summary>
+        private void MoveHuman(AiPlayer p, in HumanInput input, float dt)
+        {
+            var body = p.Body;
+            bool hasBall = Ball.State == BallState.Controlled && Ball.Owner == p.Global;
+            var move = input.Move;
+            if (IsContaining(p, input))
+            {
+                var ownGoal = p.Team.Frame.OwnGoal;
+                var carrier = Ball.Position;
+                var away = new Vector3(ownGoal.X - carrier.X, ownGoal.Y - carrier.Y, 0f);
+                float len = away.Length();
+                var target = len > 1e-3f ? carrier + away / len * _ai.ContainDistance : carrier;
+                float dx = target.X - body.Position.X, dy = target.Y - body.Position.Y;
+                float d = MathF.Sqrt(dx * dx + dy * dy);
+                move = d > _ai.ArriveRadius ? new Vector2(dx / d, dy / d) : Vector2.Zero;
+            }
+            Movement.Step(body, _balance, p.Setup, move, input.Sprint, hasBall, DribbleSystem.IsLongTouch(body), _mv, _fatigue, dt);
+            Fatigue.Drain(body, _balance, p.Setup, body.Sprinting, _fatigue, _durationMinutes, dt);
+            if (IsContaining(p, input))
+            {
+                float bx = Ball.Position.X - body.Position.X, by = Ball.Position.Y - body.Position.Y;
+                float bl = MathF.Sqrt(bx * bx + by * by);
+                if (bl > 1e-3f) body.Facing = new Vector3(bx / bl, by / bl, 0f); // a containing defender faces the carrier
+            }
+        }
+
+        private bool IsContaining(AiPlayer p, in HumanInput input) =>
+            input.ContainHeld && Ball.State == BallState.Controlled && Ball.Owner >= 0 && !p.Team.Owns(Ball.Owner);
+
+        /// <summary>A5 control selection: with the ball, control is on the holder (set on capture/pass); without it,
+        /// automatic switch on a trigger, manual switch by tap.</summary>
+        private void UpdateControl(in HumanInput input)
+        {
+            var team = HumanTeam;
+            // In possession (including our own pass in flight) control is set by the play itself: holder, or the
+            // receiver as the ball leaves the foot. The automatic switch is a defending tool.
+            if (team.HasPossession) return;
+
+            bool opponentHasIt = Ball.State == BallState.Controlled && Ball.Owner >= 0;
+            bool lost = _possessionChanged && _possession != team;
+            bool becameLoose = Ball.State != BallState.Controlled && !_ballWasLoose;
+            bool beaten = opponentHasIt && ControlSelection.IsBeaten(Controlled.Body, Ball.Position, team.Frame.OwnGoal, _defense);
+            bool trigger = lost || becameLoose || _opponentPassed || beaten;
+            bool containing = IsContaining(Controlled, input);
+
+            Control.UpdateWithoutBall(team.Bodies, _humanSetups, _eligible, team.Bodies.Length, Ball.Position, team.Frame.OwnGoal,
+                input.Move, containing, trigger, _balance, _defense);
+            if (input.SwitchPressed && !containing) Control.ManualSwitch(_defense);
         }
 
         private void Move(AiPlayer p, float dt)

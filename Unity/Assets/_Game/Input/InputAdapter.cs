@@ -9,7 +9,8 @@ namespace Game.Input
     /// Touch → commands (TECHNICAL_SPEC §7: "InputAdapter (Unity) | Toques → comandos"; GAME_DESIGN §17). Multitouch:
     /// a finger that lands outside the buttons plants the floating left stick; fingers on the right-hand cluster
     /// hold Chute (big), Passe, Enfiada and Sprint. The same code reads the mouse in the Editor, plus dev-only
-    /// keyboard stand-ins (WASD, Shift, J = passe, K = enfiada, Space = chute). Tap/hold/power-bar timing and
+    /// keyboard stand-ins (WASD, Shift, J = passe/trocar, K = enfiada/contenção, Space = chute). Buttons swap to their
+    /// defensive function while the side is without the ball (<see cref="DefenseMode"/>). Tap/hold/power-bar timing and
     /// sprint memory live in the pure <see cref="ActionInputFilter"/>/<see cref="InputIntentFilter"/> and come from
     /// Data via <see cref="Configure"/>; this class only reads devices and draws the placeholder buttons
     /// (the real HUD is A7).
@@ -37,13 +38,33 @@ namespace Game.Input
         private Vector2 _stickOrigin;
         private readonly int[] _buttonFinger = { NoFinger, NoFinger, NoFinger, NoFinger };
         private readonly bool[] _buttonHeld = new bool[ButtonCount];
+        private readonly bool[] _buttonWasHeld = new bool[ButtonCount];
+        /// <summary>Phase each button was pressed in (GAME_DESIGN §17: "botão pressionado na troca executa a função da
+        /// fase em que foi pressionado").</summary>
+        private readonly bool[] _pressedInDefense = new bool[ButtonCount];
         private ActionCommand _pending = ActionCommand.None;
+        private bool _switchPending;
+        private bool _switchLatched;
         private GUIStyle _labelStyle;
 
         public System.Numerics.Vector2 MoveIntent { get; private set; }
         public bool SprintHeld { get; private set; }
         public ActionKind Charging => _actionFilter.Charging;
         public float ChargeFraction => _actionFilter.ChargeFraction;
+
+        /// <summary>Set by the match every frame: true while the user's side is without the ball. Buttons swap to
+        /// their defensive function (Passe → Trocar, Enfiada → Contenção; Chute → Carrinho arrives in A9).</summary>
+        public bool DefenseMode { get; set; }
+        /// <summary>"Contenção" held (a button pressed during defense).</summary>
+        public bool ContainHeld { get; private set; }
+
+        /// <summary>A "Trocar" tap since the last call, once.</summary>
+        public bool TakeSwitch()
+        {
+            bool s = _switchPending;
+            _switchPending = false;
+            return s;
+        }
 
         /// <summary>Timings from Data/Balance (kicking.json, movement.json); the Input assembly cannot read Data itself.</summary>
         public void Configure(KickTimings timings, float sprintMemorySeconds)
@@ -95,12 +116,22 @@ namespace Game.Input
                 _buttonHeld[(int)Button.Shot] |= keyboard.spaceKey.isPressed;
             }
 
+            for (int b = 0; b < ButtonCount; b++)
+            {
+                if (_buttonHeld[b] && !_buttonWasHeld[b]) _pressedInDefense[b] = DefenseMode;
+                _buttonWasHeld[b] = _buttonHeld[b];
+            }
+            bool Attack(Button b) => _buttonHeld[(int)b] && !_pressedInDefense[(int)b];
+            bool Defense(Button b) => _buttonHeld[(int)b] && _pressedInDefense[(int)b];
+            if (Defense(Button.Pass) && !_switchLatched) { _switchPending = true; _switchLatched = true; }
+            if (!_buttonHeld[(int)Button.Pass]) _switchLatched = false;
+            ContainHeld = Defense(Button.Through);
+
             var (move, sprint) = _moveFilter.Step(rawMove, _buttonHeld[(int)Button.Sprint], _sprintMemorySeconds, Time.deltaTime);
             MoveIntent = move;
             SprintHeld = sprint;
 
-            var command = _actionFilter.Step(_buttonHeld[(int)Button.Pass], _buttonHeld[(int)Button.Through],
-                _buttonHeld[(int)Button.Shot], _timings, Time.deltaTime);
+            var command = _actionFilter.Step(Attack(Button.Pass), Attack(Button.Through), Attack(Button.Shot), _timings, Time.deltaTime);
             if (command.Kind != ActionKind.None) _pending = command;
         }
 
@@ -196,7 +227,8 @@ namespace Game.Input
                 var rect = new Rect(c.x - r, Screen.height - c.y - r, 2f * r, 2f * r); // OnGUI y grows downwards
                 var old = GUI.color;
                 GUI.color = _buttonHeld[b] ? Color.yellow : new Color(1f, 1f, 1f, 0.6f);
-                GUI.Box(rect, Label(button), _labelStyle);
+                if (DefenseMode && button == Button.Shot) GUI.color = new Color(1f, 1f, 1f, 0.2f); // carrinho: A9
+                GUI.Box(rect, DefenseMode ? DefenseLabel(button) : Label(button), _labelStyle);
                 GUI.color = old;
             }
 
@@ -209,6 +241,17 @@ namespace Game.Input
                 GUI.color = Color.green;
                 GUI.Box(bar, GUIContent.none);
                 GUI.color = old;
+            }
+        }
+
+        private static string DefenseLabel(Button b)
+        {
+            switch (b)
+            {
+                case Button.Shot: return "CARRINHO";
+                case Button.Pass: return "TROCAR";
+                case Button.Through: return "CONTENÇÃO";
+                default: return "SPRINT";
             }
         }
 

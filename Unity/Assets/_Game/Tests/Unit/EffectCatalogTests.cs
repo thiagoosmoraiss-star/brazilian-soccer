@@ -31,7 +31,7 @@ namespace Game.Tests.Unit
             [Attr.Finishing] = new[] { "ShotAngleErrorInBox", "FinesseAccuracy" },
             [Attr.LongShots] = new[] { "ShotAngleErrorOutOfBox", "ShotPowerMax", "FreeKickAccuracy" },
             [Attr.Heading] = new[] { "HeaderAccuracy", "HeaderPower", "AerialDuel" },
-            [Attr.Tackling] = new[] { "TackleWinChance", "FoulChance", "ShotBlockChance" },
+            [Attr.Tackling] = new[] { "TackleReach", "FoulChance", "ShotBlockChance" },
             [Attr.Vision] = new[] { "ThroughBallError", "LeadCalcError", "AiPassOptionsCount", "RunTriggerThreshold" },
             [Attr.Positioning] = new[] { "AiTargetError", "AiCorrectionDelay" },
             [Attr.Composure] = new[] { "PressureErrorMult", "BigMatchErrorMult", "PenaltyAimWobble" },

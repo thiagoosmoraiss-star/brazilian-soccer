@@ -9,3 +9,4 @@ Acceptance ranges used by tests (TEST_PLAN: ranges live in versioned data, not i
 | `development.json` | `Tests/Career/PlayerDevelopmentTests`, `SeasonTests` | TEST_PLAN Progressão and B4 acceptance; design estimates (young prospect by 24, veteran decline, 10-season OVR drift) |
 | `kicking.json` | `Tests/Unit/PassScenarioTests`, `ShotScenarioTests` (A3) | ROADMAP A3 acceptance and GAME_DESIGN §19/§20 ranges; design estimates flagged inside the file |
 | `ai.json` | `Tests/Unit/AiMatchTests` (A4) | TEST_PLAN §IA (oscillation, bunching, compactness, positioning) and GAME_DESIGN §24 compactness; design estimates flagged inside the file; match seeds and settings |
+| `defense.json` | `Tests/Unit/ControlSwitchTests` (A5) | GAME_DESIGN §17 switching rules and TEST_PLAN acceptance; design estimates flagged inside the file; match seeds |

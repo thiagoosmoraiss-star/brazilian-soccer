@@ -421,17 +421,46 @@
       "monotonicity": "NonDecreasing"
     },
     {
-      "key": "TackleWinChance",
+      "key": "TackleReach",
       "inputs": [
         {
           "attribute": "Tackling",
           "weight": 1
         }
       ],
-      "curve": [[1, 0.25], [30, 0.43], [50, 0.55], [70, 0.68], [80, 0.746], [90, 0.8], [99, 0.85]],
-      "min": 0,
-      "max": 1,
-      "unit": "probability",
+      "curve": [
+        [
+          1,
+          0.7
+        ],
+        [
+          30,
+          0.8
+        ],
+        [
+          50,
+          0.88
+        ],
+        [
+          70,
+          1.0
+        ],
+        [
+          80,
+          1.05
+        ],
+        [
+          90,
+          1.12
+        ],
+        [
+          99,
+          1.2
+        ]
+      ],
+      "min": 0.3,
+      "max": 2.0,
+      "unit": "m",
       "monotonicity": "NonDecreasing"
     },
     {

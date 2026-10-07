@@ -22,5 +22,7 @@ namespace Game.Match
         /// <summary>Set by a kick: the kicker cannot recapture the ball until it is outside his capture radius and moving
         /// away from him (otherwise the ball, still at his feet on the kick step, would be caught straight back).</summary>
         public bool IgnoreBallUntilClear;
+        /// <summary>Seconds before this player may win the ball with a standing tackle again (set when he loses it).</summary>
+        public float TackleCooldown;
     }
 }

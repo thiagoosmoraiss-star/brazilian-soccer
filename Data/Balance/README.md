@@ -160,3 +160,20 @@ TECHNICAL_SPEC §7 / GAME_DESIGN §24. Attribute-dependent values come from `eff
 | `individual` | `supportPlayers`, `supportCandidates`, `supportRadius`, `supportOpenness*`, `supportForwardWeight`, `supportShapeWeight`, `supportCommitSeconds`, `markZoneRadius`, `markGoalSideDistance`, `containDistance`, `minCommitSeconds`, `assignmentHysteresis` | Apoio (points on a ring around the carrier scored by openness, progress, staying near the shape), marcação por zona (goal-side), contenção without tackling (A5), anti-oscillation (minimum commitment, ~25% hysteresis on job assignments and on the marking zone) |
 | `onBall` | `decisionIntervalSeconds`, `minDribbleSeconds`, `dribbleStep`, `dribbleHeadings`, `dribbleSpreadDegrees`, `dribbleClearance`, `passMinDistance`, `passMaxDistance`, `passLaneClearance`, `passDistanceRisk`, `receiverPressureRadius`, `shotRange`, `shotPower`, `shootChanceThreshold`, `lateralValuePenalty`, `progressWeight`, `dribbleRiskFactor`, `decisionNoise` | "Decisão com bola: chance de sucesso × valor da situação". Situation value = the clear-shot chance from that point, or a capped value of progress up the pitch; a chance at least `shootChanceThreshold` is shot at once |
 | `motion` | `arriveRadius`, `restartRadius`, `sprintDistance` | Stop/start hysteresis around a target; sprint when far or pressing/chasing |
+
+## defense.json — defense and control switching (A5, baseline v1, X-53)
+
+Standing tackle **without dice** (GAME_DESIGN §21/§22: "1×1 sem dado: desarme só acerta se alcança a bola exposta"; user decision X-53): a defender wins the ball when it is within his reach (`Effect.TackleReach`, Desarme — replaces the former `TackleWinChance`) and he is closer to it than the carrier, who gets a head start from his body (`Effect.ShieldStrength`, Força). How far the carrier lets the ball run (`Effect.DribbleTouchDistance`, Drible) is what exposes it.
+
+| Field | Controls | Valid values |
+| --- | --- | --- |
+| `tackle.shieldMeters` | Head start the carrier's body gives at full ShieldStrength (m) | ≥ 0 |
+| `tackle.reTackleCooldownSeconds` | The dispossessed player cannot win it straight back for this long | ≥ 0 |
+| `tackle.dispossessedStunSeconds` | The dispossessed carrier stumbles this long | ≥ 0 |
+| `tackle.possessionSecureSeconds` | Right after winning the ball (tackle or first touch) the new carrier cannot be tackled for this long | ≥ 0 |
+| `control.switchHysteresis` | Auto-switch only to a candidate this much better (GAME_DESIGN §17: ~25%) | 0–1 |
+| `control.postManualLockSeconds` | No auto-switch after a manual one (GAME_DESIGN §17: 1 s) | ≥ 0 |
+| `control.beatenDistance` | Controlled player "batido" once this far behind the carrier (GAME_DESIGN §17: 2 m) | > 0 |
+| `control.behindBallPenalty` | Time-to-intercept penalty for a candidate on the wrong side of the ball ("ponderado por posição") | ≥ 0 |
+| `control.autoSwitchCooldownSeconds` | Minimum time between two automatic switches | ≥ 0 |
+| `control.intentionAlignment` | "Trava de intenção": no auto-switch while the stick points this close (cosine) to the ball | −1–1 |

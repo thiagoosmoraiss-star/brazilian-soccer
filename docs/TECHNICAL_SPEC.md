@@ -310,7 +310,7 @@ Campos de posição-alvo + regras locais com pontuação simples. Nada de planej
 
 **Nenhum sistema lê atributo diretamente para calcular efeito.** Tudo passa por `Balance.Eval(Effect.X, jogador)`.
 
-- **`Effect` (enum):** `SprintSpeed`, `AccelTime`, `TurnSpeedLoss`, `PassAngleError`, `PassBallSpeed`, `ShotAngleError`, `ShotPowerMax`, `DribbleTouchDistance`, `TackleWinChance`, `FoulChance`, `GkReactionTime`, `GkDiveReach`, `PressureErrorMult`, `EnergyDrainMult`...
+- **`Effect` (enum):** `SprintSpeed`, `AccelTime`, `TurnSpeedLoss`, `PassAngleError`, `PassBallSpeed`, `ShotAngleError`, `ShotPowerMax`, `DribbleTouchDistance`, `TackleReach`, `FoulChance`, `GkReactionTime`, `GkDiveReach`, `PressureErrorMult`, `EnergyDrainMult`...
 - **`EffectDefinition`:** 1–3 atributos com pesos, curva, faixa, unidade.
 - **Curva:** pontos com interpolação linear por partes; a regra de percepção (5 pontos imperceptível, 15+ óbvio) vive na curva.
 - **Modificadores:** energia, moral, forma, fora de posição, traits — antes ou depois da curva, em ordem fixa.
@@ -331,7 +331,7 @@ Campos de posição-alvo + regras locais com pontuação simples. Nada de planej
 | Finalização | ShotAngleError (área), FinesseAccuracy |
 | Chute de longe | ShotAngleError (fora), ShotPowerMax, FreeKickAccuracy |
 | Cabeceio | HeaderAccuracy, HeaderPower, AerialDuel |
-| Desarme | TackleWinChance, FoulChance (inverso), ShotBlockChance |
+| Desarme | TackleReach (desarme sem sorteio, X-53), FoulChance (inverso), ShotBlockChance |
 | Visão | ThroughBallError, LeadCalcError, AiPassOptionsCount, RunTriggerThreshold |
 | Posicionamento | AiTargetError, AiCorrectionDelay |
 | Compostura | PressureErrorMult, BigMatchErrorMult, PenaltyAimWobble |

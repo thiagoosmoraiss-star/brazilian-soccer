@@ -38,7 +38,7 @@ namespace Game.Data.Effects
         FreeKickAccuracy = 26,
         HeaderAccuracy = 27,
         HeaderPower = 28,
-        TackleWinChance = 29,
+        TackleReach = 29,
         FoulChance = 30,
         ShotBlockChance = 31,
         ThroughBallError = 32,

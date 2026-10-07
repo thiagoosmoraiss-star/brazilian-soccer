@@ -63,7 +63,9 @@ namespace Game.Match.AI
                 var dir = new Vector2(fwd.X * MathF.Cos(angle) - fwd.Y * MathF.Sin(angle), fwd.X * MathF.Sin(angle) + fwd.Y * MathF.Cos(angle));
                 var target = ClampToPitch(pos + new Vector3(dir.X, dir.Y, 0f) * ai.DribbleStep, pitch, ai.SidelineMargin);
                 if (Vector3.DistanceSquared(target, pos) < ai.DribbleStep * ai.DribbleStep * 0.25f) continue;
+                // Room at the end of the run, and nobody standing on the way (a defender in reach takes the ball, A5).
                 float success = MathUtil.Clamp01(NearestOpponentDistance(target, opponents) / ai.DribbleClearance);
+                success = MathF.Min(success, MathUtil.Clamp01(1f - LaneRisk(pos, target, opponents, ai.DribbleClearance)));
                 float value = success * ai.DribbleRiskFactor * Threat(target, team, pitch, ai) + noise * KickErrorRules.Triangular(rng);
                 if (value > bestValue) { bestValue = value; best = new OnBallDecisionResult(OnBallChoice.Dribble, -1, target); }
             }

@@ -1,0 +1,10 @@
+{
+  "schemaVersion": 1,
+  "sources": {
+    "switching": "GAME_DESIGN §17 / TEST_PLAN §Gameplay: histerese impede alternância; troca automática nunca durante contenção. DESIGN ESTIMATE for the tolerated rates in a full match with an idle user",
+    "tackles": "A5 sanity on all-AI matches after standing tackles were added: possession must not ping-pong (DESIGN ESTIMATE)"
+  },
+  "match": { "seeds": [1, 2, 3] },
+  "switching": { "reversalWindowSeconds": 1.0, "maxReversalsPerMatch": 2, "maxAutoSwitchesPerMinute": 30.0 },
+  "tackles": { "quickRetackleWindowSeconds": 1.5, "maxQuickRetackleFraction": 0.4 }
+}

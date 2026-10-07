@@ -1,0 +1,17 @@
+{
+  "schemaVersion": 1,
+  "tackle": {
+    "shieldMeters": 0.6,
+    "reTackleCooldownSeconds": 0.6,
+    "dispossessedStunSeconds": 0.3,
+    "possessionSecureSeconds": 0.5
+  },
+  "control": {
+    "switchHysteresis": 0.25,
+    "postManualLockSeconds": 1.0,
+    "beatenDistance": 2.0,
+    "behindBallPenalty": 0.5,
+    "autoSwitchCooldownSeconds": 0.5,
+    "intentionAlignment": 0.7
+  }
+}
