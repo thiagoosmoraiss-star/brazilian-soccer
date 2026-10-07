@@ -106,4 +106,4 @@ Uma funcionalidade só está pronta quando cumpre `DEFINITION_OF_DONE.md`. Compi
 
 ## 14. Etapa atual
 
-**Track A — A6 Goleiro** (em validação: `dotnet test` verde — Tests.Unit 305, Tests.Simulation 37, Tests.Career 143, Tests.Save 13; falta a validação na Unity: EditMode e os sandboxes `Game.App.Dev.PlayableMatchSandbox` / `AiMatchSandbox` — ver o goleiro posicionar, mergulhar, encaixar/espalmar). A1–A5 concluídas e validadas. Track B concluída (B1–B8). Atualize esta seção quando a etapa mudar.
+**Track A — A7 Reinícios simples + placar → Vertical Slice** (próxima; não iniciada; pendências D-03 e D-05 a decidir antes do aceite/início). A1–A6 concluídas e validadas (A6: `dotnet test` verde — Tests.Unit 305, Tests.Simulation 37, Tests.Career 143, Tests.Save 13 — e validada na Unity). Track B concluída (B1–B8). Atualize esta seção quando a etapa mudar.
