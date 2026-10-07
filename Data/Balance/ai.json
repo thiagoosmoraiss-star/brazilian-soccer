@@ -1,0 +1,61 @@
+{
+  "schemaVersion": 1,
+  "rates": {
+    "teamHz": 5.0,
+    "roleHz": 10.0,
+    "individualHz": 10.0
+  },
+  "phases": {
+    "transitionAttackSeconds": 3.0,
+    "transitionDefenseSeconds": 2.5,
+    "buildMaxBallFraction": 0.4
+  },
+  "role": {
+    "offsideMargin": 1.0,
+    "goalkeeperDistance": 4.0,
+    "goalkeeperLateralShift": 0.15,
+    "sidelineMargin": 1.5,
+    "errorResampleSeconds": 3.0,
+    "correctionThreshold": 1.0
+  },
+  "individual": {
+    "supportPlayers": 2,
+    "supportCandidates": 8,
+    "supportRadius": 12.0,
+    "supportOpennessCap": 8.0,
+    "supportOpennessWeight": 1.0,
+    "supportForwardWeight": 0.5,
+    "supportShapeWeight": 0.05,
+    "supportCommitSeconds": 1.5,
+    "markZoneRadius": 10.0,
+    "markGoalSideDistance": 2.0,
+    "containDistance": 1.8,
+    "minCommitSeconds": 1.0,
+    "assignmentHysteresis": 0.25
+  },
+  "onBall": {
+    "decisionIntervalSeconds": 0.4,
+    "minDribbleSeconds": 0.6,
+    "dribbleStep": 6.0,
+    "dribbleHeadings": 3,
+    "dribbleSpreadDegrees": 35.0,
+    "dribbleClearance": 4.0,
+    "passMinDistance": 5.0,
+    "passMaxDistance": 35.0,
+    "passLaneClearance": 2.5,
+    "passDistanceRisk": 0.3,
+    "receiverPressureRadius": 3.0,
+    "shotRange": 28.0,
+    "shotPower": 0.65,
+    "shootChanceThreshold": 0.55,
+    "lateralValuePenalty": 0.3,
+    "progressWeight": 0.5,
+    "dribbleRiskFactor": 0.85,
+    "decisionNoise": 0.08
+  },
+  "motion": {
+    "arriveRadius": 0.5,
+    "restartRadius": 1.2,
+    "sprintDistance": 10.0
+  }
+}

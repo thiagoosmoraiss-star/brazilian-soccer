@@ -28,6 +28,24 @@ namespace Game.Data.Definitions
         public const int Count = 5;
     }
 
+    /// <summary>Team-layer phase of the match AI (TECHNICAL_SPEC §7; SetPiece arrives with restarts in A7).</summary>
+    public enum TeamPhase
+    {
+        Build = 0,
+        Attack = 1,
+        TransitionAttack = 2,
+        TransitionDefense = 3,
+        Defend = 4,
+    }
+
+    public static class TeamPhaseInfo
+    {
+        public const int Count = 5;
+        /// <summary>JSON key of each phase, indexed by <see cref="TeamPhase"/>.</summary>
+        public static readonly string[] Keys = { "build", "attack", "transitionAttack", "transitionDefense", "defend" };
+        public static bool InPossession(TeamPhase p) => p == TeamPhase.Build || p == TeamPhase.Attack || p == TeamPhase.TransitionAttack;
+    }
+
     public static class FormationRoleInfo
     {
         public const int Count = 8;

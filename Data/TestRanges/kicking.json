@@ -1,0 +1,13 @@
+{
+  "schemaVersion": 1,
+  "sources": {
+    "twentyMetrePass": "ROADMAP A3: passe de 20 m sem pressão chega. DESIGN ESTIMATE for the tolerated miss rate (average passer, static receiver)",
+    "passingRatio": "GAME_DESIGN §19: Passe 90 erra ~1/4 do Passe 40",
+    "pressure": "GAME_DESIGN §19: pressão < 2 m +30-80% erro",
+    "weakFoot": "GAME_DESIGN §19: pé ruim +0-50% erro",
+    "penaltySpot": "DESIGN ESTIMATE: a good finisher from 11 m into an empty goal usually scores",
+    "midfieldShot": "ROADMAP A3: chute do meio-campo raramente é preciso. DESIGN ESTIMATE for 'rarely'"
+  },
+  "pass": { "samples": 200, "maxTwentyMetreMissFraction": 0.08, "passing90To40ErrorRatio": [0.15, 0.4], "minPressureErrorGrowth": 1.2, "minWeakFootErrorGrowth": 1.15 },
+  "shot": { "samples": 200, "minPenaltySpotGoalFraction": 0.8, "maxMidfieldGoalFraction": 0.3 }
+}

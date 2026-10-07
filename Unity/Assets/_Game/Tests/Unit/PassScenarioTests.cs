@@ -4,6 +4,7 @@ using System.Numerics;
 using Game.Core.Random;
 using Game.Data.Effects;
 using Game.Match;
+using Newtonsoft.Json.Linq;
 using NUnit.Framework;
 using static Game.Tests.Unit.KickTestSupport;
 
@@ -19,9 +20,10 @@ namespace Game.Tests.Unit
         [Test]
         public void TwentyMetrePass_WithoutPressure_Arrives()
         {
-            const int n = 200;
+            var r = Ranges()["pass"];
+            int n = r["samples"].Value<int>();
             var missed = new List<ulong>();
-            for (ulong seed = 1; seed <= n; seed++)
+            for (ulong seed = 1; seed <= (ulong)n; seed++)
             {
                 var s = Session(seed, new[] { Player(70), Player(70) }, new[] { Origin, new Vector3(20f, 0f, 0f) });
                 TakeControl(s);
@@ -29,7 +31,7 @@ namespace Game.Tests.Unit
                 var ev = RunUntilSettled(s, 6f);
                 if (!(ev == PracticeEvent.Captured && s.Ball.Owner == 1)) missed.Add(seed);
             }
-            Assert.LessOrEqual(missed.Count, n * 8 / 100, "a 20 m pass by an average passer must almost always reach a static receiver. Missed seeds: " + string.Join(",", missed));
+            Assert.LessOrEqual(missed.Count, n * r["maxTwentyMetreMissFraction"].Value<float>(), "a 20 m pass by an average passer must almost always reach a static receiver. Missed seeds: " + string.Join(",", missed));
         }
 
         [Test]
@@ -107,7 +109,8 @@ namespace Game.Tests.Unit
             float e40 = MeanAbsAngleError(Player(70, overrides: (Attr.Passing, 40)), 400);
             float e90 = MeanAbsAngleError(Player(70, overrides: (Attr.Passing, 90)), 400);
             float ratio = e90 / e40;
-            Assert.That(ratio, Is.InRange(0.15f, 0.4f), $"GAME_DESIGN §19: Passe 90 erra ~¼ do Passe 40 (got {e90:F2}° vs {e40:F2}°).");
+            var range = Ranges()["pass"]["passing90To40ErrorRatio"];
+            Assert.That(ratio, Is.InRange(range[0].Value<float>(), range[1].Value<float>()), $"GAME_DESIGN §19: Passe 90 erra ~¼ do Passe 40 (got {e90:F2}° vs {e40:F2}°).");
         }
 
         [Test]
@@ -128,12 +131,12 @@ namespace Game.Tests.Unit
             var player = Player(70, weakFoot: 2);
             float clean = MeanAbsAngleError(player, 400);
             float pressured = MeanAbsAngleError(player, 400, nearestOpponent: 1f);
-            Assert.Greater(pressured, clean * 1.2f, "GAME_DESIGN §19: pressão < 2 m (+30-80%).");
+            Assert.Greater(pressured, clean * Ranges()["pass"]["minPressureErrorGrowth"].Value<float>(), "GAME_DESIGN §19: pressão < 2 m (+30-80%).");
 
             // A right-footer passing hard to his right (beyond 45°) uses the weak foot (X-50).
             float strongSide = MeanAbsAngleError(player, 400, aim: Rotate(Vector2.UnitX, 60f));
             float weakSide = MeanAbsAngleError(player, 400, aim: Rotate(Vector2.UnitX, -60f));
-            Assert.Greater(weakSide, strongSide * 1.15f, "pé ruim: +0-50% error.");
+            Assert.Greater(weakSide, strongSide * Ranges()["pass"]["minWeakFootErrorGrowth"].Value<float>(), "pé ruim: +0-50% error.");
         }
 
         [Test]

@@ -133,3 +133,30 @@ Used by `Game.Match.PassSystem`/`ShotSystem`, `Game.Rules.Match.KickErrorRules` 
 | `firstTimeErrorPenalty` | De primeira +20% | ≥ 0 |
 | `lowEnergyMaxErrorPenalty` | Up to +10% at 0 energy | ≥ 0 |
 | `distanceReference` / `distanceErrorPerMeter` | Error grows beyond ~the box edge (X-50: keeps a shot from midfield rarely on target) | ≥ 0 |
+
+## tactics.json — tactic-dependent AI parameters (A4, baseline v1, X-52)
+
+TECHNICAL_SPEC §9 "Parâmetros afetados (`tactics.json`)". A4 has only the **default** tactic; per-level values for mentalidade / linha / pressão arrive with TacticsRuntime (A9). Distances are meters in the team's own frame (from its own goal line along its attack).
+
+| Field | Controls | Valid values |
+| --- | --- | --- |
+| `default.phases.<build/attack/transitionAttack/transitionDefense/defend>.depth` | Defensive line → most advanced line (compactação; GAME_DESIGN §24: 10–15 m between lines defending, 20–25 m attacking) | > 0 |
+| `….lineBehindBall` | How far behind the ball the defensive line sits | ≥ 0 |
+| `….maxLine` | Highest the defensive line may push | > `minLine` |
+| `….widthScale` | Lateral spread of the formation (1 = full width) | 0–1 |
+| `default.minLine` | Deepest the defensive line may drop | > 0 |
+| `default.lateralShift` | Fraction of the ball's lateral position the block follows (GAME_DESIGN §24: ~40–60%) | 0–1 |
+| `default.pressers` / `pressTriggerDistance` | Players who press the carrier, and from how far | ≥ 0 / > 0 |
+
+## ai.json — match AI coefficients (A4, baseline v1, X-52)
+
+TECHNICAL_SPEC §7 / GAME_DESIGN §24. Attribute-dependent values come from `effects.json`: Posicionamento → `AiTargetError`, `AiCorrectionDelay`; Visão → `AiPassOptionsCount`; Agilidade → `LooseBallReaction`; Compostura → `PressureErrorMult` (decision noise under pressure).
+
+| Section | Fields | Controls |
+| --- | --- | --- |
+| `rates` | `teamHz`, `roleHz`, `individualHz` | Layer frequencies (TECHNICAL_SPEC §7: 5 / 10 / 10 Hz) |
+| `phases` | `transitionAttackSeconds`, `transitionDefenseSeconds`, `buildMaxBallFraction` | Transition lengths (GAME_DESIGN §24: 2–4 s / 2–3 s); in possession the team builds while the ball is below this fraction of the pitch, then attacks |
+| `role` | `offsideMargin`, `goalkeeperDistance`, `goalkeeperLateralShift`, `sidelineMargin`, `errorResampleSeconds`, `correctionThreshold` | Offside limit, the goalkeeper's simple slot (real goalkeeper AI is A6), how often the positioning error is redrawn, which target jumps wait for `AiCorrectionDelay` |
+| `individual` | `supportPlayers`, `supportCandidates`, `supportRadius`, `supportOpenness*`, `supportForwardWeight`, `supportShapeWeight`, `supportCommitSeconds`, `markZoneRadius`, `markGoalSideDistance`, `containDistance`, `minCommitSeconds`, `assignmentHysteresis` | Apoio (points on a ring around the carrier scored by openness, progress, staying near the shape), marcação por zona (goal-side), contenção without tackling (A5), anti-oscillation (minimum commitment, ~25% hysteresis on job assignments and on the marking zone) |
+| `onBall` | `decisionIntervalSeconds`, `minDribbleSeconds`, `dribbleStep`, `dribbleHeadings`, `dribbleSpreadDegrees`, `dribbleClearance`, `passMinDistance`, `passMaxDistance`, `passLaneClearance`, `passDistanceRisk`, `receiverPressureRadius`, `shotRange`, `shotPower`, `shootChanceThreshold`, `lateralValuePenalty`, `progressWeight`, `dribbleRiskFactor`, `decisionNoise` | "Decisão com bola: chance de sucesso × valor da situação". Situation value = the clear-shot chance from that point, or a capped value of progress up the pitch; a chance at least `shootChanceThreshold` is shot at once |
+| `motion` | `arriveRadius`, `restartRadius`, `sprintDistance` | Stop/start hysteresis around a target; sprint when far or pressing/chasing |

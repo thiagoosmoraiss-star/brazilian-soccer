@@ -2,6 +2,7 @@ using System.Numerics;
 using Game.Core.Contracts.Match;
 using Game.Data.Effects;
 using Game.Match;
+using Newtonsoft.Json.Linq;
 using NUnit.Framework;
 using static Game.Tests.Unit.KickTestSupport;
 
@@ -11,14 +12,14 @@ namespace Game.Tests.Unit
     /// direção esperada; chute a gol vazio. Rates are over a fixed seed range, so they are reproducible.</summary>
     public class ShotScenarioTests
     {
-        private const int Samples = 200;
+        private static int Samples => Ranges()["shot"]["samples"].Value<int>();
         private static float HalfLength => Db().Ball.Pitch.Length * 0.5f;
 
         [Test]
         public void ShotFromThePenaltySpot_ByAGoodFinisher_UsuallyScoresInAnEmptyGoal()
         {
             int goals = Goals(Player(70, overrides: (Attr.Finishing, 70)), new Vector3(HalfLength - 11f, 0f, 0f), 0.6f, Vector2.Zero);
-            Assert.GreaterOrEqual(goals, Samples * 80 / 100, $"{goals}/{Samples} on target from 11 m.");
+            Assert.GreaterOrEqual(goals, Samples * Ranges()["shot"]["minPenaltySpotGoalFraction"].Value<float>(), $"{goals}/{Samples} on target from 11 m.");
         }
 
         [Test]
@@ -27,7 +28,7 @@ namespace Game.Tests.Unit
             foreach (float power in new[] { 0.5f, 0.75f, 0.9f, 1f })
             {
                 int goals = Goals(Player(70, overrides: (Attr.LongShots, 50)), new Vector3(0f, 0f, 0f), power, Vector2.Zero);
-                Assert.LessOrEqual(goals, Samples * 30 / 100, $"ROADMAP A3: chute do meio-campo raramente é preciso (power {power}: {goals}/{Samples}).");
+                Assert.LessOrEqual(goals, Samples * Ranges()["shot"]["maxMidfieldGoalFraction"].Value<float>(), $"ROADMAP A3: chute do meio-campo raramente é preciso (power {power}: {goals}/{Samples}).");
             }
         }
 
@@ -97,7 +98,7 @@ namespace Game.Tests.Unit
         private static int Goals(MatchPlayerSetup player, Vector3 spot, float power, Vector2 aim)
         {
             int goals = 0;
-            for (ulong seed = 1; seed <= Samples; seed++)
+            for (ulong seed = 1; seed <= (ulong)Samples; seed++)
             {
                 var s = Session(seed, new[] { player }, new[] { spot });
                 TakeControl(s);

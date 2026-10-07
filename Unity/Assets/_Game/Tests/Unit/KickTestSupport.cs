@@ -1,3 +1,4 @@
+using System.IO;
 using System.Linq;
 using System.Numerics;
 using Game.Core.Contracts.Match;
@@ -5,6 +6,7 @@ using Game.Core.Ids;
 using Game.Data.Effects;
 using Game.Data.Loading;
 using Game.Match;
+using Newtonsoft.Json.Linq;
 using NUnit.Framework;
 
 namespace Game.Tests.Unit
@@ -15,6 +17,11 @@ namespace Game.Tests.Unit
         public const float Dt = 1f / 50f;
 
         private static GameDatabase _db;
+        private static JObject _ranges;
+
+        /// <summary>A3 acceptance ranges (Data/TestRanges/kicking.json; TEST_PLAN: ranges live in data, not in test code).</summary>
+        public static JObject Ranges() =>
+            _ranges ?? (_ranges = JObject.Parse(File.ReadAllText(Path.Combine(TestPaths.DataRoot(), "TestRanges", "kicking.json"))));
         public static GameDatabase Db() => _db ?? (_db = Load());
 
         private static GameDatabase Load()
