@@ -120,7 +120,8 @@ namespace Game.App.Dev
             }
 
             for (int i = 0; i < _players.Length; i++)
-                _players[i].transform.position = ToUnity(_match.Players[i].Body.Position) + Vector3.up * PlayerVisualHalfHeight;
+                KeeperView.Pose(_players[i].transform, _match, _match.Players[i], ToUnity(_match.Players[i].Body.Position), PlayerVisualHalfHeight,
+                    _db.Movement.PlayerRadius);
             _ball.transform.position = ToUnity(_match.Ball.Position) + Vector3.up * _ball.transform.localScale.y * 0.5f;
         }
 
@@ -130,6 +131,7 @@ namespace Game.App.Dev
             {
                 case AiMatchEvent.Goal: _last = $"GOL! {_match.Home.Goals} x {_match.Away.Goals}"; break;
                 case AiMatchEvent.Shot: _last = "Chute"; break;
+                case AiMatchEvent.Save: _last = "Defesa do goleiro!"; break;
                 case AiMatchEvent.Out: _last = "Saiu (reinício provisório)"; break;
                 case AiMatchEvent.Finished: _last = "Fim de jogo"; break;
             }
@@ -140,9 +142,10 @@ namespace Game.App.Dev
             if (_error != null) { GUI.Label(new Rect(10, 10, 800, 60), "AiMatchSandbox error: " + _error); return; }
             if (_match == null) return;
             int seconds = (int)_match.ElapsedSeconds;
-            GUI.Label(new Rect(10, 10, 760, 120),
+            GUI.Label(new Rect(10, 10, 860, 140),
                 $"A4 sandbox - Casa (azul) {_match.Home.Goals} x {_match.Away.Goals} Visitante (vermelho)   {seconds / 60:00}:{seconds % 60:00} / {DurationMinutes:00}:00\n" +
                 $"Fase casa: {_match.Home.Phase}   Fase visitante: {_match.Away.Phase}   Velocidade {_speed:0}x{(_paused ? " (pausado)" : "")}\n" +
+                KeeperView.Summary(_match) + "\n" +
                 "Teclas: 1 / 2 / 4 velocidade, P pausa, R nova partida (semente seguinte)\n" + _last);
         }
 

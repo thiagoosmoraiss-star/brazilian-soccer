@@ -12,8 +12,8 @@ using UnityEngine;
 namespace Game.App.Dev
 {
     /// <summary>
-    /// A5 dev sandbox (ROADMAP A5: "defender e recuperar a bola no aparelho"): the user plays the home side (blue) of an
-    /// 11×11 against the AI. Attack as in A3 (PASSE / ENFIADA / CHUTE); without the ball the buttons become TROCAR (tap)
+    /// A5/A6 dev sandbox (ROADMAP A5: "defender e recuperar a bola no aparelho"; A6: goleiros): the user plays the home
+    /// side (blue) of an 11×11 against the AI; both keepers are AI (darker capsules, lying down while diving). Attack as in A3 (PASSE / ENFIADA / CHUTE); without the ball the buttons become TROCAR (tap)
     /// and CONTENÇÃO (hold); standing tackles are automatic. Yellow = controlled player, white disc = the next one
     /// (the ring). Editor: WASD/mouse, Shift, J, K, Space; R restarts. Editor-only dev scene, not shipped.
     /// </summary>
@@ -141,7 +141,7 @@ namespace Game.App.Dev
             for (int i = 0; i < _players.Length; i++)
             {
                 var p = _match.Players[i];
-                _players[i].transform.position = ToUnity(p.Body.Position) + Vector3.up * PlayerVisualHalfHeight;
+                KeeperView.Pose(_players[i].transform, _match, p, ToUnity(p.Body.Position), PlayerVisualHalfHeight, _db.Movement.PlayerRadius);
                 var color = p.Team == _match.Home ? new Color(0.15f, 0.3f, 0.95f) : new Color(0.9f, 0.15f, 0.15f);
                 if (p.IsGoalkeeper) color *= 0.45f;
                 if (p == controlled) color = Color.yellow;
@@ -158,6 +158,7 @@ namespace Game.App.Dev
             {
                 case AiMatchEvent.Goal: _last = $"GOL! {_match.Home.Goals} x {_match.Away.Goals}"; break;
                 case AiMatchEvent.Tackle: _last = _match.Home.HasPossession ? "Desarme! Bola recuperada" : "Desarmado"; break;
+                case AiMatchEvent.Save: _last = _match.Ball.LastTouch == _match.HomeKeeper.Player.Global ? "Defesa do seu goleiro!" : "Defesa do goleiro adversário"; break;
                 case AiMatchEvent.Out: _last = "Saiu (reinício provisório)"; break;
                 case AiMatchEvent.Finished: _last = "Fim de jogo"; break;
             }
@@ -168,9 +169,10 @@ namespace Game.App.Dev
             if (_error != null) { GUI.Label(new Rect(10, 10, 800, 60), "PlayableMatchSandbox error: " + _error); return; }
             if (_match == null) return;
             int seconds = (int)_match.ElapsedSeconds;
-            GUI.Label(new Rect(10, 10, 820, 120),
-                $"A5 sandbox - Você (azul) {_match.Home.Goals} x {_match.Away.Goals} IA (vermelho)   {seconds / 60:00}:{seconds % 60:00} / {DurationMinutes:00}:00\n" +
+            GUI.Label(new Rect(10, 10, 860, 140),
+                $"A6 sandbox - Você (azul) {_match.Home.Goals} x {_match.Away.Goals} IA (vermelho)   {seconds / 60:00}:{seconds % 60:00} / {DurationMinutes:00}:00\n" +
                 (_input.DefenseMode ? "DEFENDENDO: segure CONTENÇÃO (K), toque TROCAR (J); o desarme é automático" : "ATACANDO: PASSE (J), ENFIADA (K), CHUTE (Espaço)") + "\n" +
+                KeeperView.Summary(_match) + "\n" +
                 "WASD/mouse move, Shift sprint, R nova partida\n" + _last);
         }
 

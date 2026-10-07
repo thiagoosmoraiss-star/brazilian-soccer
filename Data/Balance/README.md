@@ -177,3 +177,33 @@ Standing tackle **without dice** (GAME_DESIGN §21/§22: "1×1 sem dado: desarme
 | `control.behindBallPenalty` | Time-to-intercept penalty for a candidate on the wrong side of the ball ("ponderado por posição") | ≥ 0 |
 | `control.autoSwitchCooldownSeconds` | Minimum time between two automatic switches | ≥ 0 |
 | `control.intentionAlignment` | "Trava de intenção": no auto-switch while the stick points this close (cosine) to the ball | −1–1 |
+
+## goalkeeper.json — goalkeepers (A6, baseline v1, X-54)
+
+GAME_DESIGN §23. The attribute-dependent values come from the Effect catalog: `GkReactionTime` and `GkDiveReach` (Reflexo), `GkAngleError` (Posicionamento GK), `GkCatchChance` (Mãos). The keeper predicts the ball with the same `BallPhysics.Step` the ball uses, so he never dives the wrong way without a deflection.
+
+| Field | Controls | Valid values |
+| --- | --- | --- |
+| `positioning.minDepth` | Closest the keeper ever stands to his goal line (m): never walks into the goal | > 0 |
+| `positioning.maxDepth` | Depth on the bisector with the ball far away (m) | ≥ minDepth |
+| `positioning.nearBallDistance` / `farBallDistance` | Ball distance to goal (m) where the depth is minDepth / full depth ("avança/recua com a bola") | far > near ≥ 0 |
+| `positioning.sweeperLineFraction` / `sweeperMaxDepth` | Líbero: full depth grows to this fraction of the own defensive line's distance from goal, up to this many meters | ≥ 0; max ≥ maxDepth |
+| `positioning.lateralLimit` | The target stays within the posts widened by this (m) | ≥ 0 |
+| `positioning.errorResampleSeconds` | How often the GkAngleError offset is re-sampled | > 0 |
+| `positioning.arriveRadius` / `sprintDistance` | Stops within / sprints beyond this distance of his spot (m) | > 0 |
+| `reaction.predictionHorizonSeconds` | How far ahead a loose ball's path is predicted | > 0 |
+| `reaction.threatMargin` | A ball predicted to miss by less than this still makes him react (m) | ≥ 0 |
+| `reaction.unsetSpeed` / `unsetPenaltySeconds` | Moving faster than this when the shot leaves = not set: reacts this much later ("+ penalidades") | > 0 / ≥ 0 |
+| `save.handReach` | Hands' horizontal reach from the body (m); GkDiveReach is the total, the dive moves the body the rest | > 0 |
+| `save.reachHeight` | Highest ball he can touch (m) | > 0 |
+| `save.diveSpeed` | Body speed during a dive (m/s): "alcance limitado, sem teletransporte" | > 0 |
+| `save.getUpMinSeconds` / `getUpMaxSeconds` / `getUpPerReactionSecond` | Time on the ground after a dive = factor × GkReactionTime, clamped (GAME_DESIGN: 0.6–1.0 s) | ≥ 0, max ≥ min |
+| `save.catchReferenceSpeed` / `catchSpeedSlope` / `catchSpeedMultMin` | Catch multiplier = 1 + (reference − ball speed) × slope, at least the minimum ("força") | > 0 / ≥ 0 / ≥ 0 |
+| `save.diveCatchFactor` | Catch multiplier when the save needed a dive | 0–1 |
+| `save.highBallHeight` / `highCatchFactor` | Above this height a catch is harder by this factor | ≥ 0 / 0–1 |
+| `save.spinCatchPenalty` | Catch chance lost per unit of spin ("efeito") | ≥ 0 |
+| `save.maxCatchChance` | Cap on the catch chance | 0–1 |
+| `save.parryRestitution` | A parried ball keeps this fraction of its speed | 0 ≤ x < 1 |
+| `save.parryMinAngleDegrees` / `parryMaxAngleDegrees` | Parry direction away from goal, angled to the side the ball was going | ordered, < 90 |
+| `save.parryLift` | Upward speed of a parried ball (m/s) | ≥ 0 |
+| `save.holdSeconds` | A caught ball is held this long before he rolls it to a teammate (placeholder until restarts, A7) | ≥ 0 |

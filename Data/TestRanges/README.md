@@ -10,3 +10,4 @@ Acceptance ranges used by tests (TEST_PLAN: ranges live in versioned data, not i
 | `kicking.json` | `Tests/Unit/PassScenarioTests`, `ShotScenarioTests` (A3) | ROADMAP A3 acceptance and GAME_DESIGN §19/§20 ranges; design estimates flagged inside the file |
 | `ai.json` | `Tests/Unit/AiMatchTests` (A4) | TEST_PLAN §IA (oscillation, bunching, compactness, positioning) and GAME_DESIGN §24 compactness; design estimates flagged inside the file; match seeds and settings |
 | `defense.json` | `Tests/Unit/ControlSwitchTests` (A5) | GAME_DESIGN §17 switching rules and TEST_PLAN acceptance; design estimates flagged inside the file; match seeds |
+| `goalkeeper.json` | `Tests/Unit/GoalkeeperTests` (A6) | GAME_DESIGN §23 and TEST_PLAN (weak central shot saved, out of reach never touched, reaction by Reflexo); plausibility save rate is a design estimate flagged inside the file; match seeds |

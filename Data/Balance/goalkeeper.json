@@ -1,0 +1,42 @@
+{
+  "schemaVersion": 1,
+  "positioning": {
+    "minDepth": 0.8,
+    "maxDepth": 4.0,
+    "nearBallDistance": 8.0,
+    "farBallDistance": 40.0,
+    "sweeperLineFraction": 0.3,
+    "sweeperMaxDepth": 10.0,
+    "lateralLimit": 0.5,
+    "errorResampleSeconds": 2.0,
+    "arriveRadius": 0.25,
+    "sprintDistance": 2.0
+  },
+  "reaction": {
+    "predictionHorizonSeconds": 3.0,
+    "threatMargin": 1.5,
+    "unsetSpeed": 3.0,
+    "unsetPenaltySeconds": 0.1
+  },
+  "save": {
+    "handReach": 0.7,
+    "reachHeight": 2.6,
+    "diveSpeed": 5.5,
+    "getUpMinSeconds": 0.6,
+    "getUpMaxSeconds": 1.0,
+    "getUpPerReactionSecond": 4.0,
+    "catchReferenceSpeed": 18.0,
+    "catchSpeedSlope": 0.04,
+    "catchSpeedMultMin": 0.3,
+    "diveCatchFactor": 0.6,
+    "highBallHeight": 1.8,
+    "highCatchFactor": 0.7,
+    "spinCatchPenalty": 0.05,
+    "maxCatchChance": 0.98,
+    "parryRestitution": 0.35,
+    "parryMinAngleDegrees": 35.0,
+    "parryMaxAngleDegrees": 75.0,
+    "parryLift": 1.5,
+    "holdSeconds": 1.5
+  }
+}

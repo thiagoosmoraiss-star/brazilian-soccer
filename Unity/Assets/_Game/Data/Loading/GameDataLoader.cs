@@ -41,6 +41,7 @@ namespace Game.Data.Loading
         public const string AiFile = "Balance/ai.json";
         public const string TacticsFile = "Balance/tactics.json";
         public const string DefenseFile = "Balance/defense.json";
+        public const string GoalkeeperFile = "Balance/goalkeeper.json";
 
         public const string MissingFile = "MISSING_FILE";
         public const string ReadFailed = "READ_FAILED";
@@ -49,7 +50,7 @@ namespace Game.Data.Loading
         {
             EffectsFile, OvrFile, NamesFile, CitiesFile, ClubTemplatesFile, CrestTemplatesFile, GenerationFile,
             FormationsFile, MatchRulesFile, QuickSimFile, CompetitionsFile, CalendarFile, DevelopmentFile, MarketFile, EconomyFile,
-            BoardFile, FacilitiesFile, StaffFile, BallFile, MovementFile, FatigueFile, KickingFile, AiFile, TacticsFile, DefenseFile,
+            BoardFile, FacilitiesFile, StaffFile, BallFile, MovementFile, FatigueFile, KickingFile, AiFile, TacticsFile, DefenseFile, GoalkeeperFile,
         };
 
         /// <summary>Reads and deserializes the effect definitions (syntax and structure only).</summary>
@@ -193,6 +194,12 @@ namespace Game.Data.Loading
             return text.IsSuccess ? DefenseReader.Read(text.Value) : Result<DefenseDefinition>.Fail(text.Errors);
         }
 
+        public static Result<GoalkeeperDefinition> LoadGoalkeeper(IDataSource source)
+        {
+            var text = ReadText(source, GoalkeeperFile);
+            return text.IsSuccess ? GoalkeeperReader.Read(text.Value) : Result<GoalkeeperDefinition>.Fail(text.Errors);
+        }
+
         private static Result<string> ReadText(IDataSource source, string file)
         {
             if (source == null) throw new ArgumentNullException(nameof(source));
@@ -232,6 +239,7 @@ namespace Game.Data.Loading
             var ai = LoadAi(source);
             var tactics = LoadTactics(source);
             var defense = LoadDefense(source);
+            var goalkeeper = LoadGoalkeeper(source);
 
             var errors = new List<Error>();
             errors.AddRange(catalog.Errors);
@@ -255,12 +263,13 @@ namespace Game.Data.Loading
             errors.AddRange(ai.Errors);
             errors.AddRange(tactics.Errors);
             errors.AddRange(defense.Errors);
+            errors.AddRange(goalkeeper.Errors);
             if (errors.Count > 0) return Result<GameDatabase>.Fail(errors);
 
             return Result<GameDatabase>.Ok(new GameDatabase(source.Description, new Balance(catalog.Value), ovr.Value, world.Value,
                 formations.Value, matchRules.Value, quickSim.Value, competitions.Value, calendar.Value, development.Value, market.Value,
                 economy.Value, board.Value, facilities.Value, staff.Value, ball.Value, movement.Value, fatigue.Value,
-                kicking.Value, ai.Value, tactics.Value, defense.Value));
+                kicking.Value, ai.Value, tactics.Value, defense.Value, goalkeeper.Value));
         }
 
         /// <summary>Deserializes and validates the effect definitions against <paramref name="schema"/>.</summary>

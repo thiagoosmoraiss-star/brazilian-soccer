@@ -28,6 +28,7 @@ namespace Game.Data.Loading
         public Match.AiDefinition Ai { get; }
         public Match.TacticsDefinition Tactics { get; }
         public Match.DefenseDefinition Defense { get; }
+        public Match.GoalkeeperDefinition Goalkeeper { get; }
 
         internal GameDatabase(string sourceDescription, Effects.Balance balance, Ovr.OvrDefinition ovr, World.WorldDefinition world,
             System.Collections.Generic.IReadOnlyList<Match.FormationDefinition> formations, Match.MatchRulesDefinition matchRules,
@@ -35,8 +36,10 @@ namespace Game.Data.Loading
             Career.DevelopmentDefinition development, Career.MarketDefinition market, Career.EconomyDefinition economy,
             Board.BoardDefinition board, Career.FacilitiesDefinition facilities, Career.StaffDefinition staff, Match.BallDefinition ball,
             Match.MovementDefinition movement, Match.FatigueDefinition fatigue, Match.KickingDefinition kicking,
-            Match.AiDefinition ai, Match.TacticsDefinition tactics, Match.DefenseDefinition defense)
+            Match.AiDefinition ai, Match.TacticsDefinition tactics, Match.DefenseDefinition defense,
+            Match.GoalkeeperDefinition goalkeeper)
         {
+            Goalkeeper = goalkeeper;
             Defense = defense;
             Ai = ai;
             Tactics = tactics;

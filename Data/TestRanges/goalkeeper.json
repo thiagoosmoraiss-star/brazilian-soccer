@@ -1,0 +1,15 @@
+{
+  "schemaVersion": 1,
+  "sources": {
+    "weakCentral": "GAME_DESIGN §23 / TEST_PLAN: goleiro defende chute fraco central (nunca ignorar chute fraco central). A ground ball from the penalty spot at a weak speed, straight at the goal centre",
+    "outOfReach": "TEST_PLAN: não alcança fora do alcance. Keeper on one post, hard shot from close range to the far corner: GkDiveReach (<= 3 m) can never cover it",
+    "reaction": "GAME_DESIGN §23: reação 0,15-0,30 s (Reflexo) + penalidades",
+    "plausibility": "ROADMAP A6 aceite: goleiro plausível em partidas. Shots on target the keeper has time to react to (predicted arrival at least minArrivalSeconds after the shot) are mostly saved; point-blank shots are not judged here (1x1 rush is out of A6). DESIGN ESTIMATE: real keepers save ~65-75% of shots on target"
+  },
+  "weakCentral": { "seeds": 20, "distance": 11.0, "speed": 10.0, "keeperAttributes": [30, 70] },
+  "outOfReach": { "seeds": 20, "distance": 8.0, "speed": 25.0, "farCornerY": 3.0, "keeperPostY": -3.0 },
+  "reaction": { "low": 30, "high": 90, "minSeconds": 0.15, "maxSeconds": 0.30 },
+  "reflexes": { "distance": 13.0, "speed": 24.0, "targets": 31, "targetHalfSpread": 3.0, "minExtraSaves": 4 },
+  "handling": { "seeds": 40, "low": 30, "high": 90, "distance": 14.0, "speed": 20.0, "minCatchRateGap": 0.15 },
+  "match": { "seeds": [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20, 21, 22, 23, 24, 25, 26, 27, 28, 29, 30], "minJudgedShots": 15, "minArrivalSeconds": 0.5, "minSaveRate": 0.55, "maxSaveRate": 0.95 }
+}
