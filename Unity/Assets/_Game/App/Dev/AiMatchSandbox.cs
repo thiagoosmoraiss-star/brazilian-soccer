@@ -140,9 +140,9 @@ namespace Game.App.Dev
 
         private void OnGUI()
         {
-            if (_error != null) { GUI.Label(new Rect(10, 10, 800, 60), "AiMatchSandbox error: " + _error); return; }
+            if (_error != null) { MatchHud.Panel(10, 10, "AiMatchSandbox error: " + _error); return; }
             if (_match == null) return;
-            GUI.Label(new Rect(10, 10, 860, 140),
+            MatchHud.Panel(10, 10,
                 $"AI sandbox - Casa (azul) {_match.Home.Goals} x {_match.Away.Goals} Visitante (vermelho)   {(_match.Finished ? "FIM DE JOGO" : MatchHud.Clock(_match))}  {MatchHud.RestartLine(_match)}\n" +
                 $"Fase casa: {_match.Home.Phase}   Fase visitante: {_match.Away.Phase}   Velocidade {_speed:0}x{(_paused ? " (pausado)" : "")}\n" +
                 KeeperView.Summary(_match) + "\n" +

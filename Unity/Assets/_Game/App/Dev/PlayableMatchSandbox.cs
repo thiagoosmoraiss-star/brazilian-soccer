@@ -191,12 +191,12 @@ namespace Game.App.Dev
 
         private void OnGUI()
         {
-            if (_error != null) { GUI.Label(new Rect(10, 10, 800, 60), "PlayableMatchSandbox error: " + _error); return; }
+            if (_error != null) { MatchHud.Panel(10, 10, "PlayableMatchSandbox error: " + _error); return; }
             if (_match == null) return;
             string state = _match.Finished ? "FIM DE JOGO" : MatchHud.Clock(_match);
             string phase = _match.Restart != RestartKind.None ? MatchHud.RestartLine(_match)
                 : _input.DefenseMode ? "DEFENDENDO: segure CONTENÇÃO (K), toque TROCAR (J); o desarme é automático" : "ATACANDO: PASSE (J), ENFIADA (K), CHUTE (Espaço)";
-            GUI.Label(new Rect(10, 10, 900, 160),
+            MatchHud.Panel(10, 10,
                 $"A7a sandbox - {_homeName} {_match.Home.Goals} x {_match.Away.Goals} {_awayName}   {state}\n" + phase + "\n" +
                 KeeperView.Summary(_match) + "\n" +
                 "WASD/mouse move, Shift sprint, R nova partida\n" + _last);
