@@ -25,6 +25,20 @@ namespace Game.Match
         private float _manualLock;
         private float _autoCooldown;
 
+        /// <summary>Seconds left of the post-manual-switch lock (snapshot).</summary>
+        public float ManualLockRemaining => _manualLock;
+        /// <summary>Seconds left before another automatic switch is allowed (snapshot).</summary>
+        public float AutoCooldownRemaining => _autoCooldown;
+
+        /// <summary>Restores a saved selection (match snapshot).</summary>
+        public void Restore(int controlled, int next, float manualLock, float autoCooldown)
+        {
+            Controlled = controlled;
+            Next = next;
+            _manualLock = manualLock;
+            _autoCooldown = autoCooldown;
+        }
+
         public ControlSelection(int initial)
         {
             Controlled = initial;

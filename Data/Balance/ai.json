@@ -31,7 +31,9 @@
     "markGoalSideDistance": 2.0,
     "containDistance": 1.8,
     "minCommitSeconds": 1.0,
-    "assignmentHysteresis": 0.25
+    "assignmentHysteresis": 0.25,
+    "interceptHorizonSeconds": 3.0,
+    "interceptStepSeconds": 0.1
   },
   "onBall": {
     "decisionIntervalSeconds": 0.4,

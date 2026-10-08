@@ -12,10 +12,12 @@ using UnityEngine;
 namespace Game.App.Dev
 {
     /// <summary>
-    /// A5/A6 dev sandbox (ROADMAP A5: "defender e recuperar a bola no aparelho"; A6: goleiros): the user plays the home
-    /// side (blue) of an 11×11 against the AI; both keepers are AI (darker capsules, lying down while diving). Attack as in A3 (PASSE / ENFIADA / CHUTE); without the ball the buttons become TROCAR (tap)
-    /// and CONTENÇÃO (hold); standing tackles are automatic. Yellow = controlled player, white disc = the next one
-    /// (the ring). Editor: WASD/mouse, Shift, J, K, Space; R restarts. Editor-only dev scene, not shipped.
+    /// The playable dev match (A5-A7a): the user plays the home side (blue) of an 11×11 against the AI — by default the
+    /// vertical slice's strong team against the weak one, 2×2 min with the 90-minute clock, simple restarts (the user aims
+    /// and takes his own with PASSE / ENFIADA). Attack as in A3 (PASSE / ENFIADA / CHUTE); without the ball the buttons
+    /// become TROCAR (tap) and CONTENÇÃO (hold); standing tackles are automatic; both keepers are AI (darker capsules,
+    /// lying down while diving). Yellow = controlled player, white disc = the next one (the ring). Editor: WASD/mouse,
+    /// Shift, J, K, Space; R restarts. Editor-only dev scene, not shipped; the real scene and HUD are A7b.
     /// </summary>
     public sealed class PlayableMatchSandbox : MonoBehaviour
     {
@@ -23,14 +25,21 @@ namespace Game.App.Dev
         private const float PlayerVisualHalfHeight = 0.9f; // primitive capsule: local half-height 1, Y scale 0.9
         private const int MaxStepsPerFrame = 10;
 
-        [Header("Teams (uniform attributes, 1-99)")]
+        [Header("Teams")]
+        [Tooltip("The vertical slice's strong (~70) and weak (~50) teams from Data/VerticalSlice/teams.json; off = uniform attributes below.")]
+        public bool UseVerticalSliceTeams = true;
+        [Tooltip("With the vertical-slice teams: you play the strong side (off = the weak side).")]
+        public bool PlayStrongTeam = true;
         public int HomeAttributes = 70;
         public int AwayAttributes = 70;
         public string Formation = "4-4-2";
-        public int DurationMinutes = 6;
+        [Tooltip("Real minutes; the clock shows 90 (TECHNICAL_SPEC §19: 2×2 min).")]
+        public int DurationMinutes = 4;
         public ulong Seed = 1;
 
         private GameDatabase _db;
+        private Game.Data.Match.VerticalSliceDefinition _vs;
+        private string _homeName = "Você", _awayName = "IA";
         private AiMatch _match;
         private InputAdapter _input;
         private GameObject[] _players;
@@ -51,8 +60,14 @@ namespace Game.App.Dev
             if (!db.IsSuccess) { Fail(db.ToString()); return; }
             _db = db.Value;
             if (_db.Formation(Formation) == null) { Fail("unknown formation " + Formation); return; }
+            if (UseVerticalSliceTeams)
+            {
+                var vs = GameDataLoader.LoadVerticalSlice(source.Value, _db);
+                if (!vs.IsSuccess) { Fail(vs.ToString()); return; }
+                _vs = vs.Value;
+            }
 
-            SandboxPitch.Build(Pitch.From(_db.Ball.Pitch), "Pitch (A5 sandbox)");
+            SandboxPitch.Build(Pitch.From(_db.Ball.Pitch), "Pitch (match sandbox)");
 
             _input = gameObject.AddComponent<InputAdapter>();
             _input.Configure(new KickTimings(_db.Kicking.Common.TapMaxSeconds, _db.Kicking.Pass.PowerBarSeconds, _db.Kicking.Shot.PowerBarSeconds),
@@ -69,7 +84,7 @@ namespace Game.App.Dev
                 _renderers[i] = go.GetComponent<Renderer>();
             }
             _ball = GameObject.CreatePrimitive(PrimitiveType.Sphere);
-            _ball.name = "Ball (A5 sandbox)";
+            _ball.name = "Ball (match sandbox)";
             _ball.transform.localScale = Vector3.one * (_db.Ball.Ball.Radius * 2f) * 2f; // drawn twice the size to read from the broadcast height
             Destroy(_ball.GetComponent<Collider>());
             _ball.GetComponent<Renderer>().material.color = Color.white;
@@ -92,7 +107,16 @@ namespace Game.App.Dev
                     .Select(i => new MatchPlayerSetup(new Id(club * 100 + i), Enumerable.Repeat(attrs, AttrInfo.Count).ToArray(), 0,
                         System.Array.Empty<int>(), 100f, 3, null)).ToArray(),
                 System.Array.Empty<MatchPlayerSetup>());
-            var setup = new MatchSetup(Team(1, HomeAttributes), Team(2, AwayAttributes), false, DurationMinutes, 5, Seed);
+            MatchSetup setup;
+            if (_vs != null)
+            {
+                var mine = _vs.Team(PlayStrongTeam ? "strong" : "weak");
+                var theirs = _vs.Team(PlayStrongTeam ? "weak" : "strong");
+                setup = new MatchSetup(mine.ToSetup(), theirs.ToSetup(), false, DurationMinutes, 5, Seed);
+                _homeName = mine.Name + " (você)";
+                _awayName = theirs.Name;
+            }
+            else setup = new MatchSetup(Team(1, HomeAttributes), Team(2, AwayAttributes), false, DurationMinutes, 5, Seed);
             _match = new AiMatch(_db, setup, FixedDt);
             _match.EnableHuman(MatchSide.Home);
             _accumulator = 0f;
@@ -159,7 +183,8 @@ namespace Game.App.Dev
                 case AiMatchEvent.Goal: _last = $"GOL! {_match.Home.Goals} x {_match.Away.Goals}"; break;
                 case AiMatchEvent.Tackle: _last = _match.Home.HasPossession ? "Desarme! Bola recuperada" : "Desarmado"; break;
                 case AiMatchEvent.Save: _last = _match.Ball.LastTouch == _match.HomeKeeper.Player.Global ? "Defesa do seu goleiro!" : "Defesa do goleiro adversário"; break;
-                case AiMatchEvent.Out: _last = "Saiu (reinício provisório)"; break;
+                case AiMatchEvent.Out: _last = MatchHud.RestartName(_match.Restart); break;
+                case AiMatchEvent.HalfTime: _last = "Intervalo — começa o 2º tempo"; break;
                 case AiMatchEvent.Finished: _last = "Fim de jogo"; break;
             }
         }
@@ -168,10 +193,11 @@ namespace Game.App.Dev
         {
             if (_error != null) { GUI.Label(new Rect(10, 10, 800, 60), "PlayableMatchSandbox error: " + _error); return; }
             if (_match == null) return;
-            int seconds = (int)_match.ElapsedSeconds;
-            GUI.Label(new Rect(10, 10, 860, 140),
-                $"A6 sandbox - Você (azul) {_match.Home.Goals} x {_match.Away.Goals} IA (vermelho)   {seconds / 60:00}:{seconds % 60:00} / {DurationMinutes:00}:00\n" +
-                (_input.DefenseMode ? "DEFENDENDO: segure CONTENÇÃO (K), toque TROCAR (J); o desarme é automático" : "ATACANDO: PASSE (J), ENFIADA (K), CHUTE (Espaço)") + "\n" +
+            string state = _match.Finished ? "FIM DE JOGO" : MatchHud.Clock(_match);
+            string phase = _match.Restart != RestartKind.None ? MatchHud.RestartLine(_match)
+                : _input.DefenseMode ? "DEFENDENDO: segure CONTENÇÃO (K), toque TROCAR (J); o desarme é automático" : "ATACANDO: PASSE (J), ENFIADA (K), CHUTE (Espaço)";
+            GUI.Label(new Rect(10, 10, 900, 160),
+                $"A7a sandbox - {_homeName} {_match.Home.Goals} x {_match.Away.Goals} {_awayName}   {state}\n" + phase + "\n" +
                 KeeperView.Summary(_match) + "\n" +
                 "WASD/mouse move, Shift sprint, R nova partida\n" + _last);
         }

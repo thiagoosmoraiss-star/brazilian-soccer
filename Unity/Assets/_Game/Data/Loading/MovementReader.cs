@@ -14,7 +14,7 @@ namespace Game.Data.Loading
         {
             var j = new StrictJson(GameDataLoader.MovementFile);
             var root = j.ParseRoot(json, SupportedSchemaVersion,
-                "playerRadius", "possessionCaptureRadius", "possessionCaptureMaxHeight", "turnNoLossMaxDegrees", "turnMediumLossMaxDegrees",
+                "playerRadius", "possessionCaptureRadius", "possessionCaptureMaxHeight", "interceptReferenceSpeed", "interceptMinRadiusFraction", "turnNoLossMaxDegrees", "turnMediumLossMaxDegrees",
                 "mediumTurnSpeedLossFlat", "withBallSpeedPenaltyShortTouch", "withBallSpeedPenaltyLongTouch",
                 "sprintBurstTouchMultiplier", "feintPulseMaxSeconds", "sprintMemorySeconds", "inputBufferSeconds",
                 "stopSpeedEpsilon");
@@ -25,6 +25,8 @@ namespace Game.Data.Loading
                 PlayerRadius = j.Float(root, "playerRadius", "root"),
                 PossessionCaptureRadius = j.Float(root, "possessionCaptureRadius", "root"),
                 PossessionCaptureMaxHeight = j.Float(root, "possessionCaptureMaxHeight", "root"),
+                InterceptReferenceSpeed = j.Float(root, "interceptReferenceSpeed", "root"),
+                InterceptMinRadiusFraction = j.Float(root, "interceptMinRadiusFraction", "root"),
                 TurnNoLossMaxDegrees = j.Float(root, "turnNoLossMaxDegrees", "root"),
                 TurnMediumLossMaxDegrees = j.Float(root, "turnMediumLossMaxDegrees", "root"),
                 MediumTurnSpeedLossFlat = j.Float(root, "mediumTurnSpeedLossFlat", "root"),
@@ -39,6 +41,7 @@ namespace Game.Data.Loading
 
             if (!j.Ok) return Result<MovementDefinition>.Fail(j.Errors);
             bool ok = m.PlayerRadius > 0f && m.PossessionCaptureRadius > 0f && m.PossessionCaptureMaxHeight > 0f
+                      && m.InterceptReferenceSpeed > 0f && m.InterceptMinRadiusFraction > 0f && m.InterceptMinRadiusFraction <= 1f
                       && m.TurnNoLossMaxDegrees > 0f && m.TurnMediumLossMaxDegrees > m.TurnNoLossMaxDegrees
                       && m.MediumTurnSpeedLossFlat >= 0f && m.MediumTurnSpeedLossFlat < 1f
                       && m.WithBallSpeedPenaltyShortTouch >= 0f && m.WithBallSpeedPenaltyShortTouch < 1f

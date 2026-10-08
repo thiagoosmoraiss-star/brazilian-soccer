@@ -3,6 +3,8 @@
   "playerRadius": 0.4,
   "possessionCaptureRadius": 1.2,
   "possessionCaptureMaxHeight": 1.0,
+  "interceptReferenceSpeed": 8.0,
+  "interceptMinRadiusFraction": 0.4,
   "turnNoLossMaxDegrees": 45.0,
   "turnMediumLossMaxDegrees": 90.0,
   "mediumTurnSpeedLossFlat": 0.2,

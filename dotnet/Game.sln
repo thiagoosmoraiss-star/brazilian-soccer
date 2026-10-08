@@ -37,6 +37,8 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "CareerSim", "CareerSim\Care
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Tests.Save", "Tests.Save\Tests.Save.csproj", "{87A31DD0-2622-445F-8DF9-A789DAAE2D3D}"
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "MatchReport", "MatchReport\MatchReport.csproj", "{69107729-6E60-4B2F-8BF7-F3EAB0684165}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -114,5 +116,9 @@ Global
 		{87A31DD0-2622-445F-8DF9-A789DAAE2D3D}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{87A31DD0-2622-445F-8DF9-A789DAAE2D3D}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{87A31DD0-2622-445F-8DF9-A789DAAE2D3D}.Release|Any CPU.Build.0 = Release|Any CPU
+		{69107729-6E60-4B2F-8BF7-F3EAB0684165}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{69107729-6E60-4B2F-8BF7-F3EAB0684165}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{69107729-6E60-4B2F-8BF7-F3EAB0684165}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{69107729-6E60-4B2F-8BF7-F3EAB0684165}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 EndGlobal

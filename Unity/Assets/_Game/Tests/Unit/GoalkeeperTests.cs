@@ -55,6 +55,7 @@ namespace Game.Tests.Unit
         {
             var db = Db();
             var m = new AiMatch(db, KeeperSetup(seed, keeper), Dt);
+            m.CancelRestart(); // open play: the scenario sets the ball itself
             var k = m.AwayKeeper;
             for (int i = 0; i < m.Players.Length; i++)
             {
@@ -287,7 +288,9 @@ namespace Game.Tests.Unit
                 for (int i = 0; !m.Finished; i++)
                 {
                     m.Step(i % 150 == 0 ? new HumanInput(-Vector2.UnitX, false, new ActionCommand(ActionKind.Pass, ActionCommand.AutoPower), false, false) : input);
-                    Assert.IsFalse(m.Controlled.IsGoalkeeper, $"seed {seed}, t={m.ElapsedSeconds:F2}: control went to the keeper.");
+                    bool takingGoalKick = m.Restart == RestartKind.GoalKick && m.RestartReady && m.Taker == m.Controlled;
+                    Assert.IsFalse(m.Controlled.IsGoalkeeper && !takingGoalKick,
+                        $"seed {seed}, t={m.ElapsedSeconds:F2}: control went to the keeper outside a goal kick (X-55: the user aims the short goal kick).");
                 }
             }
         }

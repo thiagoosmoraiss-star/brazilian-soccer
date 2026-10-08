@@ -71,6 +71,10 @@ namespace Game.Data.Match
         /// <summary>The current supporter/presser/chaser keeps the job unless another player is this much (fraction)
         /// better placed (GAME_DESIGN §17 uses ~25% for control switching).</summary>
         public float AssignmentHysteresis { get; internal set; }
+        /// <summary>A player going for a moving ball runs to where he meets it, searched this far ahead…</summary>
+        public float InterceptHorizonSeconds { get; internal set; }
+        /// <summary>…in steps of this many seconds (A7a, X-57).</summary>
+        public float InterceptStepSeconds { get; internal set; }
 
         public float DecisionIntervalSeconds { get; internal set; }
         public float MinDribbleSeconds { get; internal set; }

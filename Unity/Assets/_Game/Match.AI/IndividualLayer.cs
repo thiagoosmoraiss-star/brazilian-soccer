@@ -25,6 +25,7 @@ namespace Game.Match.AI
             else if (controlled) PickNearest(team, ball.Position, team.Tactics.Pressers, team.Presser, -1, team.Tactics.PressTriggerDistance, ai, balance, true);
 
             if (controlled || ball.State == BallState.Dead) { team.Chaser = -1; return; }
+            if (team.Receiver >= 0) { team.Chaser = team.Receiver; return; } // our pass: its receiver goes for it
 
             // Loose ball: the player who would get there first (sprint + reaction), sticky by hysteresis.
             int best = -1;
@@ -72,7 +73,7 @@ namespace Game.Match.AI
             bool controlled = ball.State == BallState.Controlled && ball.Owner >= 0;
             if (controlled && ball.Owner == p.Global) return AiIntention.OnBall;
             if (p.IsGoalkeeper) return AiIntention.HoldShape;
-            if (!controlled && ball.State != BallState.Dead && team.Chaser == p.Local) return AiIntention.ChaseBall;
+            if (!controlled && ball.State != BallState.Dead && (team.Chaser == p.Local || team.Receiver == p.Local)) return AiIntention.ChaseBall;
             if (team.HasPossession) return team.Supporter[p.Local] ? AiIntention.Support : AiIntention.HoldShape;
             if (controlled && team.Presser[p.Local]) return AiIntention.Press;
             return MarkTarget(p, opponents, ball, ai, out _) >= 0 ? AiIntention.Mark : AiIntention.HoldShape;
@@ -85,7 +86,7 @@ namespace Game.Match.AI
             {
                 case AiIntention.Support: return p.Team.HasPossession && ball.Owner != p.Global;
                 case AiIntention.Mark: return !p.Team.HasPossession;
-                case AiIntention.Press: return controlled && !p.Team.Owns(ball.Owner);
+                case AiIntention.Press: return !p.Team.HasPossession; // an opponents' pass in flight keeps him pressing
                 case AiIntention.ChaseBall: return !controlled && ball.State != BallState.Dead;
                 case AiIntention.OnBall: return controlled && ball.Owner == p.Global;
                 default: return true;
@@ -113,7 +114,8 @@ namespace Game.Match.AI
         }
 
         /// <summary>Where the intention wants the player to stand.</summary>
-        public static Vector3 Target(AiPlayer p, AiTeam opponents, Ball ball, Pitch pitch, AiDefinition ai, float tick)
+        public static Vector3 Target(AiPlayer p, AiTeam opponents, Ball ball, Pitch pitch, AiDefinition ai, float tick, Balance balance,
+            float rollingFriction)
         {
             switch (p.Intention)
             {
@@ -131,12 +133,34 @@ namespace Game.Match.AI
                 case AiIntention.Press:
                     return GoalSide(ball.Position, p.Team.Frame.OwnGoal, ai.ContainDistance);
                 case AiIntention.ChaseBall:
-                    return new Vector3(ball.Position.X, ball.Position.Y, 0f);
+                    return InterceptPoint(p.Body.Position, balance.Eval(Effect.SprintSpeed, p.Setup.Attributes), ball, rollingFriction, ai);
                 case AiIntention.OnBall:
                     return p.DribbleTarget;
                 default:
                     return p.RoleTarget;
             }
+        }
+
+        /// <summary>Where a player running at <paramref name="speed"/> first meets the moving ball (it rolls straight on,
+        /// slowing by <paramref name="rollingFriction"/>); where it stops if he never catches it within the horizon.</summary>
+        public static Vector3 InterceptPoint(Vector3 from, float speed, Ball ball, float rollingFriction, AiDefinition ai)
+        {
+            var start = new Vector3(ball.Position.X, ball.Position.Y, 0f);
+            float vx = ball.Velocity.X, vy = ball.Velocity.Y;
+            float s0 = MathF.Sqrt(vx * vx + vy * vy);
+            if (s0 < 1e-2f || rollingFriction <= 0f) return start;
+            var dir = new Vector3(vx / s0, vy / s0, 0f);
+            float stop = s0 / rollingFriction;
+            var at = start;
+            for (float t = ai.InterceptStepSeconds; t <= ai.InterceptHorizonSeconds + 1e-4f; t += ai.InterceptStepSeconds)
+            {
+                float tt = MathF.Min(t, stop);
+                at = start + dir * (s0 * tt - 0.5f * rollingFriction * tt * tt);
+                float dx = at.X - from.X, dy = at.Y - from.Y;
+                if (dx * dx + dy * dy <= speed * t * speed * t) return at;
+                if (t >= stop) return at;
+            }
+            return at;
         }
 
         private static Vector3 GoalSide(Vector3 from, Vector3 ownGoal, float distance)

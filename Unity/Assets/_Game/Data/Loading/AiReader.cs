@@ -98,7 +98,8 @@ namespace Game.Data.Loading
             {
                 j.Keys(ind, "individual", "supportPlayers", "supportCandidates", "supportRadius", "supportOpennessCap",
                     "supportOpennessWeight", "supportForwardWeight", "supportShapeWeight", "supportCommitSeconds",
-                    "markZoneRadius", "markGoalSideDistance", "containDistance", "minCommitSeconds", "assignmentHysteresis");
+                    "markZoneRadius", "markGoalSideDistance", "containDistance", "minCommitSeconds", "assignmentHysteresis",
+                    "interceptHorizonSeconds", "interceptStepSeconds");
                 a.SupportPlayers = j.Int(ind, "supportPlayers", "individual");
                 a.SupportCandidates = j.Int(ind, "supportCandidates", "individual");
                 a.SupportRadius = j.Float(ind, "supportRadius", "individual");
@@ -112,6 +113,8 @@ namespace Game.Data.Loading
                 a.ContainDistance = j.Float(ind, "containDistance", "individual");
                 a.MinCommitSeconds = j.Float(ind, "minCommitSeconds", "individual");
                 a.AssignmentHysteresis = j.Float(ind, "assignmentHysteresis", "individual");
+                a.InterceptHorizonSeconds = j.Float(ind, "interceptHorizonSeconds", "individual");
+                a.InterceptStepSeconds = j.Float(ind, "interceptStepSeconds", "individual");
             }
             var ob = j.Object(root, "onBall", "root");
             if (ob != null)
@@ -158,6 +161,7 @@ namespace Game.Data.Loading
                       && a.SupportCommitSeconds >= 0f && a.MarkZoneRadius > 0f && a.MarkGoalSideDistance >= 0f
                       && a.ContainDistance > 0f && a.MinCommitSeconds >= 0f
                       && a.AssignmentHysteresis >= 0f && a.AssignmentHysteresis < 1f
+                      && a.InterceptHorizonSeconds > 0f && a.InterceptStepSeconds > 0f
                       && a.DecisionIntervalSeconds > 0f && a.MinDribbleSeconds >= 0f && a.DribbleStep > 0f && a.DribbleHeadings > 0 && a.DribbleSpreadDegrees >= 0f && a.DribbleClearance > 0f
                       && a.PassMinDistance >= 0f && a.PassMaxDistance > a.PassMinDistance && a.PassLaneClearance > 0f && a.PassDistanceRisk >= 0f && a.ReceiverPressureRadius >= 0f
                       && a.ShotRange > 0f && a.ShotPower > 0f && a.ShotPower <= 1f && a.ShootChanceThreshold > 0f && a.ShootChanceThreshold <= 1f && a.LateralValuePenalty >= 0f && a.LateralValuePenalty < 1f

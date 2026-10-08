@@ -164,7 +164,8 @@ namespace Game.Tests.Unit
         public void InAMatch_UserPass_HandsControlToTheReceiver()
         {
             var m = HumanMatch(1);
-            for (int i = 0; i < 5 && !(m.Ball.State == BallState.Controlled && m.Ball.Owner == m.Controlled.Global); i++) m.Step(HumanInput.None);
+            for (int i = 0; i < 500 && !m.RestartReady; i++) m.Step(HumanInput.None);
+            Assert.AreEqual(RestartKind.Kickoff, m.Restart);
             Assert.AreEqual(m.Controlled.Global, m.Ball.Owner, "the kick-off taker has the ball and is the controlled player.");
             var passer = m.Controlled;
             var ev = m.Step(new HumanInput(-Vector2.UnitX, false, new ActionCommand(ActionKind.Pass, ActionCommand.AutoPower), false, false));

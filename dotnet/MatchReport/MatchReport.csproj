@@ -1,0 +1,16 @@
+<Project Sdk="Microsoft.NET.Sdk">
+  <!-- Dev tool (A7a): the vertical slice's headless report — strong × weak batches and attribute sensitivity. -->
+  <PropertyGroup>
+    <OutputType>Exe</OutputType>
+    <TargetFramework>net8.0</TargetFramework>
+    <AssemblyName>MatchReport</AssemblyName>
+    <RootNamespace>Game.Tools.MatchReport</RootNamespace>
+    <InvariantGlobalization>true</InvariantGlobalization>
+  </PropertyGroup>
+  <ItemGroup>
+    <Compile Include="*.cs" />
+  </ItemGroup>
+  <ItemGroup>
+    <ProjectReference Include="../Match.AI/Match.AI.csproj" />
+  </ItemGroup>
+</Project>

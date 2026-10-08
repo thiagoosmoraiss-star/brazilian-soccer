@@ -1,3 +1,4 @@
+using System;
 using System.Numerics;
 using Game.Data.Match;
 
@@ -19,13 +20,21 @@ namespace Game.Match
     public static class Possession
     {
         /// <param name="playerIndex">Slot index of <paramref name="body"/>; becomes <see cref="Ball.Owner"/> on capture.</param>
-        public static PossessionEvent Step(int playerIndex, PlayerBody body, Ball ball, MovementDefinition mv)
+        /// <param name="intercepting">The ball was last kicked by the other side: a fast ball is only caught close to the
+        /// body (<see cref="MovementDefinition.InterceptReferenceSpeed"/>).</param>
+        public static PossessionEvent Step(int playerIndex, PlayerBody body, Ball ball, MovementDefinition mv, bool intercepting = false)
         {
             if (ball.State == BallState.Controlled || ball.State == BallState.Dead) return PossessionEvent.None;
             float dx = body.Position.X - ball.Position.X;
             float dy = body.Position.Y - ball.Position.Y;
             float distSqr = dx * dx + dy * dy;
-            float radiusSqr = mv.PossessionCaptureRadius * mv.PossessionCaptureRadius;
+            float radius = mv.PossessionCaptureRadius;
+            if (intercepting)
+            {
+                float speed = MathF.Sqrt(ball.Velocity.X * ball.Velocity.X + ball.Velocity.Y * ball.Velocity.Y);
+                if (speed > mv.InterceptReferenceSpeed) radius *= MathF.Max(mv.InterceptMinRadiusFraction, mv.InterceptReferenceSpeed / speed);
+            }
+            float radiusSqr = radius * radius;
 
             if (body.IgnoreBallUntilClear)
             {

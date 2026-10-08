@@ -53,6 +53,8 @@ Used by `Game.Match.Movement`/`Possession`/`DribbleSystem`. Attribute-dependent 
 | `playerRadius` | Player circle radius (GAME_DESIGN §25: ~0.4 m), real-world fact not a balance number | > 0 |
 | `possessionCaptureRadius` | Distance within which a player picks up a loose ball | > 0 |
 | `possessionCaptureMaxHeight` | A ball above this height can't be controlled with feet/chest (A3; headers are A9) | > 0 |
+| `interceptReferenceSpeed` | A ball last kicked by the other side is caught within the full capture radius only up to this speed (m/s); faster, the radius shrinks in proportion (A7a, X-57) | > 0 |
+| `interceptMinRadiusFraction` | Floor of that shrinking, as a fraction of the capture radius | 0 < x ≤ 1 |
 | `turnNoLossMaxDegrees` / `turnMediumLossMaxDegrees` | Turn-angle bands (GAME_DESIGN §18: ≤45° no loss, 45-90° medium, >90° sharp) | medium > no-loss |
 | `mediumTurnSpeedLossFlat` | Flat speed loss for a 45-90° turn (15-30%); sharper turns use `Effect.TurnSpeedLoss`/`TurnSpeedLossWithBall` (40-60%) instead | 0–1 |
 | `withBallSpeedPenaltyShortTouch` / `withBallSpeedPenaltyLongTouch` | Dribble speed penalty, short vs. long touch (GAME_DESIGN §18: -10% to -5%) | 0–1 |
@@ -157,7 +159,7 @@ TECHNICAL_SPEC §7 / GAME_DESIGN §24. Attribute-dependent values come from `eff
 | `rates` | `teamHz`, `roleHz`, `individualHz` | Layer frequencies (TECHNICAL_SPEC §7: 5 / 10 / 10 Hz) |
 | `phases` | `transitionAttackSeconds`, `transitionDefenseSeconds`, `buildMaxBallFraction` | Transition lengths (GAME_DESIGN §24: 2–4 s / 2–3 s); in possession the team builds while the ball is below this fraction of the pitch, then attacks |
 | `role` | `offsideMargin`, `goalkeeperDistance`, `goalkeeperLateralShift`, `sidelineMargin`, `errorResampleSeconds`, `correctionThreshold` | Offside limit, the goalkeeper's simple slot (real goalkeeper AI is A6), how often the positioning error is redrawn, which target jumps wait for `AiCorrectionDelay` |
-| `individual` | `supportPlayers`, `supportCandidates`, `supportRadius`, `supportOpenness*`, `supportForwardWeight`, `supportShapeWeight`, `supportCommitSeconds`, `markZoneRadius`, `markGoalSideDistance`, `containDistance`, `minCommitSeconds`, `assignmentHysteresis` | Apoio (points on a ring around the carrier scored by openness, progress, staying near the shape), marcação por zona (goal-side), contenção without tackling (A5), anti-oscillation (minimum commitment, ~25% hysteresis on job assignments and on the marking zone) |
+| `individual` | `supportPlayers`, `supportCandidates`, `supportRadius`, `supportOpenness*`, `supportForwardWeight`, `supportShapeWeight`, `supportCommitSeconds`, `markZoneRadius`, `markGoalSideDistance`, `containDistance`, `minCommitSeconds`, `assignmentHysteresis`, `interceptHorizonSeconds`, `interceptStepSeconds` | Apoio (points on a ring around the carrier scored by openness, progress, staying near the shape), marcação por zona (goal-side), contenção without tackling (A5), anti-oscillation (minimum commitment, ~25% hysteresis on job assignments and on the marking zone); a player going for a moving ball runs to where he meets it, searched this far ahead in these steps (A7a) |
 | `onBall` | `decisionIntervalSeconds`, `minDribbleSeconds`, `dribbleStep`, `dribbleHeadings`, `dribbleSpreadDegrees`, `dribbleClearance`, `passMinDistance`, `passMaxDistance`, `passLaneClearance`, `passDistanceRisk`, `receiverPressureRadius`, `shotRange`, `shotPower`, `shootChanceThreshold`, `lateralValuePenalty`, `progressWeight`, `dribbleRiskFactor`, `decisionNoise` | "Decisão com bola: chance de sucesso × valor da situação". Situation value = the clear-shot chance from that point, or a capped value of progress up the pitch; a chance at least `shootChanceThreshold` is shot at once |
 | `motion` | `arriveRadius`, `restartRadius`, `sprintDistance` | Stop/start hysteresis around a target; sprint when far or pressing/chasing |
 
@@ -207,3 +209,21 @@ GAME_DESIGN §23. The attribute-dependent values come from the Effect catalog: `
 | `save.parryMinAngleDegrees` / `parryMaxAngleDegrees` | Parry direction away from goal, angled to the side the ball was going | ordered, < 90 |
 | `save.parryLift` | Upward speed of a parried ball (m/s) | ≥ 0 |
 | `save.holdSeconds` | A caught ball is held this long before he rolls it to a teammate (placeholder until restarts, A7) | ≥ 0 |
+
+## restarts.json — clock and simple restarts (A7a, baseline v1, X-57)
+
+TECHNICAL_SPEC §19: "Reinícios simples: saída, lateral, tiro de meta, escanteio curto"; "placar, relógio, 2×2 min". The real duration comes from `MatchSetup.DurationMinutes` (the vertical slice uses 4 = 2×2 min); the clock shows the accelerated 90 minutes.
+
+| Field | Controls | Valid values |
+| --- | --- | --- |
+| `clock.halves` | Number of halves (the other side kicks off each new half) | ≥ 1 |
+| `clock.displayMinutesPerHalf` | Minutes the clock shows per half | > 0 |
+| `restart.setupSeconds` | Dead ball → taker at the ball (he runs there meanwhile; whoever is still on the way is placed) | ≥ 0 |
+| `restart.aiTakeSeconds` | An AI taker plays the ball this long after he is ready | ≥ 0 |
+| `restart.humanTimeoutSeconds` | A user who does nothing for this long has the restart taken for him (never stalls) | > 0 |
+| `restart.exclusionRadius` | Opponents keep this far from the ball until it is played (kick-off, goal kick, corner) (m) | ≥ 0 |
+| `restart.throwInExclusionRadius` | Same for a throw-in (m) | ≥ 0 |
+| `restart.lineInset` | A throw-in is taken this far inside the touchline (m); players leaving the circle never cross a line | ≥ 0 |
+| `restart.goalKickDepth` / `goalKickLateral` | Goal-kick spot: this far from the goal line, this far to the side the ball went out (m) | > 0 / ≥ 0 |
+| `restart.cornerInset` | Corner spot inset from both lines (m) | ≥ 0 |
+

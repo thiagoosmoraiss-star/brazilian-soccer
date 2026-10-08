@@ -25,7 +25,7 @@ namespace Game.App.Dev
         public int HomeAttributes = 70;
         public int AwayAttributes = 70;
         public string Formation = "4-4-2";
-        public int DurationMinutes = 6;
+        public int DurationMinutes = 4;
         public ulong Seed = 1;
 
         private GameDatabase _db;
@@ -132,7 +132,8 @@ namespace Game.App.Dev
                 case AiMatchEvent.Goal: _last = $"GOL! {_match.Home.Goals} x {_match.Away.Goals}"; break;
                 case AiMatchEvent.Shot: _last = "Chute"; break;
                 case AiMatchEvent.Save: _last = "Defesa do goleiro!"; break;
-                case AiMatchEvent.Out: _last = "Saiu (reinício provisório)"; break;
+                case AiMatchEvent.Out: _last = MatchHud.RestartName(_match.Restart); break;
+                case AiMatchEvent.HalfTime: _last = "Intervalo — começa o 2º tempo"; break;
                 case AiMatchEvent.Finished: _last = "Fim de jogo"; break;
             }
         }
@@ -141,9 +142,8 @@ namespace Game.App.Dev
         {
             if (_error != null) { GUI.Label(new Rect(10, 10, 800, 60), "AiMatchSandbox error: " + _error); return; }
             if (_match == null) return;
-            int seconds = (int)_match.ElapsedSeconds;
             GUI.Label(new Rect(10, 10, 860, 140),
-                $"A4 sandbox - Casa (azul) {_match.Home.Goals} x {_match.Away.Goals} Visitante (vermelho)   {seconds / 60:00}:{seconds % 60:00} / {DurationMinutes:00}:00\n" +
+                $"AI sandbox - Casa (azul) {_match.Home.Goals} x {_match.Away.Goals} Visitante (vermelho)   {(_match.Finished ? "FIM DE JOGO" : MatchHud.Clock(_match))}  {MatchHud.RestartLine(_match)}\n" +
                 $"Fase casa: {_match.Home.Phase}   Fase visitante: {_match.Away.Phase}   Velocidade {_speed:0}x{(_paused ? " (pausado)" : "")}\n" +
                 KeeperView.Summary(_match) + "\n" +
                 "Teclas: 1 / 2 / 4 velocidade, P pausa, R nova partida (semente seguinte)\n" + _last);

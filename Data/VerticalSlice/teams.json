@@ -1,0 +1,198 @@
+{
+  "schemaVersion": 1,
+  "attributeOrder": ["Speed", "Agility", "Stamina", "Strength", "Passing", "Crossing", "Dribbling", "Finishing", "LongShots", "Heading", "Tackling", "Vision", "Positioning", "Composure", "GkReflexes", "GkPositioning", "GkAerial", "GkHandling"],
+  "teams": [
+    {
+      "key": "strong",
+      "id": 9001,
+      "name": "Serrano FC",
+      "formation": "4-4-2",
+      "players": [
+        {
+          "id": 900101,
+          "name": "Edson Prates",
+          "role": "GK",
+          "leftFooted": false,
+          "weakFoot": 3,
+          "attributes": [34, 32, 35, 33, 43, 34, 32, 37, 33, 34, 38, 37, 47, 43, 71, 68, 72, 73]
+        },
+        {
+          "id": 900102,
+          "name": "Caíque Lemos",
+          "role": "FB",
+          "leftFooted": false,
+          "weakFoot": 3,
+          "attributes": [74, 67, 74, 69, 68, 71, 69, 55, 67, 63, 69, 71, 73, 73, 11, 14, 12, 12]
+        },
+        {
+          "id": 900103,
+          "name": "Robson Teles",
+          "role": "CB",
+          "leftFooted": false,
+          "weakFoot": 3,
+          "attributes": [66, 70, 67, 72, 73, 59, 57, 53, 55, 72, 75, 73, 76, 71, 13, 9, 11, 10]
+        },
+        {
+          "id": 900104,
+          "name": "Igor Bastos",
+          "role": "CB",
+          "leftFooted": true,
+          "weakFoot": 3,
+          "attributes": [65, 73, 67, 72, 72, 57, 62, 53, 54, 73, 75, 73, 77, 68, 9, 11, 15, 9]
+        },
+        {
+          "id": 900105,
+          "name": "Wesley Faria",
+          "role": "FB",
+          "leftFooted": true,
+          "weakFoot": 3,
+          "attributes": [72, 73, 71, 67, 71, 73, 73, 52, 67, 66, 75, 73, 72, 67, 12, 15, 9, 9]
+        },
+        {
+          "id": 900106,
+          "name": "Tiago Moura",
+          "role": "W",
+          "leftFooted": false,
+          "weakFoot": 3,
+          "attributes": [76, 72, 72, 63, 72, 74, 76, 72, 73, 67, 54, 69, 69, 67, 13, 15, 11, 9]
+        },
+        {
+          "id": 900107,
+          "name": "Renan Viana",
+          "role": "CM",
+          "leftFooted": false,
+          "weakFoot": 3,
+          "attributes": [68, 72, 76, 73, 78, 68, 70, 64, 69, 72, 68, 73, 68, 75, 13, 9, 11, 9]
+        },
+        {
+          "id": 900108,
+          "name": "Danilo Ramos",
+          "role": "CM",
+          "leftFooted": true,
+          "weakFoot": 3,
+          "attributes": [70, 69, 75, 71, 74, 71, 73, 64, 67, 71, 69, 75, 71, 70, 14, 11, 9, 13]
+        },
+        {
+          "id": 900109,
+          "name": "Júlio Barreto",
+          "role": "W",
+          "leftFooted": true,
+          "weakFoot": 3,
+          "attributes": [73, 71, 69, 62, 67, 75, 73, 70, 70, 68, 58, 69, 72, 68, 11, 15, 10, 10]
+        },
+        {
+          "id": 900110,
+          "name": "Matheus Sales",
+          "role": "ST",
+          "leftFooted": false,
+          "weakFoot": 3,
+          "attributes": [76, 73, 70, 73, 66, 68, 68, 77, 72, 75, 46, 72, 67, 76, 10, 14, 10, 15]
+        },
+        {
+          "id": 900111,
+          "name": "Ícaro Neves",
+          "role": "ST",
+          "leftFooted": true,
+          "weakFoot": 3,
+          "attributes": [75, 72, 68, 72, 66, 69, 68, 77, 72, 75, 43, 67, 69, 76, 11, 10, 9, 9]
+        }
+      ]
+    },
+    {
+      "key": "weak",
+      "id": 9002,
+      "name": "União Ribeirinha",
+      "formation": "4-4-2",
+      "players": [
+        {
+          "id": 900201,
+          "name": "Fábio Quintas",
+          "role": "GK",
+          "leftFooted": false,
+          "weakFoot": 3,
+          "attributes": [16, 15, 12, 18, 23, 16, 18, 16, 17, 13, 17, 18, 24, 25, 51, 48, 49, 49]
+        },
+        {
+          "id": 900202,
+          "name": "Neto Brandão",
+          "role": "FB",
+          "leftFooted": false,
+          "weakFoot": 3,
+          "attributes": [52, 48, 54, 51, 49, 55, 50, 37, 49, 42, 52, 52, 53, 53, 12, 9, 13, 12]
+        },
+        {
+          "id": 900203,
+          "name": "Alan Siqueira",
+          "role": "CB",
+          "leftFooted": false,
+          "weakFoot": 3,
+          "attributes": [48, 52, 51, 57, 52, 42, 42, 30, 36, 53, 56, 53, 55, 52, 10, 11, 15, 11]
+        },
+        {
+          "id": 900204,
+          "name": "Gilson Paes",
+          "role": "CB",
+          "leftFooted": true,
+          "weakFoot": 3,
+          "attributes": [48, 52, 53, 53, 52, 41, 38, 33, 33, 57, 54, 50, 54, 53, 11, 10, 15, 9]
+        },
+        {
+          "id": 900205,
+          "name": "Rafael Couto",
+          "role": "FB",
+          "leftFooted": true,
+          "weakFoot": 3,
+          "attributes": [57, 49, 54, 47, 53, 51, 49, 33, 51, 42, 53, 48, 52, 50, 12, 11, 11, 10]
+        },
+        {
+          "id": 900206,
+          "name": "Luan Matos",
+          "role": "W",
+          "leftFooted": false,
+          "weakFoot": 3,
+          "attributes": [56, 52, 49, 48, 50, 52, 53, 48, 50, 50, 35, 51, 52, 52, 12, 15, 15, 14]
+        },
+        {
+          "id": 900207,
+          "name": "Everton Lira",
+          "role": "CM",
+          "leftFooted": false,
+          "weakFoot": 3,
+          "attributes": [49, 47, 55, 49, 55, 50, 53, 47, 49, 51, 52, 57, 51, 52, 14, 13, 14, 14]
+        },
+        {
+          "id": 900208,
+          "name": "Diego Arruda",
+          "role": "CM",
+          "leftFooted": true,
+          "weakFoot": 3,
+          "attributes": [49, 49, 53, 52, 57, 52, 51, 45, 50, 47, 49, 56, 50, 52, 12, 13, 9, 13]
+        },
+        {
+          "id": 900209,
+          "name": "Paulo Cézar Dias",
+          "role": "W",
+          "leftFooted": true,
+          "weakFoot": 3,
+          "attributes": [53, 52, 52, 44, 49, 54, 55, 52, 48, 52, 36, 51, 47, 48, 10, 15, 15, 12]
+        },
+        {
+          "id": 900210,
+          "name": "Jonas Rocha",
+          "role": "ST",
+          "leftFooted": false,
+          "weakFoot": 3,
+          "attributes": [51, 47, 50, 48, 44, 48, 47, 58, 51, 53, 27, 49, 47, 57, 9, 9, 13, 13]
+        },
+        {
+          "id": 900211,
+          "name": "Vítor Hugo Leal",
+          "role": "ST",
+          "leftFooted": true,
+          "weakFoot": 3,
+          "attributes": [53, 50, 50, 47, 43, 49, 47, 56, 53, 56, 23, 47, 49, 54, 12, 9, 12, 13]
+        }
+      ]
+    }
+  ]
+}

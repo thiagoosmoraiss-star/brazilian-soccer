@@ -1,0 +1,18 @@
+{
+  "schemaVersion": 1,
+  "clock": {
+    "halves": 2,
+    "displayMinutesPerHalf": 45
+  },
+  "restart": {
+    "setupSeconds": 1.5,
+    "aiTakeSeconds": 0.8,
+    "humanTimeoutSeconds": 6.0,
+    "exclusionRadius": 9.15,
+    "throwInExclusionRadius": 2.0,
+    "lineInset": 0.6,
+    "goalKickDepth": 5.5,
+    "goalKickLateral": 4.0,
+    "cornerInset": 0.5
+  }
+}

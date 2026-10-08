@@ -26,6 +26,10 @@ namespace Game.Match.AI
         internal readonly bool[] Supporter = new bool[MatchTeamSetup.StarterCount];
         internal readonly bool[] Presser = new bool[MatchTeamSetup.StarterCount];
         internal int Chaser = -1;
+        /// <summary>Team-local index of the teammate an own pass in flight is meant for (he goes to meet it at once), or -1.</summary>
+        public int Receiver { get; internal set; } = -1;
+        /// <summary>Global index of the player who made that pass.</summary>
+        internal int ReceiverPasser = -1;
         /// <summary>This side has the ball or touched it last (a pass in flight still counts).</summary>
         public bool HasPossession { get; internal set; }
         internal float OffsideU;

@@ -9,6 +9,13 @@ namespace Game.Data.Match
         public float PossessionCaptureRadius { get; internal set; }
         /// <summary>A ball above this height cannot be controlled with the feet/chest (headers come in A9).</summary>
         public float PossessionCaptureMaxHeight { get; internal set; }
+        /// <summary>A ball nobody on the player's side kicked last (an interception) is only caught within the full capture
+        /// radius up to this speed (m/s); faster, the radius shrinks in proportion: a hard pass is not plucked out of the
+        /// air by whoever it passes near (A7a, X-57).</summary>
+        public float InterceptReferenceSpeed { get; internal set; }
+        /// <summary>The interception radius never shrinks below this fraction of the capture radius (a ball straight at a
+        /// player is still his).</summary>
+        public float InterceptMinRadiusFraction { get; internal set; }
         public float TurnNoLossMaxDegrees { get; internal set; }
         public float TurnMediumLossMaxDegrees { get; internal set; }
         /// <summary>Flat speed loss for a 45-90° turn (GAME_DESIGN §18: 15-30%); sharper turns use the

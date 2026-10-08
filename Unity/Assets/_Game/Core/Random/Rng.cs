@@ -32,6 +32,14 @@ namespace Game.Core.Random
 
         public RngState GetState() => new RngState(_s0, _s1, _s2, _s3);
 
+        /// <summary>Continues from a saved state in place (for owners that keep the same instance, e.g. a restored match).</summary>
+        public void SetState(RngState state)
+        {
+            if ((state.S0 | state.S1 | state.S2 | state.S3) == 0)
+                throw new ArgumentException("All-zero state is invalid for xoshiro256**.", nameof(state));
+            _s0 = state.S0; _s1 = state.S1; _s2 = state.S2; _s3 = state.S3;
+        }
+
         public ulong NextULong()
         {
             ulong result = RotateLeft(_s1 * 5, 7) * 9;

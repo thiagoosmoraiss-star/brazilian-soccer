@@ -106,4 +106,4 @@ Uma funcionalidade só está pronta quando cumpre `DEFINITION_OF_DONE.md`. Compi
 
 ## 14. Etapa atual
 
-**Track A — A7 Reinícios simples + placar → Vertical Slice** (próxima; não iniciada; pendências D-03 e D-05 a decidir antes do aceite/início). A1–A6 concluídas e validadas (A6: `dotnet test` verde — Tests.Unit 305, Tests.Simulation 37, Tests.Career 143, Tests.Save 13 — e validada na Unity). Track B concluída (B1–B8). Atualize esta seção quando a etapa mudar.
+**Track A — A7a Reinícios, relógio, placar, snapshot e relatório headless** (implementada, em validação; A7 dividida em A7a/A7b, X-56; D-05 decidida, X-55; D-03 pendente, só para o aceite de desempenho da A7b). `dotnet test` verde. Aceite headless do VS ainda aberto (X-57: forte vence 40% / empata 49% / perde 10% — a IA finaliza pouco). Falta validar na Unity: EditMode e `Game.App.Dev.PlayableMatchSandbox` (reinícios, relógio). A1–A6 concluídas e validadas. Track B concluída (B1–B8). Atualize esta seção quando a etapa mudar.
