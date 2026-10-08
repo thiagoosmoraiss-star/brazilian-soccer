@@ -53,7 +53,7 @@ namespace Game.Tests.Unit
         }
 
         [Test, Category("Slow")]
-        public void Headless_StrongIsClearlyAhead_WithSomeUpsets()
+        public void Headless_StrongWinsTheMajority_WithSomeUpsets()
         {
             var b = R()["batch"];
             var vs = Teams();
@@ -61,6 +61,7 @@ namespace Game.Tests.Unit
                 b["minutes"].Value<int>(), b["seed"].Value<ulong>(), Dt);
             double strongPoints = (3.0 * r.AWins + r.Draws) / r.Matches;
             TestContext.WriteLine($"strong {r.AWins} / draws {r.Draws} / weak {r.BWins}; goals {r.PerMatch(r.AGoals):F2} x {r.PerMatch(r.BGoals):F2}");
+            Assert.Greater(r.AWinRate, b["minStrongWinRate"].Value<double>(), "TECHNICAL_SPEC §19: o forte vence a maioria.");
             Assert.GreaterOrEqual(strongPoints - r.BPointsPerMatch, b["minPointsGap"].Value<double>(), "points per match gap");
             Assert.GreaterOrEqual(r.AWins, b["minWinRatio"].Value<double>() * r.BWins, "the strong side wins far more often");
             Assert.GreaterOrEqual(r.BWins, b["minUpsets"].Value<int>(), "TECHNICAL_SPEC §19: algumas zebras.");

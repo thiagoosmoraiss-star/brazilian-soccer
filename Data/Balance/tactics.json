@@ -2,9 +2,9 @@
   "schemaVersion": 1,
   "default": {
     "phases": {
-      "build": { "depth": 34.0, "lineBehindBall": 22.0, "maxLine": 45.0, "widthScale": 0.9 },
-      "attack": { "depth": 40.0, "lineBehindBall": 30.0, "maxLine": 60.0, "widthScale": 0.95 },
-      "transitionAttack": { "depth": 38.0, "lineBehindBall": 26.0, "maxLine": 52.0, "widthScale": 0.9 },
+      "build": { "depth": 34.0, "lineBehindBall": 15.0, "maxLine": 45.0, "widthScale": 0.9 },
+      "attack": { "depth": 40.0, "lineBehindBall": 15.0, "maxLine": 60.0, "widthScale": 0.95 },
+      "transitionAttack": { "depth": 38.0, "lineBehindBall": 18.0, "maxLine": 52.0, "widthScale": 0.9 },
       "transitionDefense": { "depth": 30.0, "lineBehindBall": 16.0, "maxLine": 45.0, "widthScale": 0.75 },
       "defend": { "depth": 26.0, "lineBehindBall": 16.0, "maxLine": 40.0, "widthScale": 0.7 }
     },

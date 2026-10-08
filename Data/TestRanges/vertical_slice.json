@@ -2,10 +2,10 @@
   "schemaVersion": 1,
   "sources": {
     "teams": "TECHNICAL_SPEC §19: dois times 11×11 de JSON, forte (~70) e fraco (~50). Mean of the outfield attributes 1-14 of outfield players and of the 4 GK attributes of the keeper",
-    "batch": "TECHNICAL_SPEC §19 aceite: o forte vence a maioria em 200 headless, com algumas zebras. The CLI test runs a smaller batch and checks the direction (strong clearly ahead, upsets exist); the full 200-match acceptance is printed by dotnet/MatchReport and still OPEN (X-57)",
-    "sensitivity": "TECHNICAL_SPEC §19 aceite: mudar Velocidade/Passe/Finalização move o relatório na direção esperada. Checked for Velocidade+Agilidade with a large delta; Passe and Finalização are within noise while the AI shoots this little (X-57)"
+    "batch": "TECHNICAL_SPEC §19 aceite: o forte vence a maioria em 200 headless, com algumas zebras. The CLI test runs a 100-match batch (deterministic seed) and requires a strict majority of strong wins plus some weak wins; dotnet/MatchReport prints the full 200-match report (X-58: 58% / 35% / 7%)",
+    "sensitivity": "TECHNICAL_SPEC §19 aceite: mudar Velocidade/Passe/Finalização move o relatório na direção esperada. Checked here for Velocidade+Agilidade with a large delta (the clearest effect); dotnet/MatchReport prints all three"
   },
   "teams": { "strong": [66, 74], "weak": [46, 54] },
-  "batch": { "matches": 60, "minutes": 4, "seed": 1, "minPointsGap": 0.6, "minWinRatio": 2.5, "minUpsets": 1 },
+  "batch": { "matches": 100, "minutes": 4, "seed": 1, "minStrongWinRate": 0.5, "minPointsGap": 0.8, "minWinRatio": 4.0, "minUpsets": 1 },
   "sensitivity": { "matches": 60, "delta": 20, "minPointsGain": 0.05 }
 }

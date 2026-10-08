@@ -53,6 +53,9 @@ namespace Game.Match.AI
             HomeKeeper.Reset();
             AwayKeeper.Reset();
             _buffered = ActionCommand.None;
+            // A restart cut short (half-time during the user's goal kick) must not leave him driving the keeper.
+            if (HumanTeam != null && Controlled.IsGoalkeeper)
+                Control.OnCaptured(team == HumanTeam && !taker.IsGoalkeeper ? taker.Local : NearestOutfield(HumanTeam, RestartSpot).Local);
         }
 
         /// <summary>Set-up countdown, then the ball at the taker's feet; an AI taker (or a user who waits too long)

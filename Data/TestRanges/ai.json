@@ -1,7 +1,7 @@
 {
   "schemaVersion": 1,
   "sources": {
-    "compactness": "GAME_DESIGN §24: compactação 10-15 m defendendo / 20-25 m atacando entre linhas; a 4-4-2 has two gaps, so the defensive-to-attacking line depth is ~20-30 m defending and ~40-50 m attacking. Ranges include the lag of real positions behind targets and marking pulling players out of line",
+    "compactness": "GAME_DESIGN §24: compactação 10-15 m defendendo / 20-25 m atacando entre linhas; a 4-4-2 has two gaps, so the defensive-to-attacking line depth is ~20-30 m defending and ~40-50 m attacking. Ranges include the lag of real positions behind targets and marking pulling players out of line. Attacking lower bound 28 (X-58): with the block pushed up with the ball the measured depth is ~31-32 m, matching GAME_DESIGN §24 \"~35 m entre defesa e ataque\" (the attackers stop at the offside line)",
     "oscillation": "TEST_PLAN §IA: sem oscilação de intenção. Counted: a player going A->B->A between positional intentions (hold shape, support, mark, press) within the window, with no change of possession in between. DESIGN ESTIMATE for the tolerated rate",
     "bunch": "TEST_PLAN §IA: sem bolo (limite de jogadores do mesmo time perto da bola fora de disputa). DESIGN ESTIMATE",
     "positioning": "TEST_PLAN §IA: Posicionamento baixo -> maior erro médio de alvo (AiTargetError 2.8 m at 30 vs 0.6 m at 90 in effects.json)"
@@ -9,6 +9,6 @@
   "match": { "seeds": [1, 2, 3], "durationMinutes": 6, "formation": "4-4-2", "attributes": 70, "sampleEverySteps": 25, "maxMillisecondsPerMatch": 5000 },
   "oscillation": { "windowSeconds": 1.0, "maxReversalsPerPlayerMinute": 0.5 },
   "bunch": { "radius": 5.0, "maxPlayers": 3, "maxViolatingFraction": 0.02 },
-  "compactness": { "defendDepth": [20.0, 37.0], "attackDepth": [34.0, 48.0] },
+  "compactness": { "defendDepth": [20.0, 37.0], "attackDepth": [28.0, 48.0] },
   "positioning": { "low": 30, "high": 90, "minErrorRatio": 2.0 }
 }
