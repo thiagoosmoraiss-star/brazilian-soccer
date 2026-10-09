@@ -26,7 +26,7 @@ namespace Game.Presentation
         private readonly string _homeName, _awayName;
         private readonly float _halfLength, _halfWidth, _side;
         private readonly VisualElement _root, _radar, _radarField, _pauseMenu, _final;
-        private readonly Label _score, _clock, _banner, _finalScore, _finalStats, _radarToggle;
+        private readonly Label _score, _clock, _banner, _finalScore, _finalStats, _radarToggle, _fps;
         private readonly VisualElement[] _dots;
         private readonly VisualElement _ballDot;
         private readonly float _radarW, _radarH;
@@ -129,6 +129,14 @@ namespace Game.Presentation
             _radar.Add(_radarField);
             _root.Add(_radar);
 
+            // Frame-rate readout (bottom left, for the device acceptance; GAME_DESIGN / TECHNICAL_SPEC §19).
+            _fps = Text("", 22, new Color(1f, 1f, 1f, 0.85f));
+            _fps.style.position = Position.Absolute;
+            _fps.style.left = Margin;
+            _fps.style.bottom = Margin;
+            _fps.style.backgroundColor = new Color(0f, 0f, 0f, 0.6f);
+            _root.Add(_fps);
+
             // Event banner (centre).
             _banner = Text("", 56, Color.white);
             _banner.style.position = Position.Absolute;
@@ -159,6 +167,9 @@ namespace Game.Presentation
             _final.Add(MenuButton("Jogar de novo", () => RestartRequested?.Invoke()));
             _root.Add(_final);
         }
+
+        /// <summary>Shows the frame rate of the last measuring window (called about once a second, not per frame).</summary>
+        public void SetFps(float average, float worst) => _fps.text = $"FPS {average:0} (pior {worst:0})";
 
         public void ShowPause(bool on) => _pauseMenu.style.display = on ? DisplayStyle.Flex : DisplayStyle.None;
 

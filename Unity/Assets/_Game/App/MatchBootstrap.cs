@@ -52,6 +52,7 @@ namespace Game.App
         private void Start()
         {
             Screen.orientation = ScreenOrientation.LandscapeLeft;
+            Application.targetFrameRate = 60; // Android caps at 30 by default; the VS aims at ~60 on mid-range devices
             var source = UnityDataRoot.Resolve();
             if (!source.IsSuccess) { Fail(source.ToString()); return; }
             var db = GameDataLoader.Load(source.Value);
@@ -171,8 +172,26 @@ namespace Game.App
 
         // ---- frame ----
 
+        // Frame-rate measurement for the device acceptance (≥ 30 fps entry, ~60 mid-range): average and worst frame per second.
+        private float _fpsWindow, _fpsWorstFrame;
+        private int _fpsFrames;
+
+        private void MeasureFps()
+        {
+            float dt = Time.unscaledDeltaTime;
+            _fpsWindow += dt;
+            _fpsFrames++;
+            if (dt > _fpsWorstFrame) _fpsWorstFrame = dt;
+            if (_fpsWindow < 1f) return;
+            _hud?.SetFps(_fpsFrames / _fpsWindow, 1f / Mathf.Max(1e-4f, _fpsWorstFrame));
+            _fpsWindow = 0f;
+            _fpsFrames = 0;
+            _fpsWorstFrame = 0f;
+        }
+
         private void Update()
         {
+            MeasureFps();
             if (_session == null) return;
             if (UnityEngine.Input.GetKeyDown(KeyCode.Escape) || UnityEngine.Input.GetKeyDown(KeyCode.P))
             {
