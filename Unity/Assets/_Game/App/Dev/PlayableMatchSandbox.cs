@@ -5,6 +5,7 @@ using Game.Data.Effects;
 using Game.Data.Loading;
 using Game.Input;
 using Game.Match;
+using Game.Presentation;
 using Game.Match.AI;
 using Unity.Cinemachine;
 using UnityEngine;
@@ -67,7 +68,7 @@ namespace Game.App.Dev
                 _vs = vs.Value;
             }
 
-            SandboxPitch.Build(Pitch.From(_db.Ball.Pitch), "Pitch (match sandbox)");
+            PitchView.Build(Pitch.From(_db.Ball.Pitch), "Pitch (match sandbox)");
 
             _input = gameObject.AddComponent<InputAdapter>();
             _input.Configure(new KickTimings(_db.Kicking.Common.TapMaxSeconds, _db.Kicking.Pass.PowerBarSeconds, _db.Kicking.Shot.PowerBarSeconds),

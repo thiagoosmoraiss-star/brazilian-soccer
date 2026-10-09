@@ -1,0 +1,33 @@
+{
+  "schemaVersion": 1,
+  "camera": {
+    "pitchDegrees": 40.0,
+    "farDistance": 40.0,
+    "nearDistance": 27.0,
+    "zoomInGoalDistance": 22.0,
+    "zoomOutGoalDistance": 45.0,
+    "farSideExtraPitchDegrees": 6.0,
+    "followSeconds": 0.35,
+    "zoomSeconds": 0.8,
+    "lookaheadSeconds": 0.45,
+    "maxLookahead": 8.0,
+    "fieldOfView": 38.0
+  },
+  "radar": {
+    "widthFraction": 0.22,
+    "opacity": 0.55,
+    "dotSize": 7.0
+  },
+  "animation": {
+    "strideMeters": 1.7,
+    "legSwingDegrees": 32.0,
+    "sprintLegSwingDegrees": 48.0,
+    "armSwingFraction": 0.6,
+    "moveSpeedThreshold": 0.3,
+    "kickSeconds": 0.3,
+    "kickSwingDegrees": 75.0
+  },
+  "hud": {
+    "bannerSeconds": 2.5
+  }
+}

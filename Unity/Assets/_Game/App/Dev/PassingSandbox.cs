@@ -5,6 +5,7 @@ using Game.Data.Effects;
 using Game.Data.Loading;
 using Game.Input;
 using Game.Match;
+using Game.Presentation;
 using Unity.Cinemachine;
 using UnityEngine;
 
@@ -67,7 +68,7 @@ namespace Game.App.Dev
             _input.Configure(new KickTimings(db.Kicking.Common.TapMaxSeconds, db.Kicking.Pass.PowerBarSeconds, db.Kicking.Shot.PowerBarSeconds),
                 db.Movement.SprintMemorySeconds);
 
-            SandboxPitch.Build(pitch, "Pitch (A3 sandbox)");
+            PitchView.Build(pitch, "Pitch (A3 sandbox)");
             _playerVisuals = new GameObject[players.Length];
             _playerRenderers = new Renderer[players.Length];
             for (int i = 0; i < players.Length; i++)

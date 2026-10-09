@@ -45,6 +45,8 @@ namespace Game.Data.Loading
         public const string RestartsFile = "Balance/restarts.json";
         /// <summary>Vertical-slice teams (A7a): demo/test data, not part of the career database.</summary>
         public const string VerticalSliceTeamsFile = "VerticalSlice/teams.json";
+        /// <summary>Match-scene presentation tunables (A7b): camera, radar, placeholder animation, HUD.</summary>
+        public const string MatchViewFile = "Presentation/match_view.json";
 
         public const string MissingFile = "MISSING_FILE";
         public const string ReadFailed = "READ_FAILED";
@@ -215,6 +217,12 @@ namespace Game.Data.Loading
             if (db == null) throw new ArgumentNullException(nameof(db));
             var text = ReadText(source, VerticalSliceTeamsFile);
             return text.IsSuccess ? VerticalSliceReader.Read(text.Value, db) : Result<VerticalSliceDefinition>.Fail(text.Errors);
+        }
+
+        public static Result<Presentation.MatchViewDefinition> LoadMatchView(IDataSource source)
+        {
+            var text = ReadText(source, MatchViewFile);
+            return text.IsSuccess ? MatchViewReader.Read(text.Value) : Result<Presentation.MatchViewDefinition>.Fail(text.Errors);
         }
 
         private static Result<string> ReadText(IDataSource source, string file)

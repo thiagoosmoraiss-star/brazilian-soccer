@@ -4,6 +4,7 @@ using Game.Core.Ids;
 using Game.Data.Effects;
 using Game.Data.Loading;
 using Game.Match;
+using Game.Presentation;
 using Game.Match.AI;
 using Unity.Cinemachine;
 using UnityEngine;
@@ -49,7 +50,7 @@ namespace Game.App.Dev
             if (_db.Formation(Formation) == null) { Fail("unknown formation " + Formation); return; }
 
             var pitch = Pitch.From(_db.Ball.Pitch);
-            SandboxPitch.Build(pitch, "Pitch (A4 sandbox)");
+            PitchView.Build(pitch, "Pitch (A4 sandbox)");
 
             _players = new GameObject[2 * MatchTeamSetup.StarterCount];
             for (int i = 0; i < _players.Length; i++)

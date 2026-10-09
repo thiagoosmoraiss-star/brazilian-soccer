@@ -39,6 +39,8 @@ Cada pasta em `Assets/_Game/` com código tem um Assembly Definition com o mesmo
 - `dotnet/QuickSimReport/`: ferramenta de linha de comando da B2 que roda lotes da QuickSim e imprime as métricas de calibração.
 - `dotnet/CareerSim/`: ferramenta de linha de comando da B3 que roda temporadas completas sem Unity (tabelas, acesso/rebaixamento, Copa).
 - `dotnet/MatchReport/`: ferramenta de linha de comando da A7a — relatório headless do vertical slice (200 partidas forte × fraco + sensibilidade a Velocidade/Passe/Finalização). Uso: `dotnet run --project dotnet/MatchReport -c Release -- [--matches N] [--delta D]`.
+- `Data/Presentation/match_view.json`: ajustes de apresentação da cena Match (câmera, radar, animação placeholder, HUD), lidos só pela Unity (A7b).
+- `Unity/Assets/_Generated/` (ignorado pelo git): pacote de `Data/` gerado pelo passo de build para builds de aparelho (A7b, D-09).
 - `Data/VerticalSlice/teams.json`: os dois times fictícios do vertical slice (forte ~70, fraco ~50); dados de demonstração/teste, fora do banco da carreira.
 - Contratos `MatchSetup`/`MatchResult`/`MatchEvent` em `Core/Contracts/Match/` (D-19), criados na B2.
 - `dotnet/WorldGen/`: ferramenta de linha de comando da B1 para gerar e inspecionar o mundo (fora de `Assets/`, não entra na build do jogo).

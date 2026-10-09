@@ -1,15 +1,16 @@
 using Game.Match;
 using UnityEngine;
 
-namespace Game.App.Dev
+namespace Game.Presentation
 {
-    /// <summary>Dev-sandbox field visible in the Game view: grass, white lines (touchlines, goal lines, halfway,
-    /// penalty areas) and both goals. Placeholder art (D-02 pending), shared by the A3/A4 sandboxes.</summary>
-    internal static class SandboxPitch
+    /// <summary>The pitch drawn from the simulation's <see cref="Pitch"/>: grass, white lines (touchlines, goal lines,
+    /// halfway, penalty areas) and both goals. Placeholder art (D-02 pending), shared by the match scene (A7b) and the dev
+    /// sandboxes.</summary>
+    public static class PitchView
     {
         private const float LineWidth = 0.12f; // rendering only
 
-        public static void Build(Pitch p, string name)
+        public static Transform Build(Pitch p, string name)
         {
             var root = new GameObject(name).transform;
 
@@ -37,6 +38,7 @@ namespace Game.App.Dev
                 Bar(root, new Vector3(goalX, p.GoalHeight * 0.5f, p.HalfGoalWidth), new Vector3(p.PostRadius * 2f, p.GoalHeight * 0.5f, p.PostRadius * 2f), false);
                 Bar(root, new Vector3(goalX, p.GoalHeight, 0f), new Vector3(p.PostRadius * 2f, p.HalfGoalWidth, p.PostRadius * 2f), true);
             }
+            return root;
         }
 
         // Simulation (x, y) on the ground → a thin white strip in Unity (x, z).

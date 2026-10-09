@@ -32,7 +32,7 @@ namespace Game.Tests.Unit
         {
             ["App"] = PureAllowed.Keys.Concat(new[] { "UI", "Presentation", "Input", "Audio", "Unity.Cinemachine" }).ToArray(),
             ["Input"] = new[] { "Core", "Match", "Unity.InputSystem" },
-            ["Presentation"] = new[] { "Core", "Data", "Match" },
+            ["Presentation"] = new[] { "Core", "Data", "Match", "Match.AI", "Unity.Cinemachine" }, // A7b: the match view reads the AiMatch/MatchSession and drives the Cinemachine camera (X-59)
             ["Audio"] = new[] { "Core", "Match" },
             ["UI"] = new[] { "Core", "Data", "Career", "Career.Market", "Career.Economy", "Simulation" },
         };

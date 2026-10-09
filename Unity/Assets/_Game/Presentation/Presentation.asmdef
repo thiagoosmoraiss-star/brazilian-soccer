@@ -4,7 +4,9 @@
     "references": [
         "Core",
         "Data",
-        "Match"
+        "Match",
+        "Match.AI",
+        "Unity.Cinemachine"
     ],
     "includePlatforms": [],
     "excludePlatforms": [],

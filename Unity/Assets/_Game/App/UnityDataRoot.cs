@@ -8,19 +8,25 @@ namespace Game.App
     /// <summary>
     /// Resolves the repository-root Data/ folder (D-09) for the Unity side.
     /// Editor: read directly from the repository (Unity/Assets/../../Data), no copy.
-    /// Player builds: the build/packaging step that copies Data/ into the app is created by the first stage
-    /// whose Android build needs data (ROADMAP); until then this reports a failure instead of guessing.
+    /// Player builds (A7b): the build step (Tools/Editor DataPackBuildStep) packs Data/ into a generated Resources text
+    /// asset, read here through <see cref="PackedDataSource"/>; the pack is never edited nor committed.
     /// </summary>
     public static class UnityDataRoot
     {
         public const string NotPackaged = "DATA_NOT_PACKAGED";
         public const string NotFound = "DATA_ROOT_NOT_FOUND";
+        /// <summary>Resources name of the generated data pack.</summary>
+        public const string PackResource = "AcessoDataPack";
 
         public static Result<IDataSource> Resolve()
         {
             if (!Application.isEditor)
-                return Result<IDataSource>.Fail(NotPackaged,
-                    "Data/ packaging for player builds is not defined yet (first stage whose Android build reads Data/).");
+            {
+                var pack = Resources.Load<TextAsset>(PackResource);
+                if (pack == null)
+                    return Result<IDataSource>.Fail(NotPackaged, "The data pack is missing from this build (Resources/" + PackResource + ").");
+                return Result<IDataSource>.Ok(PackedDataSource.FromPack(pack.text, "data pack in the build"));
+            }
 
             // Application.dataPath = <repo>/Unity/Assets
             string projectRoot = Path.GetFullPath(Path.Combine(Application.dataPath, ".."));

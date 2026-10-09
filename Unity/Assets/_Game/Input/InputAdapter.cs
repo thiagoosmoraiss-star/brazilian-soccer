@@ -29,6 +29,10 @@ namespace Game.Input
         [Header("Placeholder buttons")]
         public bool ShowButtons = true;
 
+        /// <summary>Top band of the screen (fraction of its height) that belongs to the HUD: a finger or click that lands
+        /// there is neither the stick nor a button (A7b).</summary>
+        [Range(0f, 0.5f)] public float ReservedTopFraction;
+
         private readonly InputIntentFilter _moveFilter = new InputIntentFilter();
         private readonly ActionInputFilter _actionFilter = new ActionInputFilter();
         private KickTimings _timings;
@@ -154,7 +158,8 @@ namespace Game.Input
                 return;
             }
 
-            // A new finger: a button if it lands on one, otherwise the stick (if free).
+            // A new finger: a button if it lands on one, otherwise the stick (if free); none of it in the HUD band.
+            if (pos.y > Screen.height * (1f - ReservedTopFraction)) return;
             var hit = HitButton(pos);
             if (hit != Button.None && _buttonFinger[(int)hit] == NoFinger)
             {
