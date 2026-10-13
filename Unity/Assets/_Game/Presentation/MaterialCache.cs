@@ -3,15 +3,20 @@ using UnityEngine;
 
 namespace Game.Presentation
 {
-    /// <summary>One shared material per colour (TECHNICAL_SPEC §18: "materiais compartilhados"), cloned from the render
-    /// pipeline's default material so it works on Built-in and URP alike. Created at set-up, never per frame.</summary>
+    /// <summary>One shared material per colour (TECHNICAL_SPEC §18: "materiais compartilhados"). The template is the
+    /// generated <see cref="TemplateResource"/> material in player builds (it keeps the lit shader in the build, X-62)
+    /// and the render pipeline's default material in the editor. Created at set-up, never per frame.</summary>
     public sealed class MaterialCache
     {
+        public const string TemplateResource = "AcessoRuntimeMaterial";
+
         private readonly Material _template;
         private readonly Dictionary<Color, Material> _byColor = new Dictionary<Color, Material>();
 
         public MaterialCache()
         {
+            _template = Resources.Load<Material>(TemplateResource);
+            if (_template != null) return;
             var probe = GameObject.CreatePrimitive(PrimitiveType.Cube);
             _template = probe.GetComponent<Renderer>().sharedMaterial;
             Object.Destroy(probe);
