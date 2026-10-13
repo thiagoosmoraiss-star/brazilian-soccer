@@ -8,7 +8,6 @@ using Game.Match;
 using Game.Presentation;
 using Unity.Cinemachine;
 using UnityEngine;
-using UnityEngine.InputSystem;
 
 namespace Game.App.Dev
 {
@@ -99,7 +98,7 @@ namespace Game.App.Dev
         private void Update()
         {
             if (_session == null) return;
-            if (Keys.Pressed(Key.R)) ResetBall();
+            if (Keys.Pressed(Shortcut.R)) ResetBall();
 
             var move = _input.MoveIntent;
             bool sprint = _input.SprintHeld;

@@ -6,7 +6,6 @@ using Game.Match;
 using Game.Match.Geometry;
 using Game.Presentation;
 using UnityEngine;
-using UnityEngine.InputSystem;
 
 namespace Game.App.Dev
 {
@@ -79,14 +78,14 @@ namespace Game.App.Dev
         {
             if (_ball == null) return;
 
-            if (Keys.Pressed(Key.Space))
+            if (Keys.Pressed(Shortcut.Space))
             {
                 float yaw = AimYawDegrees * Mathf.Deg2Rad;
                 float loft = LoftDegrees * Mathf.Deg2Rad;
                 var dir = new System.Numerics.Vector3(Mathf.Cos(loft) * Mathf.Cos(yaw), Mathf.Cos(loft) * Mathf.Sin(yaw), Mathf.Sin(loft));
                 _ball.Kick(dir * Power, Spin);
             }
-            if (Keys.Pressed(Key.R)) ResetBall();
+            if (Keys.Pressed(Shortcut.R)) ResetBall();
 
             _accumulator += Time.deltaTime;
             while (_accumulator >= FixedDt)

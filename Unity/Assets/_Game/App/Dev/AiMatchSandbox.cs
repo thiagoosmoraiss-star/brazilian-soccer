@@ -9,7 +9,6 @@ using Game.Presentation;
 using Game.Match.AI;
 using Unity.Cinemachine;
 using UnityEngine;
-using UnityEngine.InputSystem;
 
 namespace Game.App.Dev
 {
@@ -103,11 +102,11 @@ namespace Game.App.Dev
         private void Update()
         {
             if (_match == null) return;
-            if (Keys.Pressed(Key.Digit1)) _speed = 1f;
-            if (Keys.Pressed(Key.Digit2)) _speed = 2f;
-            if (Keys.Pressed(Key.Digit4)) _speed = 4f;
-            if (Keys.Pressed(Key.P)) _paused = !_paused;
-            if (Keys.Pressed(Key.R)) { Seed++; NewMatch(); }
+            if (Keys.Pressed(Shortcut.Digit1)) _speed = 1f;
+            if (Keys.Pressed(Shortcut.Digit2)) _speed = 2f;
+            if (Keys.Pressed(Shortcut.Digit4)) _speed = 4f;
+            if (Keys.Pressed(Shortcut.P)) _paused = !_paused;
+            if (Keys.Pressed(Shortcut.R)) { Seed++; NewMatch(); }
 
             if (!_paused && !_match.Finished)
             {
