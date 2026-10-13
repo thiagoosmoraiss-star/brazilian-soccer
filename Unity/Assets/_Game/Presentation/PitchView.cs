@@ -9,6 +9,7 @@ namespace Game.Presentation
     public static class PitchView
     {
         private const float LineWidth = 0.12f; // rendering only
+        private const float Apron = 40f;       // grass beyond each line, so the broadcast camera never sees past it (rendering only)
 
         public static Transform Build(Pitch p, string name)
         {
@@ -18,7 +19,7 @@ namespace Game.Presentation
             var grass = GameObject.CreatePrimitive(PrimitiveType.Plane);
             grass.name = "Grass";
             grass.transform.SetParent(root);
-            grass.transform.localScale = new Vector3((p.Length + 10f) / 10f, 1f, (p.Width + 10f) / 10f); // Unity plane = 10×10 units
+            grass.transform.localScale = new Vector3((p.Length + 2f * Apron) / 10f, 1f, (p.Width + 2f * Apron) / 10f); // Unity plane = 10×10 units
             grass.GetComponent<Renderer>().sharedMaterial = materials.Get(new Color(0.2f, 0.55f, 0.2f));
             UnityEngine.Object.Destroy(grass.GetComponent<Collider>());
 

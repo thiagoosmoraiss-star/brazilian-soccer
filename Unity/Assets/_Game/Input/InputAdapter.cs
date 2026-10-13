@@ -49,7 +49,7 @@ namespace Game.Input
         private ActionCommand _pending = ActionCommand.None;
         private bool _switchPending;
         private bool _switchLatched;
-        private GUIStyle _labelStyle;
+        private GUIStyle _labelStyle, _heldStyle;
 
         public System.Numerics.Vector2 MoveIntent { get; private set; }
         public bool SprintHeld { get; private set; }
@@ -222,7 +222,11 @@ namespace Game.Input
         {
             if (!ShowButtons) return;
             if (_labelStyle == null)
-                _labelStyle = new GUIStyle(GUI.skin.box) { alignment = TextAnchor.MiddleCenter, fontSize = Mathf.RoundToInt(Screen.height * 0.025f) };
+            {
+                int size = Mathf.RoundToInt(Screen.height * 0.03f);
+                _labelStyle = ButtonStyle(new Color(0f, 0f, 0f, 0.55f), Color.white, size);
+                _heldStyle = ButtonStyle(new Color(1f, 0.85f, 0f, 0.85f), Color.black, size);
+            }
 
             for (int b = 0; b < ButtonCount; b++)
             {
@@ -231,9 +235,8 @@ namespace Game.Input
                 float r = ButtonRadius(button);
                 var rect = new Rect(c.x - r, Screen.height - c.y - r, 2f * r, 2f * r); // OnGUI y grows downwards
                 var old = GUI.color;
-                GUI.color = _buttonHeld[b] ? Color.yellow : new Color(1f, 1f, 1f, 0.6f);
-                if (DefenseMode && button == Button.Shot) GUI.color = new Color(1f, 1f, 1f, 0.2f); // carrinho: A9
-                GUI.Box(rect, DefenseMode ? DefenseLabel(button) : Label(button), _labelStyle);
+                if (DefenseMode && button == Button.Shot) GUI.color = new Color(1f, 1f, 1f, 0.35f); // carrinho: A9
+                GUI.Box(rect, DefenseMode ? DefenseLabel(button) : Label(button), _buttonHeld[b] ? _heldStyle : _labelStyle);
                 GUI.color = old;
             }
 
@@ -247,6 +250,18 @@ namespace Game.Input
                 GUI.Box(bar, GUIContent.none);
                 GUI.color = old;
             }
+        }
+
+        /// <summary>Dark translucent box with bold text: readable over the green pitch (placeholder until the HUD art).</summary>
+        private static GUIStyle ButtonStyle(Color background, Color text, int fontSize)
+        {
+            var texture = new Texture2D(1, 1);
+            texture.SetPixel(0, 0, background);
+            texture.Apply();
+            var style = new GUIStyle { alignment = TextAnchor.MiddleCenter, fontSize = fontSize, fontStyle = FontStyle.Bold };
+            style.normal.background = texture;
+            style.normal.textColor = text;
+            return style;
         }
 
         private static string DefenseLabel(Button b)
