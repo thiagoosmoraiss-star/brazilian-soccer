@@ -2,7 +2,7 @@
 
 Fonte: Especificação Técnica §20. **O Claude Code trabalha somente na etapa atual.** Nada de etapas futuras, mesmo que pareça rápido ou útil. Cada etapa termina quando cumpre seus critérios e o `DEFINITION_OF_DONE.md`.
 
-**Etapa atual:** A7 — A7a concluída; A7b implementada, em validação (ver `CLAUDE.md` §14). A1–A6 concluídas. Track B concluída (B1–B8). D-01 decidida: Track B primeiro. Com uma pessoa só, as trilhas são sequenciais; em paralelo apenas se houver mais de um desenvolvedor.
+**Etapa atual:** A7 — A7a concluída; A7b validada no editor e no aparelho de topo; falta o aceite em aparelho (D-03) e com testadores novos (ver `CLAUDE.md` §14). A1–A6 concluídas. Track B concluída (B1–B8). D-01 decidida: Track B primeiro. Com uma pessoa só, as trilhas são sequenciais; em paralelo apenas se houver mais de um desenvolvedor.
 
 Regras comuns a todas as etapas:
 
@@ -12,6 +12,26 @@ Regras comuns a todas as etapas:
 - Pendências que bloqueiam a etapa precisam estar resolvidas antes de começar.
 - `Data/` na raiz é a fonte da verdade (D-09). A primeira etapa cuja build Android precisar ler `Data/` inclui a etapa de build/empacotamento que copia os dados para dentro do app, sem duplicar a fonte nem usar `StreamingAssets` como fonte.
 - Binários/pesados entram via Git LFS (D-06).
+
+
+## Progresso
+
+Pedido do usuário (13/10/2026): a cada etapa concluída, informar a porcentagem do roadmap. Pesos fixos por etapa, proporcionais ao esforço **estimado** (estimativa, não medição; só mudam com registro em `DECISIONS.md`). Uma etapa conta só quando concluída e validada; etapa em andamento conta 0. O total mede o caminho até o teste fechado na loja (C5); produção de arte além do placeholder depende de D-02 e não está nos pesos.
+
+| Etapa | Peso | Etapa | Peso | Etapa | Peso |
+| --- | --- | --- | --- | --- | --- |
+| Stage 0 | 2 | B1 | 3 | C1 | 5 |
+| A1 | 3 | B2 | 3 | C2 | 4 |
+| A2 | 4 | B3 | 3 | C3 | 12 |
+| A3 | 4 | B4 | 3 | C4 | 5 |
+| A4 | 5 | B5 | 3 | C5 | 6 |
+| A5 | 4 | B6 | 3 | | |
+| A6 | 3 | B7 | 3 | | |
+| A7 | 6 | B8 | 3 | | |
+| A8 | 5 | | | | |
+| A9 | 8 | | | **Total** | **100** |
+
+**Concluído:** Stage 0, A1–A6, B1–B8 = **49%** (13/10/2026).
 
 ---
 
