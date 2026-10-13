@@ -9,6 +9,7 @@ using Game.Match;
 using Game.Match.AI;
 using Game.Presentation;
 using UnityEngine;
+using UnityEngine.InputSystem;
 
 namespace Game.App
 {
@@ -193,7 +194,7 @@ namespace Game.App
         {
             MeasureFps();
             if (_session == null) return;
-            if (UnityEngine.Input.GetKeyDown(KeyCode.Escape) || UnityEngine.Input.GetKeyDown(KeyCode.P))
+            if (Keys.Pressed(Key.Escape) || Keys.Pressed(Key.P))
             {
                 if (_session.Paused) Resume(); else Pause();
             }
