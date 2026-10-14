@@ -2,7 +2,7 @@
 
 Fonte: Especificação Técnica §20. **O Claude Code trabalha somente na etapa atual.** Nada de etapas futuras, mesmo que pareça rápido ou útil. Cada etapa termina quando cumpre seus critérios e o `DEFINITION_OF_DONE.md`.
 
-**Etapa atual:** A7 — A7a concluída; A7b validada no editor e no aparelho de topo; falta o aceite em aparelho (D-03) e com testadores novos (ver `CLAUDE.md` §14). A1–A6 concluídas. Track B concluída (B1–B8). D-01 decidida: Track B primeiro. Com uma pessoa só, as trilhas são sequenciais; em paralelo apenas se houver mais de um desenvolvedor.
+**Etapa atual:** A8 — Árbitro e bola parada completa (ver `CLAUDE.md` §14). A1–A7 concluídas (A7 = Vertical Slice, X-63). Track B concluída (B1–B8). D-01 decidida: Track B primeiro. Com uma pessoa só, as trilhas são sequenciais; em paralelo apenas se houver mais de um desenvolvedor.
 
 Regras comuns a todas as etapas:
 
@@ -31,7 +31,7 @@ Pedido do usuário (13/10/2026): a cada etapa concluída, informar a porcentagem
 | A8 | 5 | | | | |
 | A9 | 8 | | | **Total** | **100** |
 
-**Concluído:** Stage 0, A1–A6, B1–B8 = **49%** (13/10/2026).
+**Concluído:** Stage 0, A1–A7, B1–B8 = **55%** (14/10/2026).
 
 ---
 

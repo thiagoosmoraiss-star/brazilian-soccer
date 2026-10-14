@@ -106,4 +106,4 @@ Uma funcionalidade só está pronta quando cumpre `DEFINITION_OF_DONE.md`. Compi
 
 ## 14. Etapa atual
 
-**Track A — A7 (Vertical Slice)**: A7a, ajuste de ataque (X-58) e **A7b validados no editor** (X-59: cena Match, HUD com radar, pausa + retomar, câmera broadcast, animações placeholder, tela final, empacotamento de `Data/`; EditMode e `dotnet test` verdes). **Falta para fechar a A7** (aceite do VS): converter para URP (X-05/X-59), build Android (IL2CPP, ARM64) e medir ≥ 30 fps no aparelho de entrada e perto de 60 no intermediário — precisa de **D-03**; testadores novos marcando gol na 1ª partida. A1–A6 concluídas e validadas. Track B concluída (B1–B8). Atualize esta seção quando a etapa mudar.
+**Track A — A8 (Árbitro e bola parada completa)**, ainda não iniciada. A7 (Vertical Slice) concluída e aceita em aparelho (X-63: URP, IL2CPP/ARM64; A07 de entrada, S10+ intermediário e S25 Ultra de topo entre 50 e 60 fps; testadores novos marcaram gol). A1–A7 concluídas e validadas. Track B concluída (B1–B8). Progresso do roadmap: 55% (`ROADMAP.md`, seção Progresso). Atualize esta seção quando a etapa mudar.
