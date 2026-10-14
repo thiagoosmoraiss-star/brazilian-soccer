@@ -24,5 +24,7 @@ namespace Game.Match
         public bool IgnoreBallUntilClear;
         /// <summary>Seconds before this player may win the ball with a standing tackle again (set when he loses it).</summary>
         public float TackleCooldown;
+        /// <summary>Sent off (A8a): parked outside the pitch, ignored by every system (passes, possession, AI, control).</summary>
+        public bool OffPitch;
     }
 }

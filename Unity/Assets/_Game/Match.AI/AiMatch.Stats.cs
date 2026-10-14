@@ -18,10 +18,19 @@ namespace Game.Match.AI
         public int GoalKicks;
         /// <summary>Steps this side had the ball (or touched it last).</summary>
         public long PossessionSteps;
+        // Referee (A8a).
+        public int Fouls;
+        public int YellowCards;
+        public int RedCards;
+        public int Offsides;
+        public int FreeKicks;
+        public int Penalties;
+        public int PenaltyGoals;
 
         internal void Clear()
         {
             Shots = ShotsOnTarget = Passes = Tackles = Saves = Corners = ThrowIns = GoalKicks = 0;
+            Fouls = YellowCards = RedCards = Offsides = FreeKicks = Penalties = PenaltyGoals = 0;
             PossessionSteps = 0;
         }
     }
@@ -65,6 +74,7 @@ namespace Game.Match.AI
             Stats(p.Team).Shots++;
             _playerShots[p.Global]++;
             _pendingShot = p.Global;
+            MarkOffside(p.Team, p); // a rebound to an offside teammate is offside
             RecordEvent(MatchEventType.Shot, p.Team.Side, p.Setup.PlayerId, Id.None);
         }
 
@@ -80,6 +90,7 @@ namespace Game.Match.AI
         private void OnPassed(AiTeam team, AiPlayer passer, int target)
         {
             Stats(team).Passes++;
+            MarkOffside(team, passer);
             _assistCandidate = passer.Global;
             team.Receiver = target;
             team.ReceiverPasser = passer.Global;
@@ -116,16 +127,18 @@ namespace Game.Match.AI
             _assistCandidate = -1;
         }
 
-        /// <summary>The single output of the match (D-19, TECHNICAL_SPEC §5). No fouls, cards, substitutions, ratings or
-        /// injuries in the vertical slice (A8+).</summary>
+        /// <summary>The single output of the match (D-19, TECHNICAL_SPEC §5): goals, events, fouls and cards (A8a). No
+        /// substitutions, ratings or injuries yet (A9+).</summary>
         public MatchResult Result()
         {
             var players = new PlayerMatchStats[Players.Length];
             for (int i = 0; i < Players.Length; i++)
             {
                 var p = Players[i];
-                players[i] = new PlayerMatchStats(p.Setup.PlayerId, p.Team.Side, true, TotalDisplayMinutes, _playerGoals[i], _playerAssists[i],
-                    _playerShots[i], _playerShotsOnTarget[i], 0, 0, false, null, p.Body.Energy, InjurySeverity.None);
+                int minutes = _sentOffMinute[i] > 0 ? _sentOffMinute[i] : TotalDisplayMinutes;
+                players[i] = new PlayerMatchStats(p.Setup.PlayerId, p.Team.Side, true, minutes, _playerGoals[i], _playerAssists[i],
+                    _playerShots[i], _playerShotsOnTarget[i], _playerFouls[i], _playerYellows[i], p.Body.OffPitch, null, p.Body.Energy,
+                    InjurySeverity.None);
             }
             return new MatchResult(Home.Goals, Away.Goals, _events, TeamResult(Home), TeamResult(Away), players);
         }
@@ -133,7 +146,7 @@ namespace Game.Match.AI
         private TeamMatchStats TeamResult(AiTeam team)
         {
             var s = Stats(team);
-            return new TeamMatchStats(s.Shots, s.ShotsOnTarget, PossessionPercent(team), 0, 0, 0, s.Corners, 0);
+            return new TeamMatchStats(s.Shots, s.ShotsOnTarget, PossessionPercent(team), s.Fouls, s.YellowCards, s.RedCards, s.Corners, 0);
         }
     }
 }

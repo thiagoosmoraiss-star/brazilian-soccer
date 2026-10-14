@@ -15,7 +15,7 @@ namespace Game.Match.AI
         private const int SnapshotMagic = 0x534D4341; // "ACMS"
         /// <summary>Bump when the snapshot layout changes; older snapshots are then rejected (a match in progress is
         /// short-lived, it is not migrated like a career save).</summary>
-        public const int SnapshotVersion = 1;
+        public const int SnapshotVersion = 2; // 2: referee (A8a)
 
         /// <summary>
         /// The whole match state, binary (TECHNICAL_SPEC §5 "Snapshot e pausa": "MatchState inteiro serializável: ao ir
@@ -44,6 +44,7 @@ namespace Game.Match.AI
                 Write(w, _passRng.GetState());
                 Write(w, _shotRng.GetState());
                 Write(w, _keeperRng.GetState());
+                Write(w, _refereeRng.GetState());
 
                 w.Write(TeamRef(HumanTeam));
                 if (HumanTeam != null)
@@ -62,6 +63,15 @@ namespace Game.Match.AI
                 Write(w, _takerStand);
                 Write(w, _takerFacing);
                 w.Write(_restartTimer);
+                w.Write(_wallCount);
+                for (int i = 0; i < _wallCount; i++)
+                {
+                    w.Write(_wallPlayer[i]);
+                    Write(w, _wallSlot[i]);
+                }
+                w.Write(_penaltyInPlay);
+                w.Write(TeamRef(_offsideTeam));
+                for (int i = 0; i < _offsideMask.Length; i++) w.Write(_offsideMask[i]);
 
                 Write(w, Ball.Position);
                 Write(w, Ball.Velocity);
@@ -86,6 +96,9 @@ namespace Game.Match.AI
                     w.Write(_playerAssists[i]);
                     w.Write(_playerShots[i]);
                     w.Write(_playerShotsOnTarget[i]);
+                    w.Write(_playerFouls[i]);
+                    w.Write(_playerYellows[i]);
+                    w.Write(_sentOffMinute[i]);
                 }
                 w.Write(_events.Count);
                 for (int i = 0; i < _events.Count; i++)
@@ -141,6 +154,7 @@ namespace Game.Match.AI
             _passRng.SetState(ReadRng(r));
             _shotRng.SetState(ReadRng(r));
             _keeperRng.SetState(ReadRng(r));
+            _refereeRng.SetState(ReadRng(r));
 
             var human = TeamFrom(r.ReadInt32());
             if (human != null)
@@ -164,6 +178,16 @@ namespace Game.Match.AI
             _takerStand = ReadV3(r);
             _takerFacing = ReadV3(r);
             _restartTimer = r.ReadSingle();
+            _wallCount = r.ReadInt32();
+            if (_wallCount < 0 || _wallCount > MaxWall) throw new ArgumentException("Corrupt match snapshot (wall).");
+            for (int i = 0; i < _wallCount; i++)
+            {
+                _wallPlayer[i] = r.ReadInt32();
+                _wallSlot[i] = ReadV3(r);
+            }
+            _penaltyInPlay = r.ReadBoolean();
+            _offsideTeam = TeamFrom(r.ReadInt32());
+            for (int i = 0; i < _offsideMask.Length; i++) _offsideMask[i] = r.ReadBoolean();
 
             Ball.Position = ReadV3(r);
             Ball.Velocity = ReadV3(r);
@@ -175,6 +199,9 @@ namespace Game.Match.AI
             ReadTeam(r, Home);
             ReadTeam(r, Away);
             for (int i = 0; i < Players.Length; i++) ReadPlayer(r, Players[i]);
+            if (HumanTeam != null)
+                for (int i = 0; i < HumanTeam.Players.Length; i++)
+                    if (HumanTeam.Players[i].Body.OffPitch) _eligible[i] = false; // dismissed before the pause
             ReadKeeper(r, HomeKeeper);
             ReadKeeper(r, AwayKeeper);
 
@@ -188,6 +215,9 @@ namespace Game.Match.AI
                 _playerAssists[i] = r.ReadInt32();
                 _playerShots[i] = r.ReadInt32();
                 _playerShotsOnTarget[i] = r.ReadInt32();
+                _playerFouls[i] = r.ReadInt32();
+                _playerYellows[i] = r.ReadInt32();
+                _sentOffMinute[i] = r.ReadInt32();
             }
             int events = r.ReadInt32();
             if (events < 0 || events > MaxEvents) throw new ArgumentException("Corrupt match snapshot (events).");
@@ -262,6 +292,7 @@ namespace Game.Match.AI
             w.Write(b.TurnStunRemaining);
             w.Write(b.IgnoreBallUntilClear);
             w.Write(b.TackleCooldown);
+            w.Write(b.OffPitch);
 
             Write(w, p.IdealTarget);
             Write(w, p.RoleTarget);
@@ -292,6 +323,7 @@ namespace Game.Match.AI
             b.TurnStunRemaining = r.ReadSingle();
             b.IgnoreBallUntilClear = r.ReadBoolean();
             b.TackleCooldown = r.ReadSingle();
+            b.OffPitch = r.ReadBoolean();
 
             p.IdealTarget = ReadV3(r);
             p.RoleTarget = ReadV3(r);
@@ -349,6 +381,13 @@ namespace Game.Match.AI
             w.Write(s.ThrowIns);
             w.Write(s.GoalKicks);
             w.Write(s.PossessionSteps);
+            w.Write(s.Fouls);
+            w.Write(s.YellowCards);
+            w.Write(s.RedCards);
+            w.Write(s.Offsides);
+            w.Write(s.FreeKicks);
+            w.Write(s.Penalties);
+            w.Write(s.PenaltyGoals);
         }
 
         private static void ReadStats(BinaryReader r, AiTeamStats s)
@@ -362,6 +401,13 @@ namespace Game.Match.AI
             s.ThrowIns = r.ReadInt32();
             s.GoalKicks = r.ReadInt32();
             s.PossessionSteps = r.ReadInt64();
+            s.Fouls = r.ReadInt32();
+            s.YellowCards = r.ReadInt32();
+            s.RedCards = r.ReadInt32();
+            s.Offsides = r.ReadInt32();
+            s.FreeKicks = r.ReadInt32();
+            s.Penalties = r.ReadInt32();
+            s.PenaltyGoals = r.ReadInt32();
         }
 
         private static void Write(BinaryWriter w, Vector3 v)

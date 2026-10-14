@@ -43,7 +43,7 @@ namespace Game.Match
 
         public static ShotOutcome Execute(int kicker, PlayerBody body, Ball ball, MatchPlayerSetup player, Balance balance,
             KickingDefinition k, BallParameters ballCfg, Pitch pitch, bool attackingPositiveX, Vector2 aim, float power,
-            bool firstTime, float nearestOpponentDistance, Rng rng)
+            bool firstTime, float nearestOpponentDistance, Rng rng, float extraErrorDegrees = 0f)
         {
             var s = k.Shot;
             power = MathUtil.Clamp01(power);
@@ -68,7 +68,8 @@ namespace Game.Match
             float speed = MathUtil.Lerp(s.MinSpeed, MathF.Max(s.MinSpeed, maxSpeed), power) * KickErrorRules.ShotPowerMultiplier(player, k, ctx);
 
             float baseAngle = balance.Eval(inBox ? Effect.ShotAngleErrorInBox : Effect.ShotAngleErrorOutOfBox, player.Attributes);
-            float hError = baseAngle * mult * KickErrorRules.Triangular(rng);
+            // extraErrorDegrees: a penalty's Compostura wobble (PenaltyAimWobble, A8a) on top of the shot's own error.
+            float hError = (baseAngle * mult + extraErrorDegrees) * KickErrorRules.Triangular(rng);
             float vError = baseAngle * s.VerticalErrorFraction * mult * KickErrorRules.Triangular(rng);
             if (power > s.IdealPowerMax)
             {

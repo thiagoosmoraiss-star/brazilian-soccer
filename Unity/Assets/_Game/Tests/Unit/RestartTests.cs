@@ -107,8 +107,10 @@ namespace Game.Tests.Unit
         public void InMatches_RestartsNeverStall_AndOpponentsKeepTheirDistance()
         {
             var r = Db().Restarts;
-            float maxSeconds = r.SetupSeconds + Math.Max(r.AiTakeSeconds, r.HumanTimeoutSeconds) + 2 * Dt;
-            int restarts = 0, crowded = 0;
+            var referee = Db().Referee; // A8a: free kicks and penalties have their own set-up
+            float setup = Math.Max(r.SetupSeconds, Math.Max(referee.FreeKickSetupSeconds, referee.PenaltySetupSeconds));
+            float maxSeconds = setup + Math.Max(r.AiTakeSeconds, r.HumanTimeoutSeconds) + 2 * Dt;
+            int restarts = 0, crowded = 0, setPieces = 0;
             for (ulong seed = 1; seed <= 12; seed++)
             {
                 var m = new AiMatch(Db(), AiMatchTests.Setup(seed), Dt);
@@ -125,6 +127,7 @@ namespace Game.Tests.Unit
                     Assert.LessOrEqual(since, maxSeconds, $"seed {seed}, t={m.ElapsedSeconds:F2}: {kind} stalled.");
                     if (m.Restart != RestartKind.None || ev == AiMatchEvent.HalfTime) continue;
                     restarts++;
+                    if (kind == RestartKind.FreeKick || kind == RestartKind.DirectFreeKick || kind == RestartKind.Penalty) setPieces++;
                     float radius = kind == RestartKind.ThrowIn ? r.ThrowInExclusionRadius : r.ExclusionRadius;
                     foreach (var o in m.Opponents(team).Players)
                         if (Vector3.Distance(o.Body.Position, spot) < 0.5f * radius) { crowded++; break; }
@@ -132,6 +135,7 @@ namespace Game.Tests.Unit
                 }
             }
             Assert.Greater(restarts, 20, "too few restarts to judge.");
+            Assert.Greater(setPieces, 5, "too few free kicks / penalties to judge (A8a).");
             // Opponents walk out of the circle during the set-up; one caught deep inside when it is taken is rare, not never.
             Assert.LessOrEqual(crowded, restarts / 10, $"{crowded} of {restarts} restarts taken with an opponent well inside the circle.");
         }

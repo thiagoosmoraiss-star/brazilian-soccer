@@ -44,6 +44,7 @@ namespace Game.Match.AI
             float first = float.MinValue, second = float.MinValue;
             for (int i = 0; i < opponents.Players.Length; i++)
             {
+                if (opponents.Players[i].Body.OffPitch) continue;
                 float u = team.Frame.U(opponents.Players[i].Body.Position);
                 if (u > first) { second = first; first = u; }
                 else if (u > second) second = u;

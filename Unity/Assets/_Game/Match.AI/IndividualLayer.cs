@@ -33,7 +33,7 @@ namespace Game.Match.AI
             for (int i = 0; i < team.Players.Length; i++)
             {
                 var p = team.Players[i];
-                if (p.IsGoalkeeper) continue;
+                if (p.IsGoalkeeper || p.Body.OffPitch) continue;
                 float time = Vector3.Distance(p.Body.Position, ball.Position) / balance.Eval(Effect.SprintSpeed, p.Setup.Attributes)
                              + balance.Eval(Effect.LooseBallReaction, p.Setup.Attributes);
                 if (i == team.Chaser) time *= 1f - ai.AssignmentHysteresis;
@@ -54,7 +54,7 @@ namespace Game.Match.AI
                 for (int i = 0; i < team.Players.Length; i++)
                 {
                     var p = team.Players[i];
-                    if (p.IsGoalkeeper || flags[i] || p.Global == excludeGlobal) continue;
+                    if (p.IsGoalkeeper || flags[i] || p.Global == excludeGlobal || p.Body.OffPitch) continue;
                     float d = Vector3.Distance(p.Body.Position, point);
                     if (d > maxDistance) continue;
                     bool hadJob = previousIsPress ? p.Intention == AiIntention.Press : p.Intention == AiIntention.Support;
@@ -105,7 +105,7 @@ namespace Game.Match.AI
             for (int i = 0; i < opponents.Players.Length; i++)
             {
                 var o = opponents.Players[i];
-                if (o.Global == ball.Owner || o.IsGoalkeeper) continue;
+                if (o.Global == ball.Owner || o.IsGoalkeeper || o.Body.OffPitch) continue;
                 if (Vector3.DistanceSquared(o.Body.Position, p.RoleTarget) > zone * zone) continue;
                 float u = p.Team.Frame.U(o.Body.Position);
                 if (u < bestU) { bestU = u; best = i; opponentPosition = o.Body.Position; }

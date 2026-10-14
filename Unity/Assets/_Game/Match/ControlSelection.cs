@@ -58,7 +58,7 @@ namespace Game.Match
             float bestSqr = float.PositiveInfinity;
             for (int i = 0; i < count; i++)
             {
-                if (i == kicker) continue;
+                if (i == kicker || bodies[i].OffPitch) continue;
                 float dx = bodies[i].Position.X - predictedStop.X;
                 float dy = bodies[i].Position.Y - predictedStop.Y;
                 float d = dx * dx + dy * dy;
@@ -103,7 +103,7 @@ namespace Game.Match
             float bestScore = float.PositiveInfinity;
             for (int i = 0; i < count; i++)
             {
-                if (i == Controlled || !eligible[i]) continue;
+                if (i == Controlled || !eligible[i] || bodies[i].OffPitch) continue;
                 float s = InterceptScore(bodies[i], setups[i], ball, ownGoal, balance, d);
                 if (s < bestScore) { bestScore = s; best = i; }
             }

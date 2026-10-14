@@ -1,0 +1,42 @@
+{
+  "schemaVersion": 1,
+  "foul": {
+    "strictness": 1.0,
+    "foulScale": 1.8,
+    "contactDistance": 0.95,
+    "minClosingSpeed": 0.7,
+    "speedReference": 4.0,
+    "speedMultiplier": 0.6,
+    "behindAngleDegrees": 110.0,
+    "behindMultiplier": 2.0,
+    "challengeCooldownSeconds": 0.8,
+    "minPlayersOnPitch": 7
+  },
+  "cards": {
+    "denialDistance": 30.0
+  },
+  "offside": {
+    "tolerance": 0.0
+  },
+  "freeKick": {
+    "setupSeconds": 2.0,
+    "directShotDistance": 30.0,
+    "directShotMaxAngleDegrees": 55.0,
+    "shotPower": 0.7,
+    "wallDistanceMargin": 0.3,
+    "wallSpacing": 0.65,
+    "wall": [
+      { "maxDistance": 20.0, "players": 4 },
+      { "maxDistance": 25.0, "players": 3 },
+      { "maxDistance": 30.0, "players": 2 }
+    ]
+  },
+  "penalty": {
+    "setupSeconds": 2.5,
+    "spotDistance": 11.0,
+    "shotPower": 0.65,
+    "keeperStayChance": 0.15,
+    "keeperDiveLateral": 1.6,
+    "areaClearance": 1.0
+  }
+}

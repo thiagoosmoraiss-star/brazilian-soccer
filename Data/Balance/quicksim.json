@@ -40,14 +40,14 @@
     "assistChance": 0.9
   },
   "penalties": {
-    "perDefensiveFoul": 0.035,
+    "perDefensiveFoul": 0.0945,
     "onTarget": 0.85,
     "goalGivenOnTarget": 0.9
   },
   "accuracyExponent": 0.8,
   "keeperExponent": 0.7,
   "composureExponent": 0.5,
-  "foulsPerMinute": 0.3,
+  "foulsPerMinute": 0.111,
   "defendingTeamFoulShare": 0.6,
   "pressureFoulMult": [0.85, 1.0, 1.2],
   "mentalityAttack": [0.88, 0.94, 1.0, 1.06, 1.12],

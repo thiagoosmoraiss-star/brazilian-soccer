@@ -180,7 +180,7 @@ namespace Game.Match.AI
             distance = float.PositiveInfinity;
             for (int i = 0; i < team.Players.Length; i++)
             {
-                if (i == holder.Local) continue;
+                if (i == holder.Local || team.Players[i].Body.OffPitch) continue;
                 float d = Vector3.Distance(team.Players[i].Body.Position, holder.Body.Position);
                 bool after = d > afterDistance || (d == afterDistance && i > afterIndex);
                 if (!after) continue;

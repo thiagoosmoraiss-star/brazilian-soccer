@@ -42,6 +42,9 @@ namespace Game.App.Dev
                 case RestartKind.ThrowIn: return "Lateral";
                 case RestartKind.GoalKick: return "Tiro de meta";
                 case RestartKind.Corner: return "Escanteio";
+                case RestartKind.FreeKick: return "Falta indireta";
+                case RestartKind.DirectFreeKick: return "Falta";
+                case RestartKind.Penalty: return "Pênalti";
                 default: return "";
             }
         }
@@ -52,9 +55,10 @@ namespace Game.App.Dev
             if (m.Restart == RestartKind.None) return "";
             string who = m.RestartTeam == m.HumanTeam ? "seu" : (m.HumanTeam == null ? (m.RestartTeam == m.Home ? "casa" : "visitante") : "adversário");
             if (!m.RestartReady) return $"{RestartName(m.Restart)} ({who}) — posicionando";
-            return m.RestartTeam == m.HumanTeam
-                ? $"{RestartName(m.Restart)}: mire com o analógico e toque PASSE (J) ou ENFIADA (K)"
-                : $"{RestartName(m.Restart)} ({who})";
+            if (m.RestartTeam != m.HumanTeam) return $"{RestartName(m.Restart)} ({who})";
+            return m.Restart == RestartKind.DirectFreeKick || m.Restart == RestartKind.Penalty
+                ? $"{RestartName(m.Restart)}: mire com o analógico e toque CHUTE (Espaço), PASSE (J) ou ENFIADA (K)"
+                : $"{RestartName(m.Restart)}: mire com o analógico e toque PASSE (J) ou ENFIADA (K)";
         }
     }
 }

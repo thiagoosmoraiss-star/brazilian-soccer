@@ -116,6 +116,7 @@ Pedido do usuário (13/10/2026): a cada etapa concluída, informar a porcentagem
 ### A8 — Árbitro e bola parada completa
 - **Objetivo:** regras completas da partida do MVP.
 - **Pré-requisitos:** A7.
+- **Dividida em duas entregas (X-64):** **A8a** — regras e IA: faltas, cartões e expulsão, impedimento, falta indireta, falta direta com barreira, pênalti batido e defendido pela IA, taxas em partidas headless (X-65: ~10 faltas e ~2 amarelos por partida, também na QuickSim); **A8b** — controles do usuário nas bolas paradas (mira/força na falta direta e no pênalti, escolher o lado ao defender pênalti) e aviso de cartão/expulsão na tela. O escanteio com regiões depende do Alto (cruzamento) e entra com ele na A9 (X-66).
 - **Sistemas:** Referee (faltas por contato de desarme e disputa, cartões, impedimento no momento do passe), Restart completo (falta indireta, falta direta sem curva, escanteio com regiões, pênalti batendo e defendendo).
 - **Módulos:** `Match`, `Rules`.
 - **Testes:** impedimento correto em cenários; falta por contato antes da bola; 2 amarelos = vermelho; pênalti executa e termina; bola parada nunca trava.

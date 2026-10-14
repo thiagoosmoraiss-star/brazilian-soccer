@@ -33,7 +33,7 @@ Used by both engines through `Rules.Match.MatchRules` (TECHNICAL_SPEC §10: shar
 
 ## quicksim.json — QuickSim coefficients (B2, baseline v1, X-38)
 
-Minute slices; possession by Creation strength; dangerous-attack chance by Attack vs Defense; play types (open play, cross, long shot) with on-target and goal-given-on-target chances; blocks, corners, penalties; selection weights per position for shooters, headers, assists, crossers and foulers; tactic multipliers (mentality, line, pressure); home advantage; probability caps. Calibrated so league-like batches hit `Data/TestRanges/quicksim.json`. Inspect with `dotnet run --project dotnet/QuickSimReport -- --matches 10000`.
+Minute slices; possession by Creation strength; dangerous-attack chance by Attack vs Defense; play types (open play, cross, long shot) with on-target and goal-given-on-target chances; blocks, corners, penalties; selection weights per position for shooters, headers, assists, crossers and foulers; tactic multipliers (mentality, line, pressure); home advantage; probability caps. Calibrated so league-like batches hit `Data/TestRanges/quicksim.json`; fouls and penalties follow the game rhythm of X-65 (~10 fouls, ~2 yellows per match, as in the played match). Inspect with `dotnet run --project dotnet/QuickSimReport -- --matches 10000`.
 
 ## ball.json — field geometry + ball physics (A1, baseline v1, X-47)
 
@@ -227,3 +227,30 @@ TECHNICAL_SPEC §19: "Reinícios simples: saída, lateral, tiro de meta, escante
 | `restart.goalKickDepth` / `goalKickLateral` | Goal-kick spot: this far from the goal line, this far to the side the ball went out (m) | > 0 / ≥ 0 |
 | `restart.cornerInset` | Corner spot inset from both lines (m) | ≥ 0 |
 
+## referee.json — referee and full set pieces (A8a, baseline v1, X-64/X-65/X-66)
+
+Fouls on contact before the ball, cards, offside at the pass, free kicks with an automatic wall and penalties (`Game.Data.Match.RefereeDefinition`). The per-foul card chances are the shared `match_rules.json` `discipline` (same as QuickSim). Target rhythm (X-65): ~10 fouls and ~2 yellows per played match, whatever its duration; ranges in `Data/TestRanges/referee.json`; inspect with `dotnet run --project dotnet/MatchReport -- --baseline-only` (and `--penalties N` for isolated penalties).
+
+| Field | Controls | Valid values |
+| --- | --- | --- |
+| `foul.strictness` | The referee's strictness: multiplies every foul chance | ≥ 0 |
+| `foul.foulScale` | Calibrates the FoulChance effect (per challenge) to the rhythm of X-65 | ≥ 0 |
+| `foul.contactDistance` | A defender this close to the carrier (centre to centre, m), still closing in, makes a challenge | > 0 |
+| `foul.minClosingSpeed` | Only a defender closing at least this fast (m/s) challenges; a jockeying one never fouls | ≥ 0 |
+| `foul.speedReference` / `speedMultiplier` | Closing speed above the minimum (m/s) that adds the whole multiplier to the foul chance | > 0 / ≥ 0 |
+| `foul.behindAngleDegrees` / `behindMultiplier` | A challenge from more than this angle off the carrier's facing is from behind: chance × multiplier | (0, 180] / ≥ 1 |
+| `foul.challengeCooldownSeconds` | After a challenge the defender cannot challenge again for this long (s) | ≥ 0 |
+| `foul.minPlayersOnPitch` | A side is never reduced below this many players by dismissals (Law 3) | 1–11 |
+| `cards.denialDistance` | A foul by the last defender this close to his goal (m) denies a clear chance: straight red outside the area, penalty + yellow inside | ≥ 0 |
+| `offside.tolerance` | How far ahead of the second-last defender and the ball a player may be and still be level (m) | ≥ 0 |
+| `freeKick.setupSeconds` | Set-up time of a free kick (s) | ≥ 0 |
+| `freeKick.directShotDistance` / `directShotMaxAngleDegrees` | The AI shoots a direct free kick this close to goal (m) and within this angle of the goal's centre line; otherwise passes | ≥ 0 |
+| `freeKick.shotPower` | Power of the AI's free-kick shot | (0, 1] |
+| `freeKick.wallDistanceMargin` / `wallSpacing` | The wall stands at the exclusion radius + margin, its players this far apart (m) | ≥ 0 / > 0 |
+| `freeKick.wall` | Wall size by distance to goal: rows `{maxDistance, players}`, ascending; beyond the last row, no wall | 0–10 players |
+| `penalty.setupSeconds` | Set-up time of a penalty (s) | ≥ 0 |
+| `penalty.spotDistance` | Penalty spot distance from the goal line (m) | > 0 |
+| `penalty.shotPower` | Power of the AI's penalty | (0, 1] |
+| `penalty.keeperStayChance` | The AI keeper stays in the middle with this chance; otherwise he dives to a side as the ball is struck | 0–1 |
+| `penalty.keeperDiveLateral` | A diving keeper aims this far from the goal's centre (m) | ≥ 0 |
+| `penalty.areaClearance` | Players wait this far outside the penalty area (m) | ≥ 0 |

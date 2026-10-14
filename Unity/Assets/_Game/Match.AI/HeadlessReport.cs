@@ -14,6 +14,8 @@ namespace Game.Match.AI
         public double AOnTarget, BOnTarget;
         public double APossession;
         public double Saves, Corners;
+        // Referee (A8a), both sides.
+        public double Fouls, Yellows, Reds, Offsides, FreeKicks, Penalties, PenaltyGoals;
 
         public double AWinRate => Matches == 0 ? 0 : (double)AWins / Matches;
         public double BWinRate => Matches == 0 ? 0 : (double)BWins / Matches;
@@ -60,6 +62,13 @@ namespace Game.Match.AI
                 result.APossession += r.Stats(sa).Possession;
                 result.Saves += m.HomeStats.Saves + m.AwayStats.Saves;
                 result.Corners += r.HomeStats.Corners + r.AwayStats.Corners;
+                result.Fouls += r.HomeStats.Fouls + r.AwayStats.Fouls;
+                result.Yellows += r.HomeStats.YellowCards + r.AwayStats.YellowCards;
+                result.Reds += r.HomeStats.RedCards + r.AwayStats.RedCards;
+                result.Offsides += m.HomeStats.Offsides + m.AwayStats.Offsides;
+                result.FreeKicks += m.HomeStats.FreeKicks + m.AwayStats.FreeKicks;
+                result.Penalties += m.HomeStats.Penalties + m.AwayStats.Penalties;
+                result.PenaltyGoals += m.HomeStats.PenaltyGoals + m.AwayStats.PenaltyGoals;
             }
             return result;
         }

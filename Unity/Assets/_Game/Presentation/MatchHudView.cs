@@ -268,6 +268,9 @@ namespace Game.Presentation
                 case RestartKind.GoalKick: return "TIRO DE META";
                 case RestartKind.Corner: return "ESCANTEIO";
                 case RestartKind.Kickoff: return "SAÍDA DE BOLA";
+                case RestartKind.FreeKick: return "FALTA INDIRETA";
+                case RestartKind.DirectFreeKick: return "FALTA";
+                case RestartKind.Penalty: return "PÊNALTI";
                 default: return "";
             }
         }

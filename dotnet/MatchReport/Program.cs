@@ -9,7 +9,7 @@ using Game.Match.AI;
 namespace Game.Tools.MatchReport
 {
     /// <summary>
-    /// Usage: dotnet run --project dotnet/MatchReport -c Release -- [--matches N] [--minutes M] [--seed S] [--delta D]
+    /// Usage: dotnet run --project dotnet/MatchReport -c Release -- [--matches N] [--minutes M] [--seed S] [--delta D] [--baseline-only]
     /// TECHNICAL_SPEC §19 (vertical slice): N headless matches strong × weak (Data/VerticalSlice/teams.json), then the
     /// same batch with the weak side's Velocidade (+Agilidade), Passe and Finalização raised by D: the weak side's
     /// results must move up ("mudar Velocidade/Passe/Finalização move o relatório na direção esperada").
@@ -21,6 +21,8 @@ namespace Game.Tools.MatchReport
         public static int Main(string[] args)
         {
             int matches = 200, minutes = 4, delta = 15;
+            bool quick = false;
+            int penaltyTrials = 0;
             ulong seed = 1;
             for (int i = 0; i < args.Length; i++)
             {
@@ -28,6 +30,8 @@ namespace Game.Tools.MatchReport
                 else if (args[i] == "--minutes") minutes = int.Parse(args[++i], CultureInfo.InvariantCulture);
                 else if (args[i] == "--seed") seed = ulong.Parse(args[++i], CultureInfo.InvariantCulture);
                 else if (args[i] == "--delta") delta = int.Parse(args[++i], CultureInfo.InvariantCulture);
+                else if (args[i] == "--baseline-only") quick = true;
+                else if (args[i] == "--penalties") penaltyTrials = int.Parse(args[++i], CultureInfo.InvariantCulture);
             }
             string root = DataRoot.Find(Directory.GetCurrentDirectory()) ?? DataRoot.Find(AppContext.BaseDirectory);
             var source = new DirectoryDataSource(root);
@@ -38,11 +42,13 @@ namespace Game.Tools.MatchReport
             var strong = vs.Value.Team("strong");
             var weak = vs.Value.Team("weak");
 
+            if (penaltyTrials > 0) { Penalties(db.Value, strong, weak, penaltyTrials, seed); return 0; }
             Console.WriteLine($"Vertical slice headless report: {strong.Name} (strong) x {weak.Name} (weak), {matches} matches of {minutes} min, seed {seed}");
             var sw = Stopwatch.StartNew();
             var baseline = HeadlessReport.Run(db.Value, strong.ToSetup(), weak.ToSetup(), matches, minutes, seed, StepSeconds);
             Print("baseline", baseline);
             Console.WriteLine($"  time: {sw.ElapsedMilliseconds / 1000.0:F1} s ({sw.ElapsedMilliseconds / (double)matches:F0} ms/match)");
+            if (quick) return 0;
 
             Console.WriteLine();
             Console.WriteLine($"Sensitivity: weak side +{delta} (outfield players), same seeds");
@@ -55,6 +61,36 @@ namespace Game.Tools.MatchReport
             Console.WriteLine();
             Console.WriteLine(ok ? "All sensitivities move the weak side's results up." : "WARNING: some attribute did not move the results in the expected direction.");
             return 0;
+        }
+
+        /// <summary>--penalties N: N isolated penalties (strong side shooting), with their outcome.</summary>
+        private static void Penalties(GameDatabase db, Game.Data.Match.VerticalSliceTeam strong, Game.Data.Match.VerticalSliceTeam weak, int n, ulong seed)
+        {
+            int goals = 0, saves = 0, wide = 0, other = 0, dives = 0, correct = 0;
+            for (int i = 0; i < n; i++)
+            {
+                var m = new AiMatch(db, new Game.Core.Contracts.Match.MatchSetup(strong.ToSetup(), weak.ToSetup(), false, 6, 5, seed + (ulong)i), StepSeconds);
+                m.CancelRestart();
+                m.AwardPenalty(Game.Core.Contracts.Match.MatchSide.Home);
+                var outcome = AiMatchEvent.None;
+                bool shot = false;
+                float shotY = 0f;
+                for (int s = 0; s < 400 && outcome == AiMatchEvent.None; s++)
+                {
+                    var ev = m.Step();
+                    if (ev == AiMatchEvent.Shot) { shot = true; continue; }
+                    if (!shot) continue;
+                    if (shotY == 0f && m.Ball.Position.X > 40f) shotY = m.Ball.Position.Y;
+                    if (ev == AiMatchEvent.Goal || ev == AiMatchEvent.Save || ev == AiMatchEvent.Out) outcome = ev;
+                }
+                var k = m.AwayKeeper;
+                if (k.Dove) { dives++; if (MathF.Sign(k.Target.Y) == MathF.Sign(shotY)) correct++; }
+                if (outcome == AiMatchEvent.Goal) goals++;
+                else if (outcome == AiMatchEvent.Save) saves++;
+                else if (outcome == AiMatchEvent.Out) wide++;
+                else other++;
+            }
+            Console.WriteLine($"Penalties: {n}, goals {goals} ({(double)goals / n:P0}), saves {saves}, out {wide}, unresolved {other}; keeper dived {dives} (right side {correct})");
         }
 
         private static bool Sensitivity(GameDatabase db, Game.Data.Match.VerticalSliceTeam strong, Game.Data.Match.VerticalSliceTeam weak,
@@ -73,6 +109,9 @@ namespace Game.Tools.MatchReport
             Console.WriteLine($"  goals per match: strong {r.PerMatch(r.AGoals):F2}, weak {r.PerMatch(r.BGoals):F2}");
             Console.WriteLine($"  shots per match: strong {r.PerMatch(r.AShots):F1} ({r.PerMatch(r.AOnTarget):F1} on target), weak {r.PerMatch(r.BShots):F1} ({r.PerMatch(r.BOnTarget):F1})");
             Console.WriteLine($"  strong possession {r.PerMatch(r.APossession):F0}%, keeper saves {r.PerMatch(r.Saves):F1}, corners {r.PerMatch(r.Corners):F1} per match");
+            Console.WriteLine($"  referee per match: fouls {r.PerMatch(r.Fouls):F1}, yellow {r.PerMatch(r.Yellows):F2}, red {r.PerMatch(r.Reds):F2}, "
+                              + $"offsides {r.PerMatch(r.Offsides):F1}, free kicks {r.PerMatch(r.FreeKicks):F1}, penalties {r.PerMatch(r.Penalties):F2} "
+                              + $"(scored {(r.Penalties > 0 ? r.PenaltyGoals / r.Penalties : 0):P0})");
         }
     }
 }

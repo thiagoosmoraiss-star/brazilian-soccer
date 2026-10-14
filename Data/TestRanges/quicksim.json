@@ -4,10 +4,10 @@
     "goalsPerMatch": "Brasileirão Série A 2024: 877 goals in 360 matches = 2.44 (placar.com.br); GAME_DESIGN §15 design target ~2-4",
     "zeroZeroPct": "Premier League: 3-9% per season, historical average ~8% (theanalyst.com)",
     "homeDrawAway": "Brasileirão Série A 2023: home 46.84%, draw 25.79%, away 27.37% (tribunapr.com.br / maquinadoesporte.com.br)",
-    "foulsPerMatch": "Brasileirão: 25.2-28.53 fouls per match (flashscore.com.br)",
-    "yellowPerMatch": "Brasileirão: 5.59-5.76 yellow cards per match (flashscore.com.br)",
+    "foulsPerMatch": "DESIGN (DECISIONS X-65): game rhythm ~10 fouls per match, same as the played match (real Brasileirão: 25.2-28.53, flashscore.com.br)",
+    "yellowPerMatch": "DESIGN (DECISIONS X-65): ~2 yellow cards per match, same as the played match (real Brasileirão: 5.59-5.76, flashscore.com.br)",
     "cornersPerMatch": "~9.6 per match (5.2 home + 4.4 away example; weak source)",
-    "redPerMatch": "ESTIMATE (no source found): typical professional leagues ~0.1-0.35",
+    "redPerMatch": "DESIGN (DECISIONS X-65): reds scale with the ~10 fouls per match (real leagues ESTIMATE ~0.1-0.35, no source found)",
     "injuriesPerMatch": "ESTIMATE (no source found)",
     "ovrCurve": "DESIGN (TECHNICAL_SPEC §19: the stronger side wins most matches, upsets exist)"
   },
@@ -17,9 +17,9 @@
   "homeWinPct": [43.0, 51.0],
   "drawPct": [22.0, 30.0],
   "awayWinPct": [23.0, 31.0],
-  "foulsPerMatch": [24.0, 30.0],
-  "yellowPerMatch": [5.0, 6.3],
-  "redPerMatch": [0.1, 0.4],
+  "foulsPerMatch": [8.5, 11.5],
+  "yellowPerMatch": [1.7, 2.9],
+  "redPerMatch": [0.02, 0.2],
   "cornersPerMatch": [8.5, 11.0],
   "injuriesPerMatch": [0.1, 0.5],
   "ovrCurve": {
@@ -32,7 +32,7 @@
   "crossDivision": { "matches": 2000, "strongWinMinPct": 70.0, "weakWinMinPct": 1.0, "weakWinMaxPct": 15.0 },
   "sensitivity": {
     "boost": 15,
-    "matches": 4000,
+    "matches": 8000,
     "minZ": 3.0,
     "metric": {
       "default": "goalDifference",

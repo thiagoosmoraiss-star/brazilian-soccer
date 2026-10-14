@@ -30,6 +30,7 @@ namespace Game.Data.Loading
         public Match.DefenseDefinition Defense { get; }
         public Match.GoalkeeperDefinition Goalkeeper { get; }
         public Match.RestartsDefinition Restarts { get; }
+        public Match.RefereeDefinition Referee { get; }
 
         internal GameDatabase(string sourceDescription, Effects.Balance balance, Ovr.OvrDefinition ovr, World.WorldDefinition world,
             System.Collections.Generic.IReadOnlyList<Match.FormationDefinition> formations, Match.MatchRulesDefinition matchRules,
@@ -38,8 +39,9 @@ namespace Game.Data.Loading
             Board.BoardDefinition board, Career.FacilitiesDefinition facilities, Career.StaffDefinition staff, Match.BallDefinition ball,
             Match.MovementDefinition movement, Match.FatigueDefinition fatigue, Match.KickingDefinition kicking,
             Match.AiDefinition ai, Match.TacticsDefinition tactics, Match.DefenseDefinition defense,
-            Match.GoalkeeperDefinition goalkeeper, Match.RestartsDefinition restarts)
+            Match.GoalkeeperDefinition goalkeeper, Match.RestartsDefinition restarts, Match.RefereeDefinition referee)
         {
+            Referee = referee;
             Restarts = restarts;
             Goalkeeper = goalkeeper;
             Defense = defense;

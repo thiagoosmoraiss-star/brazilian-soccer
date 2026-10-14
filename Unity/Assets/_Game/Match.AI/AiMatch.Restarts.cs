@@ -5,7 +5,8 @@ using Game.Core.Math;
 
 namespace Game.Match.AI
 {
-    /// <summary>Simple restarts of the vertical slice (A7a; TECHNICAL_SPEC §19 "saída, lateral, tiro de meta, escanteio curto").</summary>
+    /// <summary>Restarts: the simple ones of the vertical slice (A7a; TECHNICAL_SPEC §19 "saída, lateral, tiro de meta,
+    /// escanteio curto") and the referee's (A8a): indirect free kick (offside), direct free kick (foul) and penalty.</summary>
     public enum RestartKind
     {
         None = 0,
@@ -13,6 +14,9 @@ namespace Game.Match.AI
         ThrowIn = 2,
         GoalKick = 3,
         Corner = 4,
+        FreeKick = 5,
+        DirectFreeKick = 6,
+        Penalty = 7,
     }
 
     public sealed partial class AiMatch
@@ -42,6 +46,9 @@ namespace Game.Match.AI
             _takerFacing = new Vector3(facing.X, facing.Y, 0f);
             _takerStand = RestartSpot - _takerFacing * (_mv.PlayerRadius + _ballCfg.Radius);
             _restartTimer = _restarts.SetupSeconds;
+            _wallCount = 0;
+            _penaltyInPlay = false;
+            ClearOffside();
 
             Ball.Position = RestartSpot;
             Ball.Velocity = Vector3.Zero;
@@ -76,6 +83,8 @@ namespace Game.Match.AI
                 Ball.LastTouch = Taker.Global;
                 SetIntention(Taker, AiIntention.OnBall);
                 if (Taker.IsGoalkeeper) KeeperOf(Taker.Team).State = KeeperState.Holding;
+                if (Restart == RestartKind.Penalty) ClearPenaltyArea();
+                else if (Restart == RestartKind.DirectFreeKick) SetWall();
                 bool user = RestartTeam == HumanTeam;
                 if (user) Control.OnCaptured(Taker.Local); // a goal kick included: the user aims the keeper's short pass
                 _restartTimer = user ? _restarts.HumanTimeoutSeconds : _restarts.AiTakeSeconds;
@@ -87,11 +96,17 @@ namespace Game.Match.AI
             {
                 var command = _buffered;
                 _buffered = ActionCommand.None;
-                if (command.Kind == ActionKind.Shot) return AiMatchEvent.None; // no direct shot from these restarts
+                if (command.Kind == ActionKind.Shot)
+                {
+                    // Only a direct free kick or a penalty may be shot (A8a; the full aiming controls are A8b).
+                    if (Restart == RestartKind.DirectFreeKick || Restart == RestartKind.Penalty) return TakeShotRestart(_humanAim, command.Power);
+                    return AiMatchEvent.None;
+                }
                 var kind = command.Kind == ActionKind.Through && Restart != RestartKind.GoalKick ? PassKind.Through : PassKind.Ground;
                 return TakeRestart(_humanAim, kind, command.Power);
             }
             if (_restartTimer > 0f) return AiMatchEvent.None;
+            if (Restart == RestartKind.FreeKick || Restart == RestartKind.DirectFreeKick || Restart == RestartKind.Penalty) return AiSetPiece();
 
             var opp = Opponents(RestartTeam);
             var to = RestartTeam.Players[Outlet(Taker, opp)].Body.Position;
@@ -102,17 +117,17 @@ namespace Game.Match.AI
         {
             var p = Taker;
             var team = RestartTeam;
+            // Law 11: no offside directly from a throw-in, a corner or a goal kick.
+            _offsideExempt = Restart == RestartKind.ThrowIn || Restart == RestartKind.Corner || Restart == RestartKind.GoalKick;
             float pressure = OnBallDecision.NearestOpponentDistance(p.Body.Position, Opponents(team));
             var pass = PassSystem.Execute(p.Local, team.Bodies, team.Bodies.Length, Ball, p.Setup, _balance, _kicking, _ballCfg,
                 kind, aim, power, false, pressure, team.Frame.Forward, _passRng);
             Ball.LastTouch = p.Global;
             if (p.IsGoalkeeper) KeeperOf(team).State = KeeperState.Positioning;
             SetIntention(p, AiIntention.HoldShape);
-            Restart = RestartKind.None;
-            RestartReady = false;
-            Taker = null;
-            RestartTeam = null;
+            EndRestart();
             OnPassed(team, p, pass.Target);
+            _offsideExempt = false;
             if (team == HumanTeam)
             {
                 Control.OnPassReleased(p.Local, pass.Target, pass.PredictedStop, team.Bodies, team.Bodies.Length);
@@ -147,6 +162,7 @@ namespace Game.Match.AI
         /// circle is moved to its edge, and a player inside walks out of it.</summary>
         private bool KeepOut(AiPlayer p, ref Vector3 target)
         {
+            if (Restart == RestartKind.Penalty) return KeepOutOfPenaltyArea(p, ref target);
             if (Restart == RestartKind.None || p.Team == RestartTeam) return false;
             float r = ExclusionRadius;
             float tx = target.X - RestartSpot.X, ty = target.Y - RestartSpot.Y;
@@ -164,6 +180,7 @@ namespace Game.Match.AI
         /// <summary>A player inside the exclusion circle sprints straight out of it.</summary>
         private void WalkOut(AiPlayer p, float dt)
         {
+            if (Restart == RestartKind.Penalty) { WalkOutOfPenaltyArea(p, dt); return; }
             var body = p.Body;
             float bx = body.Position.X - RestartSpot.X, by = body.Position.Y - RestartSpot.Y;
             float bd = MathF.Sqrt(bx * bx + by * by);
@@ -223,7 +240,7 @@ namespace Game.Match.AI
             for (int i = 0; i < team.Players.Length; i++)
             {
                 var p = team.Players[i];
-                if (p.IsGoalkeeper) continue;
+                if (p.IsGoalkeeper || p.Body.OffPitch) continue;
                 float d = Vector3.DistanceSquared(p.Body.Position, spot);
                 if (d < bestSqr) { bestSqr = d; best = p; }
             }

@@ -61,7 +61,7 @@ namespace Game.Match
             float bestScore = float.PositiveInfinity;
             for (int i = 0; i < count; i++)
             {
-                if (i == kicker) continue;
+                if (i == kicker || bodies[i].OffPitch) continue;
                 float dx = bodies[i].Position.X - from.X;
                 float dy = bodies[i].Position.Y - from.Y;
                 float dist = MathF.Sqrt(dx * dx + dy * dy);
