@@ -41,8 +41,11 @@ namespace Game.Data.Loading
             var o = j.Object(root, "offside", "root");
             if (o != null)
             {
-                j.Keys(o, "offside", "tolerance");
+                j.Keys(o, "offside", "tolerance", "closeCallWindow", "closeCallRunSpeed", "closeCallChance");
                 d.OffsideTolerance = j.Float(o, "tolerance", "offside");
+                d.CloseCallWindow = j.Float(o, "closeCallWindow", "offside");
+                d.CloseCallRunSpeed = j.Float(o, "closeCallRunSpeed", "offside");
+                d.CloseCallChance = j.Float(o, "closeCallChance", "offside");
             }
             var k = j.Object(root, "freeKick", "root");
             if (k != null)
@@ -88,6 +91,7 @@ namespace Game.Data.Loading
                       && d.SpeedMultiplier >= 0f && d.BehindAngleDegrees > 0f && d.BehindAngleDegrees <= 180f && d.BehindMultiplier >= 1f
                       && d.ChallengeCooldownSeconds >= 0f && d.MinPlayersOnPitch >= 1 && d.MinPlayersOnPitch <= 11
                       && d.DenialDistance >= 0f && d.OffsideTolerance >= 0f
+                      && d.CloseCallWindow >= 0f && d.CloseCallRunSpeed >= 0f && d.CloseCallChance >= 0f
                       && d.FreeKickSetupSeconds >= 0f && d.DirectShotDistance >= 0f && d.DirectShotMaxAngleDegrees >= 0f
                       && d.FreeKickShotPower > 0f && d.FreeKickShotPower <= 1f && d.WallDistanceMargin >= 0f && d.WallSpacing > 0f
                       && d.PenaltySetupSeconds >= 0f && d.PenaltySpotDistance > 0f && d.PenaltyShotPower > 0f && d.PenaltyShotPower <= 1f

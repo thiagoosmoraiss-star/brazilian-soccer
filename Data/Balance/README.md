@@ -243,6 +243,8 @@ Fouls on contact before the ball, cards, offside at the pass, free kicks with an
 | `foul.minPlayersOnPitch` | A side is never reduced below this many players by dismissals (Law 3) | 1–11 |
 | `cards.denialDistance` | A foul by the last defender this close to his goal (m) denies a clear chance: straight red outside the area, penalty + yellow inside | ≥ 0 |
 | `offside.tolerance` | How far ahead of the second-last defender and the ball a player may be and still be level (m) | ≥ 0 |
+| `offside.closeCallWindow` / `closeCallRunSpeed` | Close call (X-68): an attacker up to this far behind the second-last defender (m), running forward at least this fast (m/s) as the ball is played, may have gone too early | ≥ 0 |
+| `offside.closeCallChance` | …with this chance per metre of his AiTargetError (Posicionamento), normalised by the match duration | ≥ 0 |
 | `freeKick.setupSeconds` | Set-up time of a free kick (s) | ≥ 0 |
 | `freeKick.directShotDistance` / `directShotMaxAngleDegrees` | The AI shoots a direct free kick this close to goal (m) and within this angle of the goal's centre line; otherwise passes | ≥ 0 |
 | `freeKick.shotPower` | Power of the AI's free-kick shot | (0, 1] |

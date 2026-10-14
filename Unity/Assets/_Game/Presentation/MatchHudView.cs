@@ -198,7 +198,8 @@ namespace Game.Presentation
         {
             var m = s.Match;
             float goal = s.SecondsSince(AiMatchEvent.Goal), half = s.SecondsSince(AiMatchEvent.HalfTime), outEv = s.SecondsSince(AiMatchEvent.Out);
-            float newest = Mathf.Min(goal, Mathf.Min(half, outEv));
+            float foul = s.SecondsSince(AiMatchEvent.Foul), offside = s.SecondsSince(AiMatchEvent.Offside); // A8a
+            float newest = Mathf.Min(Mathf.Min(goal, Mathf.Min(half, outEv)), Mathf.Min(foul, offside));
             if (newest >= _v.BannerSeconds)
             {
                 if (_banner.style.display != DisplayStyle.None) _banner.style.display = DisplayStyle.None;
@@ -210,6 +211,7 @@ namespace Game.Presentation
             {
                 if (newest == goal) _banner.text = $"GOL!  {_homeName} {m.Home.Goals} x {m.Away.Goals} {_awayName}";
                 else if (newest == half) _banner.text = "INTERVALO";
+                else if (newest == offside) _banner.text = "IMPEDIMENTO";
                 else _banner.text = RestartName(m.Restart);
                 _banner.style.display = DisplayStyle.Flex;
             }

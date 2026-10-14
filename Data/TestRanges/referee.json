@@ -1,7 +1,7 @@
 {
   "schemaVersion": 1,
   "sources": {
-    "headless": "DESIGN (DECISIONS X-65): game rhythm ~10 fouls and ~2 yellow cards per played match (whatever its duration), the same rates as QuickSim; dotnet/MatchReport prints the 200-match report. Penalties: real leagues ~0.25-0.35 per match (ESTIMATE, no primary source)",
+    "headless": "DESIGN (DECISIONS X-65): game rhythm ~10 fouls and ~2 yellow cards per played match (whatever its duration), the same rates as QuickSim; dotnet/MatchReport prints the 200-match report. Penalties: real leagues ~0.25-0.35 per match (ESTIMATE, no primary source). Offsides: real 3-4 per match (user spec, docs/REFERENCES.md) scaled by the rhythm of X-65 to ~1.2-1.6; A8a reaches ~0.7 with close calls only, runs in behind arrive in A9 (X-68)",
     "penalty": "Real-football conversion ~75-80% (ESTIMATE, widely reported; no primary source). Isolated penalties of the vertical slice's strong side against the weak keeper (dotnet/MatchReport --penalties)",
     "strictReferee": "Test-only discipline (match_rules.json) that books nearly every foul, so second yellows and dismissals happen in every match"
   },
@@ -12,7 +12,8 @@
     "foulsPerMatch": [7.0, 12.0],
     "yellowPerMatch": [1.3, 3.0],
     "redPerMatch": [0.0, 0.4],
-    "penaltiesPerMatch": [0.1, 0.7]
+    "penaltiesPerMatch": [0.1, 0.7],
+    "offsidesPerMatch": [0.3, 1.5]
   },
   "penalty": { "trials": 200, "conversion": [0.65, 0.9] },
   "strictReferee": { "yellowPerFoul": 0.95 }

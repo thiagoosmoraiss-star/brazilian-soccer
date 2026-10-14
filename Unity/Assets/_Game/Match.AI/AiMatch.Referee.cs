@@ -225,12 +225,20 @@ namespace Game.Match.AI
             }
             float ballU = f.U(Ball.Position);
             float tol = _referee.OffsideTolerance;
+            float duration = _fatigue.ReferenceDurationMinutes / _durationMinutes;
             for (int i = 0; i < team.Players.Length; i++)
             {
                 var q = team.Players[i];
                 if (q == kicker || q.Body.OffPitch) continue;
                 float u = f.U(q.Body.Position);
-                if (u > Pitch.HalfLength && u > ballU + tol && u > second + tol) _offsideMask[q.Global] = true;
+                if (u <= Pitch.HalfLength || u <= ballU + tol) continue;
+                if (u > second + tol) { _offsideMask[q.Global] = true; continue; }
+                // Close call: running onto the line as the ball is played, he may have gone a fraction too early.
+                if (u <= second - _referee.CloseCallWindow) continue;
+                var v = q.Body.Velocity;
+                if (v.X * f.Forward.X + v.Y * f.Forward.Y < _referee.CloseCallRunSpeed) continue;
+                float chance = _referee.CloseCallChance * _balance.Eval(Effect.AiTargetError, q.Setup.Attributes) * duration;
+                if (_refereeRng.NextFloat() < chance) _offsideMask[q.Global] = true;
             }
             _offsideTeam = team;
         }

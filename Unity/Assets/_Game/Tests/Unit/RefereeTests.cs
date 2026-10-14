@@ -72,9 +72,9 @@ namespace Game.Tests.Unit
 
         /// <summary>Home carrier 40 m from the away goal, away defenders in a line 30 m out (wide, the lane open), the
         /// home striker <paramref name="strikerFromGoal"/> m out; the user passes to him.</summary>
-        private static (AiMatch m, AiPlayer striker) OffsideScenario(float strikerFromGoal)
+        private static (AiMatch m, AiPlayer striker) OffsideScenario(float strikerFromGoal, ulong seed = 1)
         {
-            var m = new AiMatch(Db(), AiMatchTests.Setup(1), Dt);
+            var m = new AiMatch(Db(), AiMatchTests.Setup(seed), Dt);
             m.EnableHuman(MatchSide.Home);
             var f = m.Home.Frame;
             float L = m.Pitch.Length;
@@ -130,6 +130,28 @@ namespace Game.Tests.Unit
             Assert.IsFalse(m.InOffsidePosition(striker));
             for (int i = 0; i < 250; i++) Assert.AreNotEqual(AiMatchEvent.Offside, m.Step(HumanInput.None));
             Assert.AreEqual(0, m.HomeStats.Offsides);
+        }
+
+        [Test]
+        public void ARunnerJustOnsideAsTheBallIsPlayed_IsSometimesFlagged_AStandingOneNever()
+        {
+            var r = Db().Referee;
+            int flagged = 0, trials = 40;
+            for (ulong seed = 1; seed <= (ulong)trials; seed++)
+            {
+                foreach (bool running in new[] { true, false })
+                {
+                    var (m, striker) = OffsideScenario(30f + r.CloseCallWindow * 0.5f, seed); // inside the close-call window
+                    var fwd = m.Home.Frame.Forward;
+                    striker.Body.Velocity = running ? new Vector3(fwd * (r.CloseCallRunSpeed + 3f), 0f) : Vector3.Zero;
+                    var pass = new HumanInput(fwd, false, new ActionCommand(ActionKind.Pass, ActionCommand.AutoPower), false, false);
+                    Assert.AreEqual(AiMatchEvent.Pass, m.Step(pass), $"seed {seed}");
+                    if (!running) Assert.IsFalse(m.InOffsidePosition(striker), $"seed {seed}: a standing player behind the line is onside.");
+                    else if (m.InOffsidePosition(striker)) flagged++;
+                }
+            }
+            Assert.Greater(flagged, 0, "a runner on the line is sometimes caught a fraction early.");
+            Assert.Less(flagged, trials, "…but not always.");
         }
 
         // ---------------- fouls ----------------
@@ -353,6 +375,7 @@ namespace Game.Tests.Unit
             InRange("foulsPerMatch", r.PerMatch(r.Fouls));
             InRange("yellowPerMatch", r.PerMatch(r.Yellows));
             InRange("redPerMatch", r.PerMatch(r.Reds));
+            InRange("offsidesPerMatch", r.PerMatch(r.Offsides));
             InRange("penaltiesPerMatch", r.PerMatch(r.Penalties));
         }
     }

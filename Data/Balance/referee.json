@@ -16,7 +16,10 @@
     "denialDistance": 30.0
   },
   "offside": {
-    "tolerance": 0.0
+    "tolerance": 0.0,
+    "closeCallWindow": 2.0,
+    "closeCallRunSpeed": 1.0,
+    "closeCallChance": 0.5
   },
   "freeKick": {
     "setupSeconds": 2.0,

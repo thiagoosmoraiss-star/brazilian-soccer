@@ -37,6 +37,13 @@ namespace Game.Data.Match
 
         /// <summary>How far ahead of the second-last defender (and the ball) an attacker may be and still be level (m).</summary>
         public float OffsideTolerance { get; internal set; }
+        /// <summary>Close call (X-68): an attacker up to this far behind the second-last defender (m), running forward
+        /// at least <see cref="CloseCallRunSpeed"/> m/s as the ball is played, may have started his run too early.</summary>
+        public float CloseCallWindow { get; internal set; }
+        public float CloseCallRunSpeed { get; internal set; }
+        /// <summary>…with this chance per metre of his AiTargetError (Posicionamento: the worse, the more often),
+        /// normalised by the match duration.</summary>
+        public float CloseCallChance { get; internal set; }
 
         // ---- free kicks ----
 
