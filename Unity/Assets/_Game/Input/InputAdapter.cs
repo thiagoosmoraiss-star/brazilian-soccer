@@ -40,6 +40,8 @@ namespace Game.Input
 
         private int _stickFinger = NoFinger;
         private Vector2 _stickOrigin;
+        private Vector2 _stickPos;
+        private Texture2D _disc;
         private readonly int[] _buttonFinger = { NoFinger, NoFinger, NoFinger, NoFinger };
         private readonly bool[] _buttonHeld = new bool[ButtonCount];
         private readonly bool[] _buttonWasHeld = new bool[ButtonCount];
@@ -151,6 +153,7 @@ namespace Game.Input
             if (_stickFinger == finger)
             {
                 stickActive = true;
+                _stickPos = pos;
                 float radius = StickRadius * Screen.height;
                 Vector2 delta = pos - _stickOrigin;
                 if (delta.magnitude > Deadzone * radius)
@@ -170,6 +173,7 @@ namespace Game.Input
             {
                 _stickFinger = finger;
                 _stickOrigin = pos;
+                _stickPos = pos;
                 stickActive = true;
             }
         }
@@ -240,6 +244,8 @@ namespace Game.Input
                 GUI.color = old;
             }
 
+            DrawStick();
+
             if (Charging != ActionKind.None)
             {
                 Vector2 c = ButtonCenter(Button.Shot);
@@ -250,6 +256,43 @@ namespace Game.Input
                 GUI.Box(bar, GUIContent.none);
                 GUI.color = old;
             }
+        }
+
+        /// <summary>The floating stick: base where the finger landed and a knob that follows it (clamped to the base);
+        /// while idle, a faint base in the lower-left shows where to drag (placeholder art, A7).</summary>
+        private void DrawStick()
+        {
+            if (_disc == null) _disc = Disc(64);
+            float r = StickRadius * Screen.height;
+            bool active = _stickFinger != NoFinger;
+            Vector2 origin = active ? _stickOrigin : new Vector2(0.16f * Screen.width, 0.24f * Screen.height);
+            Vector2 knob = origin;
+            if (active)
+            {
+                Vector2 d = _stickPos - origin;
+                knob = origin + (d.magnitude > r ? d.normalized * r : d);
+            }
+            var old = GUI.color;
+            GUI.color = new Color(0f, 0f, 0f, active ? 0.35f : 0.2f);
+            GUI.DrawTexture(new Rect(origin.x - r, Screen.height - origin.y - r, 2f * r, 2f * r), _disc);
+            float k = 0.45f * r;
+            GUI.color = new Color(1f, 1f, 1f, active ? 0.85f : 0.35f);
+            GUI.DrawTexture(new Rect(knob.x - k, Screen.height - knob.y - k, 2f * k, 2f * k), _disc);
+            GUI.color = old;
+        }
+
+        private static Texture2D Disc(int size)
+        {
+            var t = new Texture2D(size, size, TextureFormat.RGBA32, false) { filterMode = FilterMode.Bilinear, wrapMode = TextureWrapMode.Clamp };
+            float c = (size - 1) * 0.5f;
+            for (int y = 0; y < size; y++)
+            for (int x = 0; x < size; x++)
+            {
+                float dist = Mathf.Sqrt((x - c) * (x - c) + (y - c) * (y - c));
+                t.SetPixel(x, y, new Color(1f, 1f, 1f, Mathf.Clamp01(c - dist)));
+            }
+            t.Apply();
+            return t;
         }
 
         /// <summary>Dark translucent box with bold text: readable over the green pitch (placeholder until the HUD art).</summary>
