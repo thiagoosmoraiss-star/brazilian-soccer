@@ -15,7 +15,7 @@ namespace Game.Match.AI
         private const int SnapshotMagic = 0x534D4341; // "ACMS"
         /// <summary>Bump when the snapshot layout changes; older snapshots are then rejected (a match in progress is
         /// short-lived, it is not migrated like a career save).</summary>
-        public const int SnapshotVersion = 4; // 2: referee (A8a); 4: high ball (A9a)
+        public const int SnapshotVersion = 5; // 2: referee (A8a); 4: high ball (A9a); 5: duels (A9b)
 
         /// <summary>
         /// The whole match state, binary (TECHNICAL_SPEC §5 "Snapshot e pausa": "MatchState inteiro serializável: ao ir
@@ -46,6 +46,7 @@ namespace Game.Match.AI
                 Write(w, _keeperRng.GetState());
                 Write(w, _refereeRng.GetState());
                 Write(w, _aerialRng.GetState());
+                Write(w, _duelsRng.GetState());
                 w.Write(HasDropPoint);
                 w.Write(_headerShotInFlight);
                 Write(w, DropPoint);
@@ -160,6 +161,7 @@ namespace Game.Match.AI
             _keeperRng.SetState(ReadRng(r));
             _refereeRng.SetState(ReadRng(r));
             _aerialRng.SetState(ReadRng(r));
+            _duelsRng.SetState(ReadRng(r));
             HasDropPoint = r.ReadBoolean();
             _headerShotInFlight = r.ReadBoolean();
             DropPoint = ReadV3(r);
@@ -272,6 +274,10 @@ namespace Game.Match.AI
             w.Write(t.OffsideU);
             w.Write(t.Receiver);
             w.Write(t.ReceiverPasser);
+            w.Write(t.SecondDefender);
+            w.Write(t.Cover);
+            w.Write(t.Runner);
+            w.Write(t.RunCooldown);
             Write(w, t.Rng.GetState());
         }
 
@@ -288,6 +294,10 @@ namespace Game.Match.AI
             t.OffsideU = r.ReadSingle();
             t.Receiver = r.ReadInt32();
             t.ReceiverPasser = r.ReadInt32();
+            t.SecondDefender = r.ReadInt32();
+            t.Cover = r.ReadInt32();
+            t.Runner = r.ReadInt32();
+            t.RunCooldown = r.ReadSingle();
             t.Rng.SetState(ReadRng(r));
         }
 
@@ -303,6 +313,12 @@ namespace Game.Match.AI
             w.Write(b.IgnoreBallUntilClear);
             w.Write(b.TackleCooldown);
             w.Write(b.OffPitch);
+            w.Write(b.SlideRemaining);
+            w.Write(b.SlideSpeed);
+            w.Write(b.SlideDeceleration);
+            Write(w, b.SlideDirection);
+            w.Write(b.SlideWonBall);
+            w.Write(b.GroundRemaining);
 
             Write(w, p.IdealTarget);
             Write(w, p.RoleTarget);
@@ -320,6 +336,9 @@ namespace Game.Match.AI
             w.Write(p.DecisionTimer);
             w.Write(p.DribbleTimer);
             Write(w, p.DribbleTarget);
+            w.Write(p.RunRemaining);
+            w.Write(p.RunCooldown);
+            Write(w, p.RunTarget);
         }
 
         private static void ReadPlayer(BinaryReader r, AiPlayer p)
@@ -334,6 +353,12 @@ namespace Game.Match.AI
             b.IgnoreBallUntilClear = r.ReadBoolean();
             b.TackleCooldown = r.ReadSingle();
             b.OffPitch = r.ReadBoolean();
+            b.SlideRemaining = r.ReadSingle();
+            b.SlideSpeed = r.ReadSingle();
+            b.SlideDeceleration = r.ReadSingle();
+            b.SlideDirection = ReadV3(r);
+            b.SlideWonBall = r.ReadBoolean();
+            b.GroundRemaining = r.ReadSingle();
 
             p.IdealTarget = ReadV3(r);
             p.RoleTarget = ReadV3(r);
@@ -350,6 +375,9 @@ namespace Game.Match.AI
             p.DecisionTimer = r.ReadSingle();
             p.DribbleTimer = r.ReadSingle();
             p.DribbleTarget = ReadV3(r);
+            p.RunRemaining = r.ReadSingle();
+            p.RunCooldown = r.ReadSingle();
+            p.RunTarget = ReadV3(r);
         }
 
         private static void WriteKeeper(BinaryWriter w, Keeper k)
@@ -359,6 +387,8 @@ namespace Game.Match.AI
             Write(w, k.Target);
             w.Write(k.Dove);
             w.Write(k.ClaimDecided);
+            w.Write(k.RushDecided);
+            w.Write(k.RushDelay);
             w.Write(k.AngleErrorDegrees);
             w.Write(k.ErrorTimer);
             w.Write(k.LastReactionSeconds);
@@ -374,6 +404,8 @@ namespace Game.Match.AI
             k.Target = ReadV3(r);
             k.Dove = r.ReadBoolean();
             k.ClaimDecided = r.ReadBoolean();
+            k.RushDecided = r.ReadBoolean();
+            k.RushDelay = r.ReadSingle();
             k.AngleErrorDegrees = r.ReadSingle();
             k.ErrorTimer = r.ReadSingle();
             k.LastReactionSeconds = r.ReadSingle();
@@ -406,6 +438,14 @@ namespace Game.Match.AI
             w.Write(s.AerialDuels);
             w.Write(s.HeaderShots);
             w.Write(s.HeaderGoals);
+            w.Write(s.Slides);
+            w.Write(s.SlidesWon);
+            w.Write(s.SlideFouls);
+            w.Write(s.BodyDuels);
+            w.Write(s.Runs);
+            w.Write(s.ThroughBalls);
+            w.Write(s.KeeperRushes);
+            w.Write(s.Smothers);
         }
 
         private static void ReadStats(BinaryReader r, AiTeamStats s)
@@ -432,6 +472,14 @@ namespace Game.Match.AI
             s.AerialDuels = r.ReadInt32();
             s.HeaderShots = r.ReadInt32();
             s.HeaderGoals = r.ReadInt32();
+            s.Slides = r.ReadInt32();
+            s.SlidesWon = r.ReadInt32();
+            s.SlideFouls = r.ReadInt32();
+            s.BodyDuels = r.ReadInt32();
+            s.Runs = r.ReadInt32();
+            s.ThroughBalls = r.ReadInt32();
+            s.KeeperRushes = r.ReadInt32();
+            s.Smothers = r.ReadInt32();
         }
 
         private static void Write(BinaryWriter w, Vector3 v)

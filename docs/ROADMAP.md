@@ -126,7 +126,7 @@ Pedido do usuário (13/10/2026): a cada etapa concluída, informar a porcentagem
 ### A9 — Resto da partida do MVP
 - **Objetivo:** fechar a partida do MVP (`MVP_SCOPE.md`).
 - **Pré-requisitos:** A8; D-17 (dificuldade da partida no MVP) — decidida em X-72: nível único.
-- **Dividida em três entregas (X-72):** **A9a** (validada, X-74) bola alta (Alto, cabeceio, escanteio com cruzamento, goleiro em cruzamentos, tiro de meta e lateral longos); **A9b** carrinho, 2º defensor, disputa de corpo, ruptura e cobertura, saída do goleiro no 1×1; **A9c** táticas (3 formações, mentalidade, linha, pressão), substituições e sensibilidade de todos os atributos.
+- **Dividida em três entregas (X-72):** **A9a** (validada, X-74) bola alta (Alto, cabeceio, escanteio com cruzamento, goleiro em cruzamentos, tiro de meta e lateral longos); **A9b** (implementada, X-75; aguardando validação) carrinho, 2º defensor, disputa de corpo, ruptura e cobertura, saída do goleiro no 1×1; **A9c** táticas (3 formações, mentalidade, linha, pressão), substituições e sensibilidade de todos os atributos.
 - **Sistemas:** Alto (lançamento, cruzamento alto), cabeceio, carrinho, 2º defensor, disputa de corpo básica, ruptura e cobertura, substituições (regras + IA), TacticsRuntime (3 formações, mentalidade, linha, pressão).
 - **Módulos:** `Match`, `Match.AI`, `formations/*.json`, `tactics.json`.
 - **Testes:** mudança tática altera posições médias; substituições respeitam limite; cabeceio disputado pela regra; sensibilidade de cada atributo da partida.

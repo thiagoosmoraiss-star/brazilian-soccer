@@ -15,7 +15,7 @@ namespace Game.Match
 
     /// <summary>
     /// Picks up a loose ball within capture range, lets a player let go of it, and records who kicked it.
-    /// There are no opponents yet, so there is no contest here — DefenseSystem (A5) adds that layer later.
+    /// Who wins a ball several players reach is decided by the match (A9b body duel, <see cref="CanCapture"/>).
     /// </summary>
     public static class Possession
     {
@@ -24,11 +24,26 @@ namespace Game.Match
         /// body (<see cref="MovementDefinition.InterceptReferenceSpeed"/>).</param>
         public static PossessionEvent Step(int playerIndex, PlayerBody body, Ball ball, MovementDefinition mv, bool intercepting = false)
         {
-            if (ball.State == BallState.Controlled || ball.State == BallState.Dead) return PossessionEvent.None;
+            if (!CanCapture(body, ball, mv, intercepting, out _, out _)) return PossessionEvent.None;
+            ball.State = BallState.Controlled;
+            ball.Velocity = Vector3.Zero;
+            ball.Spin = 0f;
+            ball.Owner = playerIndex;
+            ball.LastTouch = playerIndex;
+            return PossessionEvent.Captured;
+        }
+
+        /// <summary>True when <paramref name="body"/> would capture the loose ball this step (the checks of
+        /// <see cref="Step"/>, without taking it; a kicker's <see cref="PlayerBody.IgnoreBallUntilClear"/> may clear).
+        /// <paramref name="distance"/> = ground distance to the ball, <paramref name="radius"/> = the capture radius used.</summary>
+        public static bool CanCapture(PlayerBody body, Ball ball, MovementDefinition mv, bool intercepting, out float distance, out float radius)
+        {
+            distance = float.PositiveInfinity;
+            radius = mv.PossessionCaptureRadius;
+            if (ball.State == BallState.Controlled || ball.State == BallState.Dead) return false;
             float dx = body.Position.X - ball.Position.X;
             float dy = body.Position.Y - ball.Position.Y;
             float distSqr = dx * dx + dy * dy;
-            float radius = mv.PossessionCaptureRadius;
             if (intercepting)
             {
                 float speed = MathF.Sqrt(ball.Velocity.X * ball.Velocity.X + ball.Velocity.Y * ball.Velocity.Y);
@@ -42,17 +57,12 @@ namespace Game.Match
                 // edge of the radius when kicked, and a kick across the body would otherwise come straight back.
                 bool movingAway = -dx * ball.Velocity.X - dy * ball.Velocity.Y > 0f;
                 if (distSqr > radiusSqr && (movingAway || ball.Velocity.LengthSquared() < 1e-4f)) body.IgnoreBallUntilClear = false;
-                return PossessionEvent.None;
+                return false;
             }
-            if (distSqr > radiusSqr) return PossessionEvent.None;
-            if (ball.Position.Z > mv.PossessionCaptureMaxHeight) return PossessionEvent.None;
-
-            ball.State = BallState.Controlled;
-            ball.Velocity = Vector3.Zero;
-            ball.Spin = 0f;
-            ball.Owner = playerIndex;
-            ball.LastTouch = playerIndex;
-            return PossessionEvent.Captured;
+            if (distSqr > radiusSqr) return false;
+            if (ball.Position.Z > mv.PossessionCaptureMaxHeight) return false;
+            distance = MathF.Sqrt(distSqr);
+            return true;
         }
 
         /// <summary>Lets go of a controlled ball; it keeps its current velocity and becomes Rolling or Airborne

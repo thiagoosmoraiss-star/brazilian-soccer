@@ -1,0 +1,47 @@
+{
+  "schemaVersion": 1,
+  "slide": {
+    "distance": 2.5,
+    "minSpeed": 5.0,
+    "maxSpeed": 8.0,
+    "reachFactor": 1.2,
+    "ballMaxHeight": 0.5,
+    "pokeSpeed": 5.0,
+    "groundSeconds": 1.0,
+    "recoverSeconds": 0.5,
+    "contactDistance": 0.75,
+    "assistAngleDegrees": 50.0,
+    "behindYellowChance": 0.6,
+    "aiChancePerSecond": 0.3,
+    "aiMaxApproachDegrees": 80.0
+  },
+  "secondDefender": {
+    "maxDistance": 30.0
+  },
+  "body": {
+    "closenessWeight": 0.5,
+    "pushExponent": 1.0
+  },
+  "cover": {
+    "depth": 7.0,
+    "maxDistance": 25.0
+  },
+  "runs": {
+    "minSpaceBehind": 6.0,
+    "spaceReference": 25.0,
+    "depthBehindLine": 12.0,
+    "maxSeconds": 3.0,
+    "onsideMargin": 1.5,
+    "maxStartBehindLine": 12.0,
+    "cooldownSeconds": 6.0,
+    "maxCarrierDistance": 40.0,
+    "throughValue": 1.0
+  },
+  "keeperRush": {
+    "range": 20.0,
+    "smotherReachFactor": 1.0,
+    "hesitationSeconds": 0.6,
+    "throughBallMargin": 0.2,
+    "stopDistance": 0.0
+  }
+}

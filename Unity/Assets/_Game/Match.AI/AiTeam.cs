@@ -28,6 +28,14 @@ namespace Game.Match.AI
         /// <summary>Goes for a high ball's drop zone besides the chaser/receiver (A9a).</summary>
         internal readonly bool[] DropZone = new bool[MatchTeamSetup.StarterCount];
         internal int Chaser = -1;
+        /// <summary>"Pressionar" (A9b): team-local index of the teammate the user sent at the carrier, or -1.</summary>
+        public int SecondDefender { get; internal set; } = -1;
+        /// <summary>Team-local index of the defender covering behind the presser (A9b), or -1.</summary>
+        public int Cover { get; internal set; } = -1;
+        /// <summary>Team-local index of the attacker running in behind (A9b), or -1.</summary>
+        public int Runner { get; internal set; } = -1;
+        /// <summary>Seconds before this side starts another run in behind.</summary>
+        internal float RunCooldown;
         /// <summary>Team-local index of the teammate an own pass in flight is meant for (he goes to meet it at once), or -1.</summary>
         public int Receiver { get; internal set; } = -1;
         /// <summary>Global index of the player who made that pass.</summary>

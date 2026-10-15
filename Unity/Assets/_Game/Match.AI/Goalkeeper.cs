@@ -25,6 +25,8 @@ namespace Game.Match.AI
         Holding = 5,
         /// <summary>Coming for a cross in his area (A9a): to where it comes down to his hands.</summary>
         Claiming = 6,
+        /// <summary>Coming out at a carrier alone in front of goal, or for a through ball he reaches first (A9b).</summary>
+        Rushing = 7,
     }
 
     /// <summary>One prediction of a loose ball's path against a keeper.</summary>
@@ -66,6 +68,9 @@ namespace Game.Match.AI
         public bool Dove;
         /// <summary>He already decided about this ball in the air (A9a: once per cross).</summary>
         public bool ClaimDecided;
+        /// <summary>He already made his call about this 1×1 (A9b); a wrong one costs <see cref="RushDelay"/>.</summary>
+        public bool RushDecided;
+        public float RushDelay;
         public float AngleErrorDegrees;
         internal float ErrorTimer;
 
@@ -86,6 +91,8 @@ namespace Game.Match.AI
             Timer = 0f;
             Dove = false;
             ClaimDecided = false;
+            RushDecided = false;
+            RushDelay = 0f;
             Target = Player.Body.Position;
         }
     }

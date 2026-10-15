@@ -2,9 +2,9 @@
   "schemaVersion": 1,
   "foul": {
     "strictness": 1.0,
-    "foulScale": 1.8,
-    "contactDistance": 0.95,
-    "minClosingSpeed": 0.7,
+    "foulScale": 2.4,
+    "contactDistance": 1.05,
+    "minClosingSpeed": 0.5,
     "speedReference": 4.0,
     "speedMultiplier": 0.6,
     "behindAngleDegrees": 110.0,

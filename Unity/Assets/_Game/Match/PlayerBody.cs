@@ -26,5 +26,19 @@ namespace Game.Match
         public float TackleCooldown;
         /// <summary>Sent off (A8a): parked outside the pitch, ignored by every system (passes, possession, AI, control).</summary>
         public bool OffPitch;
+
+        // Carrinho (A9b): a slide along SlideDir, decelerating to a stop, then on the ground for a moment.
+        /// <summary>Seconds of slide left (the body moves on its own).</summary>
+        public float SlideRemaining;
+        public float SlideSpeed;
+        public float SlideDeceleration;
+        public Vector3 SlideDirection;
+        /// <summary>The slide reached the ball (a clean tackle: later contact is no foul; he gets up sooner).</summary>
+        public bool SlideWonBall;
+        /// <summary>Seconds left on the ground after a slide.</summary>
+        public float GroundRemaining;
+
+        /// <summary>Sliding or on the ground: no running, no ball, no tackle.</summary>
+        public bool Down => SlideRemaining > 0f || GroundRemaining > 0f;
     }
 }

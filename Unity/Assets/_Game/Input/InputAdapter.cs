@@ -9,7 +9,7 @@ namespace Game.Input
     /// Touch → commands (TECHNICAL_SPEC §7: "InputAdapter (Unity) | Toques → comandos"; GAME_DESIGN §17). Multitouch:
     /// a finger that lands outside the buttons plants the floating left stick; fingers on the right-hand cluster
     /// hold Chute (big), Passe, Enfiada and Sprint. The same code reads the mouse in the Editor, plus dev-only
-    /// keyboard stand-ins (WASD, Shift, J = passe/trocar, K = enfiada/contenção, Space = chute). Buttons swap to their
+    /// keyboard stand-ins (WASD, Shift, J = passe/trocar, K = enfiada/contenção, Space = chute/carrinho, L = alto/pressionar). Buttons swap to their
     /// defensive function while the side is without the ball (<see cref="DefenseMode"/>). Tap/hold/power-bar timing and
     /// sprint memory live in the pure <see cref="ActionInputFilter"/>/<see cref="InputIntentFilter"/> and come from
     /// Data via <see cref="Configure"/>; this class only reads devices and draws the placeholder buttons
@@ -51,6 +51,8 @@ namespace Game.Input
         private ActionCommand _pending = ActionCommand.None;
         private bool _switchPending;
         private bool _switchLatched;
+        private bool _slidePending;
+        private bool _slideLatched;
         private GUIStyle _labelStyle, _heldStyle;
 
         public System.Numerics.Vector2 MoveIntent { get; private set; }
@@ -59,10 +61,20 @@ namespace Game.Input
         public float ChargeFraction => _actionFilter.ChargeFraction;
 
         /// <summary>Set by the match every frame: true while the user's side is without the ball. Buttons swap to
-        /// their defensive function (Passe → Trocar, Enfiada → Contenção; Chute → Carrinho arrives in A9).</summary>
+        /// their defensive function (Passe → Trocar, Enfiada → Contenção, Chute → Carrinho, Alto → Pressionar).</summary>
         public bool DefenseMode { get; set; }
         /// <summary>"Contenção" held (a button pressed during defense).</summary>
         public bool ContainHeld { get; private set; }
+        /// <summary>"Pressionar" held (A9b): the second defender goes at the carrier.</summary>
+        public bool PressHeld { get; private set; }
+
+        /// <summary>A "Carrinho" tap since the last call, once (A9b).</summary>
+        public bool TakeSlide()
+        {
+            bool s = _slidePending;
+            _slidePending = false;
+            return s;
+        }
 
         /// <summary>A "Trocar" tap since the last call, once.</summary>
         public bool TakeSwitch()
@@ -133,6 +145,9 @@ namespace Game.Input
             if (Defense(Button.Pass) && !_switchLatched) { _switchPending = true; _switchLatched = true; }
             if (!_buttonHeld[(int)Button.Pass]) _switchLatched = false;
             ContainHeld = Defense(Button.Through);
+            PressHeld = Defense(Button.High);
+            if (Defense(Button.Shot) && !_slideLatched) { _slidePending = true; _slideLatched = true; }
+            if (!_buttonHeld[(int)Button.Shot]) _slideLatched = false;
 
             var (move, sprint) = _moveFilter.Step(rawMove, _buttonHeld[(int)Button.Sprint], _sprintMemorySeconds, Time.deltaTime);
             MoveIntent = move;
@@ -248,7 +263,6 @@ namespace Game.Input
                 float r = ButtonRadius(button);
                 var rect = new Rect(c.x - r, Screen.height - c.y - r, 2f * r, 2f * r); // OnGUI y grows downwards
                 var old = GUI.color;
-                if (DefenseMode && (button == Button.Shot || button == Button.High)) GUI.color = new Color(1f, 1f, 1f, 0.35f); // carrinho, 2º defensor: A9b
                 GUI.Box(rect, DefenseMode ? DefenseLabel(button) : Label(button), _buttonHeld[b] ? _heldStyle : _labelStyle);
                 GUI.color = old;
             }

@@ -73,7 +73,7 @@ namespace Game.Match.AI
             {
                 var p = Players[i];
                 var b = p.Body;
-                if (p.IsGoalkeeper || b.OffPitch || b.IgnoreBallUntilClear) continue;
+                if (p.IsGoalkeeper || b.OffPitch || b.Down || b.IgnoreBallUntilClear) continue;
                 float dx = b.Position.X - Ball.Position.X, dy = b.Position.Y - Ball.Position.Y;
                 float d = MathF.Sqrt(dx * dx + dy * dy);
                 if (d > r) continue;

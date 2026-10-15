@@ -288,3 +288,7 @@ Fouls on contact before the ball, cards, offside at the pass, free kicks with an
 | `ai.dropZonePlayers` | Besides the receiver/chaser, this many of each side's nearest players go for a high ball's drop zone | ≥ 0 |
 | `ai.cornerCrossChance` / `goalKickLongChance` | The AI crosses this share of its corners and goes long from this share of its goal kicks | 0–1 |
 
+
+## duels.json — defence and attack duels (A9b, baseline v1, X-75)
+
+Carrinho (`slide`: distance, speed, leg reach = TackleReach × reachFactor, poke speed, time on the ground, contact distance for the "contato antes da bola" foul, user aim assist, booking chance from behind, AI hazard and approach angle), the second defender "Pressionar" (`secondDefender`), the basic body duel (`body`: loose-ball contest by BodyDuelWin and closeness, separation by strength), cover behind the presser (`cover`), runs in behind (`runs`: space needed, space reference against the carrier's RunTriggerThreshold/Visão, depth, duration, onside margin, cooldowns, value of the through ball) and the keeper's 1×1 rush (`keeperRush`: range, smother reach = GkDiveReach × factor, hesitation after a wrong GkRushDecisionQuality call, through-ball time margin). Ranges in `Data/TestRanges/duels.json`.

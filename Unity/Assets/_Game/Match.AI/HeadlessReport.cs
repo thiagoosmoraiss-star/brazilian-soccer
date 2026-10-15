@@ -17,6 +17,7 @@ namespace Game.Match.AI
         // Referee (A8a), both sides.
         public double Fouls, Yellows, Reds, Offsides, FreeKicks, Penalties, PenaltyGoals;
         public double Crosses, LongBalls, Headers, AerialDuels, HeaderShots, HeaderGoals;
+        public double Slides, SlidesWon, SlideFouls, BodyDuels, Runs, ThroughBalls, KeeperRushes, Smothers;
 
         public double AWinRate => Matches == 0 ? 0 : (double)AWins / Matches;
         public double BWinRate => Matches == 0 ? 0 : (double)BWins / Matches;
@@ -76,6 +77,14 @@ namespace Game.Match.AI
                 result.AerialDuels += m.HomeStats.AerialDuels;
                 result.HeaderShots += m.HomeStats.HeaderShots + m.AwayStats.HeaderShots;
                 result.HeaderGoals += m.HomeStats.HeaderGoals + m.AwayStats.HeaderGoals;
+                result.Slides += m.HomeStats.Slides + m.AwayStats.Slides;
+                result.SlidesWon += m.HomeStats.SlidesWon + m.AwayStats.SlidesWon;
+                result.SlideFouls += m.HomeStats.SlideFouls + m.AwayStats.SlideFouls;
+                result.BodyDuels += m.HomeStats.BodyDuels;
+                result.Runs += m.HomeStats.Runs + m.AwayStats.Runs;
+                result.ThroughBalls += m.HomeStats.ThroughBalls + m.AwayStats.ThroughBalls;
+                result.KeeperRushes += m.HomeStats.KeeperRushes + m.AwayStats.KeeperRushes;
+                result.Smothers += m.HomeStats.Smothers + m.AwayStats.Smothers;
             }
             return result;
         }

@@ -14,6 +14,8 @@ namespace Game.Match.AI
         Shot = 2,
         /// <summary>Alto (A9a): a cross from the cross zone, or a lançamento to <see cref="OnBallDecisionResult.Receiver"/>.</summary>
         High = 3,
+        /// <summary>A through ball into the path of the teammate running in behind (A9b ruptura).</summary>
+        Through = 4,
     }
 
     public readonly struct OnBallDecisionResult
@@ -42,7 +44,7 @@ namespace Game.Match.AI
         private const int MaxSeen = 11;
 
         public static OnBallDecisionResult Decide(AiPlayer holder, AiTeam opponents, Pitch pitch, Balance balance, AiDefinition ai,
-            AerialDefinition aerial = null)
+            AerialDefinition aerial = null, DuelsDefinition duels = null)
         {
             var team = holder.Team;
             var rng = team.Rng;
@@ -86,6 +88,7 @@ namespace Game.Match.AI
                 if (d > ai.PassMaxDistance) break;
                 if (d < ai.PassMinDistance) continue;
                 var receiver = team.Players[candidate].Body.Position;
+                if (team.Frame.U(receiver) > team.OffsideU) continue; // he would be offside (A9b: runners end up there)
                 float success = 1f - ai.PassDistanceRisk * d / ai.PassMaxDistance;
                 success -= LaneRisk(pos, receiver, opponents, ai.PassLaneClearance);
                 float receiverPressure = NearestOpponentDistance(receiver, opponents);
@@ -94,6 +97,7 @@ namespace Game.Match.AI
                 if (value > bestValue) { bestValue = value; best = new OnBallDecisionResult(OnBallChoice.Pass, candidate, receiver); }
             }
 
+            if (duels != null && !holder.IsGoalkeeper) RunnerOption(holder, opponents, pitch, ai, duels, noise, ref bestValue, ref best);
             if (aerial != null && !holder.IsGoalkeeper) HighOptions(holder, opponents, pitch, balance, ai, aerial, noise, ref bestValue, ref best);
 
             // Shot: chance falls with distance and with how little of the goal is visible, and with bodies in the way.
@@ -105,6 +109,26 @@ namespace Game.Match.AI
                 if (value >= ai.ShootChanceThreshold || value > bestValue) best = new OnBallDecisionResult(OnBallChoice.Shot, -1, goal);
             }
             return best;
+        }
+
+        /// <summary>The teammate running in behind (A9b), still onside: a through ball into his path, valued at where the
+        /// run leads (its threat), times the chance it gets through the lane.</summary>
+        private static void RunnerOption(AiPlayer holder, AiTeam opponents, Pitch pitch, AiDefinition ai, DuelsDefinition d,
+            float noise, ref float bestValue, ref OnBallDecisionResult best)
+        {
+            var team = holder.Team;
+            if (team.Runner < 0 || team.Runner == holder.Local) return;
+            var r = team.Players[team.Runner];
+            if (r.RunRemaining <= 0f || team.Frame.U(r.Body.Position) > team.OffsideU - d.RunOnsideMargin) return; // gone offside: too late
+            var pos = holder.Body.Position;
+            var target = r.RunTarget;
+            float dist = Vector3.Distance(pos, target);
+            if (dist > ai.PassMaxDistance + d.RunDepthBehindLine) return;
+            float success = 1f - ai.PassDistanceRisk * dist / (ai.PassMaxDistance + d.RunDepthBehindLine)
+                            - LaneRisk(pos, target, opponents, ai.PassLaneClearance);
+            float value = d.RunThroughValue * MathUtil.Clamp01(success) * Threat(target, team, pitch, ai)
+                          + noise * KickErrorRules.Triangular(team.Rng);
+            if (value > bestValue) { bestValue = value; best = new OnBallDecisionResult(OnBallChoice.Through, team.Runner, target); }
         }
 
         /// <summary>Alto options (A9a): from the cross zone, a cross valued by Cruzamento and how many teammates wait in the
@@ -147,7 +171,7 @@ namespace Game.Match.AI
                 if (q == holder || q.IsGoalkeeper || q.Body.OffPitch) continue;
                 var qp = q.Body.Position;
                 float d = Vector3.Distance(qp, pos);
-                if (d < a.AiLongBallMinDistance || d > a.MaxTargetDistance || team.Frame.U(qp) <= u0) continue;
+                if (d < a.AiLongBallMinDistance || d > a.MaxTargetDistance || team.Frame.U(qp) <= u0 || team.Frame.U(qp) > team.OffsideU) continue;
                 float open = MathUtil.Clamp01(NearestOpponentDistance(qp, opponents) / (2f * ai.ReceiverPressureRadius));
                 float value = a.AiLongBallValue * open * Threat(qp, team, pitch, ai) + noise * KickErrorRules.Triangular(rng);
                 if (value > bestValue) { bestValue = value; best = new OnBallDecisionResult(OnBallChoice.High, i, qp); }

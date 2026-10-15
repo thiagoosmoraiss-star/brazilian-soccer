@@ -64,15 +64,16 @@ namespace Game.Presentation
         /// <param name="facing">Facing on the ground (Unity space, need not be normalized).</param>
         /// <param name="speed">Ground speed (m/s).</param>
         public void Update(Vector3 ground, Vector3 facing, float speed, bool sprinting, float secondsSinceKick, KeeperState? keeper,
-            MatchViewDefinition v, float dt)
+            MatchViewDefinition v, float dt, bool slideDown = false)
         {
             Root.position = ground;
             if (facing.sqrMagnitude > 1e-4f) Root.rotation = Quaternion.LookRotation(facing, Vector3.up);
 
             // Keeper on the ground: the whole body lies along the dive (sideways), arms stretched.
             bool down = keeper == KeeperState.Diving || keeper == KeeperState.Grounded;
-            _body.localRotation = down ? Quaternion.Euler(0f, 0f, 80f) : Quaternion.identity;
-            _body.localPosition = down ? new Vector3(0.9f, 0.25f, 0f) : Vector3.zero;
+            _body.localRotation = down ? Quaternion.Euler(0f, 0f, 80f) : slideDown ? Quaternion.Euler(-70f, 0f, 0f) : Quaternion.identity;
+            _body.localPosition = down ? new Vector3(0.9f, 0.25f, 0f) : slideDown ? new Vector3(0f, 0.25f, -0.6f) : Vector3.zero;
+            // Carrinho (A9b, placeholder pose): leaning back on the ground, legs out in front.
 
             float swing = 0f;
             if (speed > v.MoveSpeedThreshold)

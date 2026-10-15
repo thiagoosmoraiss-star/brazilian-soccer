@@ -13,6 +13,10 @@ namespace Game.Match.AI
         Press = 3,
         ChaseBall = 4,
         OnBall = 5,
+        /// <summary>Behind the presser, goal-side of the ball (A9b cobertura).</summary>
+        Cover = 6,
+        /// <summary>A run in behind the opponents' line (A9b ruptura).</summary>
+        Run = 7,
     }
 
     /// <summary>Per-player AI state. Plain mutable holder; the layers in <see cref="AiMatch"/> update it.</summary>
@@ -47,6 +51,11 @@ namespace Game.Match.AI
         public float DecisionTimer;
         public float DribbleTimer;
         public Vector3 DribbleTarget;
+
+        // Run in behind (A9b).
+        public float RunRemaining;
+        public float RunCooldown;
+        public Vector3 RunTarget;
 
         public AiPlayer(int global, int local, AiTeam team, FormationSlot slot, MatchPlayerSetup setup)
         {

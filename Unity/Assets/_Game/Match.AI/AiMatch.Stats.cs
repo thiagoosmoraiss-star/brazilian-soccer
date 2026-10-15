@@ -27,11 +27,15 @@ namespace Game.Match.AI
         public int Penalties;
         public int PenaltyGoals;
         public int Crosses, LongBalls, Headers, AerialDuels, HeaderShots, HeaderGoals;
+        // Duels (A9b).
+        public int Slides, SlidesWon, SlideFouls, BodyDuels, Runs, ThroughBalls, KeeperRushes, Smothers;
 
         internal void Clear()
         {
             Shots = ShotsOnTarget = Passes = Tackles = Saves = Corners = ThrowIns = GoalKicks = 0;
             Fouls = YellowCards = RedCards = Offsides = FreeKicks = Penalties = PenaltyGoals = 0;
+            Crosses = LongBalls = Headers = AerialDuels = HeaderShots = HeaderGoals = 0;
+            Slides = SlidesWon = SlideFouls = BodyDuels = Runs = ThroughBalls = KeeperRushes = Smothers = 0;
             PossessionSteps = 0;
         }
     }

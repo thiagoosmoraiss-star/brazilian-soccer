@@ -216,10 +216,11 @@ namespace Game.App
             _input.DefenseMode = !m.Home.HasPossession;
             var command = _input.TakeCommand();
             bool switchTap = _input.TakeSwitch();
+            bool slideTap = _input.TakeSlide();
             if (!_session.Paused)
             {
-                _session.Queue(command, switchTap);
-                _session.Advance(Time.deltaTime, _input.MoveIntent, _input.SprintHeld, _input.ContainHeld);
+                _session.Queue(command, switchTap, slideTap);
+                _session.Advance(Time.deltaTime, _input.MoveIntent, _input.SprintHeld, _input.ContainHeld, _input.PressHeld);
             }
 
             if (m.Finished && !_finalShown)
@@ -243,7 +244,7 @@ namespace Game.App
                 KeeperState? keeper = p.IsGoalkeeper ? m.KeeperOf(p.Team).State : (KeeperState?)null;
                 float speed = new Vector2(b.Velocity.X, b.Velocity.Y).magnitude;
                 _players[i].Update(ToUnity(_session.PlayerPosition(i)), new Vector3(b.Facing.X, 0f, b.Facing.Y), speed, b.Sprinting,
-                    _session.SecondsSinceKick(i), keeper, _view, _session.Paused ? 0f : dt);
+                    _session.SecondsSinceKick(i), keeper, _view, _session.Paused ? 0f : dt, b.Down);
                 _players[i].SetHighlighted(p == controlled && !m.Finished);
             }
 

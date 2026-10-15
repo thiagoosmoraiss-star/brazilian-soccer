@@ -34,6 +34,7 @@ namespace Game.Match.AI
         private long _steps;
         private ActionCommand _pendingAction = ActionCommand.None;
         private bool _pendingSwitch;
+        private bool _pendingSlide;
 
         private readonly AiMatchEvent[] _eventKinds = new AiMatchEvent[EventCapacity];
         private readonly long[] _eventSteps = new long[EventCapacity];
@@ -78,15 +79,16 @@ namespace Game.Match.AI
         }
 
         /// <summary>Queues a released action and/or a switch tap for the next step (they reach exactly one step).</summary>
-        public void Queue(ActionCommand action, bool switchPressed)
+        public void Queue(ActionCommand action, bool switchPressed, bool slidePressed = false)
         {
             if (action.Kind != ActionKind.None) _pendingAction = action;
             if (switchPressed) _pendingSwitch = true;
+            if (slidePressed) _pendingSlide = true;
         }
 
         /// <summary>Advances by one rendered frame. <paramref name="move"/>, <paramref name="sprint"/> and
-        /// <paramref name="containHeld"/> are the held inputs of this frame. Returns the steps run.</summary>
-        public int Advance(float frameSeconds, Vector2 move, bool sprint, bool containHeld)
+        /// <paramref name="containHeld"/> / <paramref name="pressHeld"/> are the held inputs of this frame. Returns the steps run.</summary>
+        public int Advance(float frameSeconds, Vector2 move, bool sprint, bool containHeld, bool pressHeld = false)
         {
             if (Paused || Match.Finished || frameSeconds <= 0f) return 0;
             _accumulator += frameSeconds;
@@ -94,9 +96,10 @@ namespace Game.Match.AI
             while (_accumulator >= Match.StepSeconds && steps < MaxStepsPerFrame && !Match.Finished)
             {
                 CopyCurrentToPrevious();
-                var input = new HumanInput(move, sprint, _pendingAction, containHeld, _pendingSwitch);
+                var input = new HumanInput(move, sprint, _pendingAction, containHeld, _pendingSwitch, _pendingSlide, pressHeld);
                 _pendingAction = ActionCommand.None;
                 _pendingSwitch = false;
+                _pendingSlide = false;
                 var ev = Match.Step(input);
                 _steps++;
                 CaptureCurrent();

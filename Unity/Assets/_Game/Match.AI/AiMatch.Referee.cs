@@ -94,7 +94,7 @@ namespace Game.Match.AI
             {
                 var d = defenders.Players[(int)((_step + k) % n)];
                 var db = d.Body;
-                if (d.IsGoalkeeper || db.OffPitch || db.TackleCooldown > 0f) continue;
+                if (d.IsGoalkeeper || db.OffPitch || db.Down || db.TackleCooldown > 0f) continue;
 
                 float dx = cb.Position.X - db.Position.X, dy = cb.Position.Y - db.Position.Y;
                 float dist = MathF.Sqrt(dx * dx + dy * dy);
@@ -128,8 +128,10 @@ namespace Game.Match.AI
             return MathUtil.Clamp01(chance);
         }
 
-        /// <summary>Whistle: foul, card, then a direct free kick — or a penalty inside the fouler's area.</summary>
-        private void OnFoul(AiPlayer fouler, AiPlayer fouled)
+        /// <summary>Whistle: foul, card, then a direct free kick — or a penalty inside the fouler's area.
+        /// <paramref name="minYellowChance"/>: a foul the card rules let go is booked with at least this chance (a slide
+        /// from behind, A9b).</summary>
+        private void OnFoul(AiPlayer fouler, AiPlayer fouled, float minYellowChance = 0f)
         {
             var foulingTeam = fouler.Team;
             var fouledTeam = fouled.Team;
@@ -143,6 +145,7 @@ namespace Game.Match.AI
             bool denial = DeniesGoal(fouler, fouled, spot);
 
             var card = _rules.CardForFoul(_refereeRng, _playerYellows[fouler.Global] > 0);
+            if (card == SharedRules.Card.None && minYellowChance > 0f && _refereeRng.NextFloat() < minYellowChance) card = SharedRules.Card.Yellow;
             if (denial && card != SharedRules.Card.StraightRed) card = penalty ? SharedRules.Card.Yellow : SharedRules.Card.StraightRed;
             if (card == SharedRules.Card.Yellow) Book(fouler);
             else if (card == SharedRules.Card.StraightRed) SendOff(fouler);
