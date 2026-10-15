@@ -95,6 +95,23 @@ namespace Game.Tests.Unit
         }
 
         [Test]
+        public void ASlowPlayer_TurnsAroundWithoutStumbling_AndGetsGoingTheOtherWay()
+        {
+            // X-69: a nearly stopped player (e.g. the receiver the user just took over) used to chain stumbles for 1-2 s.
+            var db = Db();
+            var player = Player(50);
+            float slow = db.Movement.TurnStumbleMinSpeed * 0.5f;
+            var body = new PlayerBody { Velocity = new Vector3(slow, 0f, 0f), Facing = Vector3.UnitX };
+            for (int i = 0; i < (int)(0.5f / Dt); i++)
+            {
+                Movement.Step(body, db.Balance, player, new Vector2(-1f, 0f), sprintIntent: true, hasBall: false,
+                    longTouch: false, db.Movement, db.Fatigue, Dt);
+                Assert.AreEqual(0f, body.TurnStunRemaining, $"step {i}: no stumble below turnStumbleMinSpeed.");
+            }
+            Assert.Less(body.Velocity.X, -db.Movement.TurnStumbleMinSpeed, "after 0.5 s he runs the other way.");
+        }
+
+        [Test]
         public void MediumTurn_LosesOnlyTheFlatFraction_NotTheSharpOne()
         {
             var db = Db();

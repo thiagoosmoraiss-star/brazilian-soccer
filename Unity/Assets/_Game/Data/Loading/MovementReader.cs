@@ -17,7 +17,7 @@ namespace Game.Data.Loading
                 "playerRadius", "possessionCaptureRadius", "possessionCaptureMaxHeight", "interceptReferenceSpeed", "interceptMinRadiusFraction", "turnNoLossMaxDegrees", "turnMediumLossMaxDegrees",
                 "mediumTurnSpeedLossFlat", "withBallSpeedPenaltyShortTouch", "withBallSpeedPenaltyLongTouch",
                 "sprintBurstTouchMultiplier", "feintPulseMaxSeconds", "sprintMemorySeconds", "inputBufferSeconds",
-                "stopSpeedEpsilon");
+                "stopSpeedEpsilon", "turnStumbleMinSpeed");
             if (root == null) return Result<MovementDefinition>.Fail(j.Errors);
 
             var m = new MovementDefinition
@@ -37,6 +37,7 @@ namespace Game.Data.Loading
                 SprintMemorySeconds = j.Float(root, "sprintMemorySeconds", "root"),
                 InputBufferSeconds = j.Float(root, "inputBufferSeconds", "root"),
                 StopSpeedEpsilon = j.Float(root, "stopSpeedEpsilon", "root"),
+                TurnStumbleMinSpeed = j.Float(root, "turnStumbleMinSpeed", "root"),
             };
 
             if (!j.Ok) return Result<MovementDefinition>.Fail(j.Errors);
@@ -47,7 +48,7 @@ namespace Game.Data.Loading
                       && m.WithBallSpeedPenaltyShortTouch >= 0f && m.WithBallSpeedPenaltyShortTouch < 1f
                       && m.WithBallSpeedPenaltyLongTouch >= 0f && m.WithBallSpeedPenaltyLongTouch < 1f
                       && m.SprintBurstTouchMultiplier >= 1f && m.FeintPulseMaxSeconds > 0f
-                      && m.SprintMemorySeconds >= 0f && m.InputBufferSeconds >= 0f && m.StopSpeedEpsilon > 0f;
+                      && m.SprintMemorySeconds >= 0f && m.InputBufferSeconds >= 0f && m.StopSpeedEpsilon > 0f && m.TurnStumbleMinSpeed >= 0f;
             if (!ok) { j.Fail(InvalidMovement, "movement values invalid."); return Result<MovementDefinition>.Fail(j.Errors); }
             return Result<MovementDefinition>.Ok(m);
         }

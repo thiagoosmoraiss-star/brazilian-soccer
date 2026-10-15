@@ -14,5 +14,6 @@
   "feintPulseMaxSeconds": 0.25,
   "sprintMemorySeconds": 0.4,
   "inputBufferSeconds": 0.15,
-  "stopSpeedEpsilon": 0.05
+  "stopSpeedEpsilon": 0.05,
+  "turnStumbleMinSpeed": 0.2
 }

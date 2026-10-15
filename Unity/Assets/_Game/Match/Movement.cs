@@ -39,7 +39,7 @@ namespace Game.Match
             Vector3 currentDir = currentSpeed > mv.StopSpeedEpsilon ? Vector3.Normalize(body.Velocity) : body.Facing;
 
             body.TurnStunRemaining = MathF.Max(0f, body.TurnStunRemaining - dt);
-            if (body.TurnStunRemaining <= 0f && moving && currentSpeed > mv.StopSpeedEpsilon)
+            if (body.TurnStunRemaining <= 0f && moving && currentSpeed > mv.StopSpeedEpsilon && currentSpeed >= mv.TurnStumbleMinSpeed)
             {
                 float dot = MathUtil.Clamp(Vector3.Dot(currentDir, desiredDir), -1f, 1f);
                 float angleDeg = MathF.Acos(dot) * RadToDeg;

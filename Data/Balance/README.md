@@ -63,6 +63,7 @@ Used by `Game.Match.Movement`/`Possession`/`DribbleSystem`. Attribute-dependent 
 | `sprintMemorySeconds` | Sprint keeps going this long after release if the stick is still pushed (GAME_DESIGN §17: 0.4 s) | ≥ 0 |
 | `inputBufferSeconds` | Input buffer (GAME_DESIGN §17: ~150 ms) | ≥ 0 |
 | `stopSpeedEpsilon` | Speed below which a player is considered stopped | > 0 |
+| `turnStumbleMinSpeed` | A sharp turn only stumbles (speed loss + recovery time) a player moving at least this fast (m/s); a player all but stopped turns freely (X-69) | ≥ 0 |
 
 ## fatigue.json — fatigue coefficients (A2, baseline v1, X-49)
 

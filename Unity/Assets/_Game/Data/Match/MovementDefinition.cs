@@ -32,6 +32,10 @@ namespace Game.Data.Match
         public float SprintMemorySeconds { get; internal set; }
         public float InputBufferSeconds { get; internal set; }
         public float StopSpeedEpsilon { get; internal set; }
+        /// <summary>A sharp turn only stumbles a player moving at least this fast (m/s). X-69: a player all but stopped
+        /// (drifting ~0.1 m/s from contact pushes) stumbled again at the end of every stumble and froze until he got the
+        /// ball — the user's receiver for 1-2 s.</summary>
+        public float TurnStumbleMinSpeed { get; internal set; }
     }
 
     /// <summary>Fatigue coefficients (Data/Balance/fatigue.json, A2, baseline v1, X-49; GAME_DESIGN §18). The

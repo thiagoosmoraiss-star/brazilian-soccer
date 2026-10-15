@@ -330,14 +330,18 @@ namespace Game.Match.AI
                     break;
                 }
             }
+            var carried = BallEvent.None;
             if (Ball.State == BallState.Controlled && Ball.Owner >= 0)
             {
                 var owner = Players[Ball.Owner];
                 DribbleSystem.Step(owner.Body, Ball, _balance, owner.Setup, _mv);
+                carried = CarriedOverALine();
             }
 
             // 5. Ball.
-            if (Ball.State != BallState.Controlled)
+            if (carried == BallEvent.Goal) { OnGoal(); ev = AiMatchEvent.Goal; }
+            else if (carried == BallEvent.Out) { OnOut(); ev = AiMatchEvent.Out; }
+            else if (Ball.State != BallState.Controlled)
             {
                 var ballEvent = BallPhysics.Step(Ball, Pitch, _ballCfg, dt);
                 if (ballEvent == BallEvent.Goal) { OnGoal(); ev = AiMatchEvent.Goal; }
@@ -867,6 +871,23 @@ namespace Game.Match.AI
                 if (open > bestOpen) { bestOpen = open; best = i; }
             }
             return best >= 0 ? best : nearest;
+        }
+
+        /// <summary>A ball at a carrier's feet is in play until the whole ball is over a line, as a loose one: dribbled
+        /// into the goal mouth it is a goal, over any other line it is out (the ball physics only judges a loose ball).</summary>
+        private BallEvent CarriedOverALine()
+        {
+            var b = Ball.Position;
+            float r = _ballCfg.Radius;
+            bool overGoalLine = MathF.Abs(b.X) > Pitch.HalfLength + r;
+            bool overTouchline = MathF.Abs(b.Y) > Pitch.HalfWidth + r;
+            if (!overGoalLine && !overTouchline) return BallEvent.None;
+            Ball.LastTouch = Ball.Owner;
+            Ball.Owner = Ball.NoPlayer;
+            Ball.Velocity = Vector3.Zero;
+            Ball.Spin = 0f;
+            Ball.State = BallState.Dead;
+            return overGoalLine && !overTouchline && Pitch.WithinGoalMouth(b.Y, b.Z) ? BallEvent.Goal : BallEvent.Out;
         }
 
         private void OnGoal()

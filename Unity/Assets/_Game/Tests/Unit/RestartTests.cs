@@ -1,5 +1,6 @@
 using System;
 using System.IO;
+using System.Linq;
 using System.Numerics;
 using Game.Core.Contracts.Match;
 using Game.Data.Loading;
@@ -61,6 +62,44 @@ namespace Game.Tests.Unit
             Assert.AreEqual(m.Pitch.HalfLength - Db().Restarts.CornerInset, m.RestartSpot.X, 1e-3f);
             Assert.AreEqual(m.Pitch.HalfWidth - Db().Restarts.CornerInset, m.RestartSpot.Y, 1e-3f);
             Assert.AreEqual(1, m.HomeStats.Corners);
+        }
+
+        /// <summary>The user's carrier runs with the ball towards <paramref name="to"/> until something happens.</summary>
+        private static AiMatchEvent CarryTo(Vector3 from, Vector3 to)
+        {
+            var m = new AiMatch(Db(), AiMatchTests.Setup(1), Dt);
+            m.EnableHuman(MatchSide.Home);
+            var carrier = m.Home.Players.First(p => !p.IsGoalkeeper);
+            foreach (var p in m.Players) p.Body.Position = new Vector3(p.Body.Position.X * 0.2f, p.Body.Position.Y * 0.2f, 0f); // nobody near
+            carrier.Body.Position = from;
+            var dir = Vector2.Normalize(new Vector2(to.X - from.X, to.Y - from.Y));
+            carrier.Body.Facing = new Vector3(dir, 0f);
+            m.PlaceBall(carrier);
+            for (int i = 0; i < 50 && m.Ball.Owner != carrier.Global; i++) m.Step(HumanInput.None);
+            Assert.AreEqual(carrier.Global, m.Ball.Owner, "the carrier never took the ball.");
+            m.HomeKeeper.Player.Body.Position = new Vector3(-m.Pitch.HalfLength + 1f, 0f, 0f);
+            m.AwayKeeper.Player.Body.Position = new Vector3(m.Pitch.HalfLength - 3f, 25f, 0f); // out of the way
+            for (int i = 0; i < 1000; i++)
+            {
+                var ev = m.Step(new HumanInput(dir, false, ActionCommand.None, false, false));
+                if (ev == AiMatchEvent.Goal || ev == AiMatchEvent.Out) return ev;
+            }
+            return AiMatchEvent.None;
+        }
+
+        [Test]
+        public void DribblingTheBallIntoTheGoal_IsAGoal()
+        {
+            // X-69: a ball at a carrier's feet was never judged, so walking it into the net did not count.
+            float x = Db().Ball.Pitch.Length * 0.5f;
+            Assert.AreEqual(AiMatchEvent.Goal, CarryTo(new Vector3(x - 8f, 0f, 0f), new Vector3(x + 5f, 0f, 0f)));
+        }
+
+        [Test]
+        public void DribblingTheBallOverTheTouchline_IsOut()
+        {
+            float y = Db().Ball.Pitch.Width * 0.5f;
+            Assert.AreEqual(AiMatchEvent.Out, CarryTo(new Vector3(0f, y - 6f, 0f), new Vector3(0f, y + 5f, 0f)));
         }
 
         [Test]
