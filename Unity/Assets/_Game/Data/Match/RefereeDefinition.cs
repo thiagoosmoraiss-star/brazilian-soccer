@@ -70,6 +70,8 @@ namespace Game.Data.Match
         public float KeeperStayChance { get; internal set; }
         /// <summary>A diving keeper aims this far from the goal's centre (m).</summary>
         public float KeeperDiveLateral { get; internal set; }
+        /// <summary>Defending a penalty, the user's stick must point at least this far across the goal (0-1) to dive (A8b).</summary>
+        public float UserDiveDeadzone { get; internal set; }
         /// <summary>Players wait this far outside the penalty area (m).</summary>
         public float AreaClearance { get; internal set; }
 

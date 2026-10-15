@@ -77,13 +77,15 @@ namespace Game.Data.Loading
             var p = j.Object(root, "penalty", "root");
             if (p != null)
             {
-                j.Keys(p, "penalty", "setupSeconds", "spotDistance", "shotPower", "keeperStayChance", "keeperDiveLateral", "areaClearance");
+                j.Keys(p, "penalty", "setupSeconds", "spotDistance", "shotPower", "keeperStayChance", "keeperDiveLateral", "areaClearance",
+                    "userDiveDeadzone");
                 d.PenaltySetupSeconds = j.Float(p, "setupSeconds", "penalty");
                 d.PenaltySpotDistance = j.Float(p, "spotDistance", "penalty");
                 d.PenaltyShotPower = j.Float(p, "shotPower", "penalty");
                 d.KeeperStayChance = j.Float(p, "keeperStayChance", "penalty");
                 d.KeeperDiveLateral = j.Float(p, "keeperDiveLateral", "penalty");
                 d.AreaClearance = j.Float(p, "areaClearance", "penalty");
+                d.UserDiveDeadzone = j.Float(p, "userDiveDeadzone", "penalty");
             }
             if (!j.Ok) return Result<RefereeDefinition>.Fail(j.Errors);
 
@@ -95,7 +97,8 @@ namespace Game.Data.Loading
                       && d.FreeKickSetupSeconds >= 0f && d.DirectShotDistance >= 0f && d.DirectShotMaxAngleDegrees >= 0f
                       && d.FreeKickShotPower > 0f && d.FreeKickShotPower <= 1f && d.WallDistanceMargin >= 0f && d.WallSpacing > 0f
                       && d.PenaltySetupSeconds >= 0f && d.PenaltySpotDistance > 0f && d.PenaltyShotPower > 0f && d.PenaltyShotPower <= 1f
-                      && d.KeeperStayChance >= 0f && d.KeeperStayChance <= 1f && d.KeeperDiveLateral >= 0f && d.AreaClearance >= 0f;
+                      && d.KeeperStayChance >= 0f && d.KeeperStayChance <= 1f && d.KeeperDiveLateral >= 0f && d.AreaClearance >= 0f
+                      && d.UserDiveDeadzone >= 0f && d.UserDiveDeadzone < 1f;
             for (int i = 0; ok && i < d.WallPlayers.Length; i++)
                 ok = d.WallPlayers[i] >= 0 && d.WallPlayers[i] <= 10 && d.WallMaxDistance[i] > 0f && (i == 0 || d.WallMaxDistance[i] > d.WallMaxDistance[i - 1]);
             if (!ok)

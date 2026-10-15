@@ -1,0 +1,452 @@
+<title>Dossiê ACESSO</title>
+<meta name="claude:viewport-fit-sides" content="cover">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=Barlow:ital,wght@0,400;0,500;0,600;1,400&family=Barlow+Condensed:wght@500;600;700&display=swap">
+<style>
+/* Layout: ficha de clube / jornal esportivo — índice lateral fixo no desktop, coluna única no celular; faixas "placar" separam as partes. Paleta e fontes vêm do GAME_DESIGN §2. */
+:root {
+  --bg: #F3EFE4;          /* papel (superfície do GDD) */
+  --panel: #EAE4D4;
+  --ink: #0F2A1D;         /* verde base do GDD */
+  --muted: #4E5A50;
+  --rule: #CFC6B0;
+  --accent: #F5C518;      /* amarelo destaque */
+  --accent-ink: #0F2A1D;
+  --ok: #217A3A;
+  --warn: #9A6B00;
+  --bad: #B21E33;
+  --band: #0F2A1D;
+  --band-ink: #F3EFE4;
+  --display: "Bebas Neue", "Barlow Condensed", "Arial Narrow", sans-serif;
+  --cond: "Barlow Condensed", "Arial Narrow", sans-serif;
+  --body: "Barlow", "Segoe UI", system-ui, sans-serif;
+}
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme="light"]) {
+    --bg: #0F2A1D; --panel: #15382A; --ink: #EDE8DA; --muted: #A9B5A9; --rule: #2C4D3C;
+    --accent: #F5C518; --accent-ink: #0F2A1D; --ok: #52C774; --warn: #F0B840; --bad: #F06A7C;
+    --band: #F5C518; --band-ink: #0F2A1D; color-scheme: dark;
+  }
+}
+:root[data-theme="dark"] {
+  --bg: #0F2A1D; --panel: #15382A; --ink: #EDE8DA; --muted: #A9B5A9; --rule: #2C4D3C;
+  --accent: #F5C518; --accent-ink: #0F2A1D; --ok: #52C774; --warn: #F0B840; --bad: #F06A7C;
+  --band: #F5C518; --band-ink: #0F2A1D; color-scheme: dark;
+}
+* { box-sizing: border-box; }
+body { background: var(--bg); color: var(--ink); font: 16px/1.6 var(--body); }
+.wrap { max-width: 1180px; margin: 0 auto; padding-left: max(16px, env(safe-area-inset-left, 0px)); padding-right: max(16px, env(safe-area-inset-right, 0px)); padding-block: 0 64px; }
+.grid { display: grid; grid-template-columns: 220px minmax(0, 1fr); gap: 48px; }
+@media (max-width: 860px) { .grid { grid-template-columns: minmax(0, 1fr); gap: 0; } nav.toc { display: none; } }
+
+header.mast { border-bottom: 3px solid var(--ink); padding-block: 40px 20px; margin-bottom: 32px; display: flex; flex-wrap: wrap; align-items: flex-end; justify-content: space-between; gap: 16px 32px; }
+.mast h1 { font: 400 clamp(56px, 11vw, 112px)/0.85 var(--display); margin: 0; letter-spacing: 0.01em; }
+.mast .kicker { font: 600 13px/1 var(--cond); letter-spacing: 0.14em; text-transform: uppercase; color: var(--muted); margin-bottom: 10px; }
+.mast .sub { max-width: 46ch; margin: 12px 0 0; font-size: 18px; text-wrap: balance; }
+.score { display: flex; gap: 2px; font-family: var(--display); }
+.score div { background: var(--band); color: var(--band-ink); padding: 8px 14px 4px; text-align: center; min-width: 88px; }
+.score b { display: block; font-size: 44px; line-height: 1; font-weight: 400; font-variant-numeric: tabular-nums; }
+.score span { font: 600 11px/1.4 var(--cond); letter-spacing: 0.12em; text-transform: uppercase; }
+
+nav.toc { position: sticky; top: calc(16px + env(safe-area-inset-top, 0px)); align-self: start; font: 500 15px/1.3 var(--cond); }
+nav.toc p { font: 600 12px/1 var(--cond); letter-spacing: 0.14em; text-transform: uppercase; color: var(--muted); margin: 0 0 10px; }
+nav.toc ol { list-style: none; padding: 0; margin: 0; display: grid; gap: 2px; counter-reset: s; }
+nav.toc li { counter-increment: s; }
+nav.toc a { display: flex; gap: 10px; padding: 5px 8px; color: var(--ink); text-decoration: none; border-left: 3px solid transparent; }
+nav.toc a::before { content: counter(s, decimal-leading-zero); color: var(--muted); font-variant-numeric: tabular-nums; }
+nav.toc a:hover, nav.toc a:focus-visible { border-left-color: var(--accent); background: var(--panel); outline: none; }
+
+main { min-width: 0; }
+section { padding-top: 8px; margin-bottom: 44px; scroll-margin-top: 16px; }
+h2 { font: 400 40px/1 var(--display); margin: 0 0 6px; letter-spacing: 0.01em; display: flex; align-items: baseline; gap: 12px; text-wrap: balance; }
+h2 .n { font: 600 14px/1 var(--cond); background: var(--accent); color: var(--accent-ink); padding: 5px 7px 4px; letter-spacing: 0.06em; }
+.lede { color: var(--muted); margin: 0 0 18px; max-width: 70ch; }
+h3 { font: 700 19px/1.25 var(--cond); text-transform: uppercase; letter-spacing: 0.05em; margin: 26px 0 8px; }
+p { margin: 0 0 12px; max-width: 72ch; }
+ul.plain { margin: 0 0 12px; padding-left: 20px; max-width: 72ch; }
+ul.plain li { margin-bottom: 4px; }
+strong { font-weight: 600; }
+code { font: 500 0.88em/1 ui-monospace, "SFMono-Regular", Menlo, Consolas, monospace; background: var(--panel); padding: 2px 5px; border-radius: 3px; }
+
+.tbl { overflow-x: auto; margin: 6px 0 16px; border-top: 2px solid var(--ink); }
+table { border-collapse: collapse; width: 100%; font-size: 15px; }
+th { font: 600 13px/1.3 var(--cond); text-transform: uppercase; letter-spacing: 0.08em; text-align: left; color: var(--muted); padding: 10px 12px 8px 0; border-bottom: 1px solid var(--rule); }
+td { padding: 9px 12px 9px 0; border-bottom: 1px solid var(--rule); vertical-align: top; }
+td.num, th.num { text-align: right; font-variant-numeric: tabular-nums; }
+
+.pill { display: inline-block; font: 600 12px/1 var(--cond); letter-spacing: 0.08em; text-transform: uppercase; padding: 4px 7px 3px; border: 1.5px solid currentColor; white-space: nowrap; }
+.pill.ok { color: var(--ok); } .pill.now { color: var(--warn); } .pill.todo { color: var(--muted); } .pill.bad { color: var(--bad); }
+
+.pillars { display: grid; grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); gap: 16px; margin: 10px 0 8px; }
+.pillars div { border-top: 3px solid var(--accent); padding-top: 10px; }
+.pillars b { display: block; font: 700 17px/1.2 var(--cond); text-transform: uppercase; letter-spacing: 0.04em; margin-bottom: 4px; }
+.pillars p { font-size: 15px; color: var(--muted); margin: 0; }
+
+.bar { display: flex; height: 22px; margin: 14px 0 6px; border: 1.5px solid var(--ink); }
+.bar span { display: block; height: 100%; }
+.bar .d { background: var(--ink); } .bar .w { background: var(--accent); } .bar .r { background: transparent; }
+.legend { display: flex; flex-wrap: wrap; gap: 6px 18px; font: 500 14px/1.3 var(--cond); color: var(--muted); }
+.legend i { display: inline-block; width: 12px; height: 12px; margin-right: 6px; vertical-align: -1px; border: 1.5px solid var(--ink); }
+
+.callout { background: var(--panel); border-left: 4px solid var(--accent); padding: 14px 16px; margin: 14px 0; max-width: 76ch; }
+.callout p:last-child { margin-bottom: 0; }
+
+.cols { display: grid; grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)); gap: 8px 32px; }
+.cols > div { min-width: 0; }
+
+dl.kv { display: grid; grid-template-columns: minmax(120px, max-content) minmax(0, 1fr); gap: 6px 18px; margin: 6px 0 14px; }
+dl.kv dt { font: 600 14px/1.5 var(--cond); text-transform: uppercase; letter-spacing: 0.06em; color: var(--muted); }
+dl.kv dd { margin: 0; }
+@media (max-width: 480px) { dl.kv { grid-template-columns: minmax(0, 1fr); gap: 0 0; } dl.kv dd { margin-bottom: 10px; } }
+
+footer { border-top: 3px solid var(--ink); padding-top: 14px; font: 500 14px/1.5 var(--cond); color: var(--muted); }
+a { color: inherit; text-decoration-color: var(--accent); text-decoration-thickness: 2px; text-underline-offset: 3px; }
+@media (prefers-reduced-motion: no-preference) { html { scroll-behavior: smooth; } }
+</style>
+
+<div class="wrap">
+  <header class="mast">
+    <div>
+      <div class="kicker">Dossiê do projeto · atualizado em 15/10/2026</div>
+      <h1>ACESSO</h1>
+      <p class="sub">Jogo de futebol para Android, 100% offline, sobre a carreira de um clube brasileiro fictício do interior que sobe da Divisão D ao topo.</p>
+    </div>
+    <div class="score" aria-label="Situação atual">
+      <div><b>55%</b><span>Roadmap</span></div>
+      <div><b>A8</b><span>Etapa atual</span></div>
+      <div><b>543</b><span>Testes verdes</span></div>
+    </div>
+  </header>
+
+  <div class="grid">
+    <nav class="toc" aria-label="Índice">
+      <p>Índice</p>
+      <ol>
+        <li><a href="#visao">Visão do jogo</a></li>
+        <li><a href="#estado">Onde estamos</a></li>
+        <li><a href="#identidade">Identidade</a></li>
+        <li><a href="#carreira">Modo carreira</a></li>
+        <li><a href="#partida">A partida</a></li>
+        <li><a href="#tecnica">Tecnologia</a></li>
+        <li><a href="#roadmap">Roadmap</a></li>
+        <li><a href="#dados">Dados reais</a></li>
+        <li><a href="#pendente">Decisões em aberto</a></li>
+        <li><a href="#problemas">Problemas conhecidos</a></li>
+        <li><a href="#docs">Mapa dos documentos</a></li>
+      </ol>
+    </nav>
+
+    <main>
+      <section id="visao">
+        <h2><span class="n">01</span>Visão do jogo</h2>
+        <p class="lede">O futebol brasileiro é a estrutura do jogo: pirâmide A/B/C/D com acesso e rebaixamento, copa nacional como atalho financeiro, venda de joias ao exterior, pressão da diretoria e da torcida.</p>
+        <div class="pillars">
+          <div><b>Carreira longa</b><p>6 a 10 temporadas da Divisão D ao título da A, com decisões de elenco, mercado, finanças e instalações que pesam.</p></div>
+          <div><b>Partida jogável</b><p>Fácil de aprender, difícil de dominar. A qualidade do elenco aparece em campo e a execução do jogador importa.</p></div>
+          <div><b>Sem pay-to-win</b><p>Single-player, offline, sem dados reais licenciados. Clubes, jogadores, escudos e competições são fictícios.</p></div>
+        </div>
+        <dl class="kv">
+          <dt>Inspiração</dt><dd>Estrutura de Dream League Soccer, com identidade própria.</dd>
+          <dt>Plataforma</dt><dd>Android primeiro (ARM64). iOS fora do MVP.</dd>
+          <dt>Sensação alvo</dt><dd>"Eu joguei bem e meu time é limitado" deve ser possível. Nunca gol roteirizado, nunca animação que tira o controle, nunca troca automática que causa gol.</dd>
+          <dt>Critério do MVP</dt><dd>Teste com 5 a 10 pessoas: a maioria termina a 1ª temporada, parte chega à 3ª e ninguém quebra a economia em 3 temporadas.</dd>
+        </dl>
+      </section>
+
+      <section id="estado">
+        <h2><span class="n">02</span>Onde estamos</h2>
+        <p class="lede">O desenvolvimento segue em três trilhas: A (partida), B (carreira) e C (integração e lançamento). A carreira inteira já roda sem Unity; a partida já é jogável no celular.</p>
+        <div class="bar" role="img" aria-label="55% concluído, 5% em andamento, 40% a fazer">
+          <span class="d" style="width:55%"></span><span class="w" style="width:5%"></span><span class="r" style="width:40%"></span>
+        </div>
+        <div class="legend"><span><i style="background:var(--ink)"></i>Concluído 55%</span><span><i style="background:var(--accent)"></i>Em andamento: A8 (5%)</span><span><i></i>A fazer 40%</span></div>
+
+        <h3>Etapa atual: A8 — árbitro e bola parada</h3>
+        <ul class="plain">
+          <li><strong>A8a</strong> (regras e IA) implementada: faltas por contato antes da bola, cartões e expulsão, impedimento no momento do passe, falta indireta, falta direta com barreira automática, pênalti. <span class="pill now">Em validação no editor</span></li>
+          <li>Correções do 2º teste do usuário: aviso de falta/impedimento no HUD, gol conduzindo a bola, bola dominada saindo do campo, jogador travado após o passe.</li>
+          <li><strong>A8b</strong> (próxima): controles do usuário nas bolas paradas (mira e força na falta e no pênalti, escolher o lado ao defender pênalti) e aviso de cartão na tela.</li>
+        </ul>
+
+        <h3>Aparelhos de referência (decisão D-03)</h3>
+        <div class="tbl"><table>
+          <thead><tr><th>Papel</th><th>Aparelho</th><th>Medição (build IL2CPP/ARM64, URP Medium)</th></tr></thead>
+          <tbody>
+            <tr><td>Entrada</td><td>Samsung Galaxy A07</td><td>50–60 fps (meta ≥ 30)</td></tr>
+            <tr><td>Intermediário</td><td>Samsung Galaxy S10+</td><td>50–60 fps (meta perto de 60)</td></tr>
+            <tr><td>Topo</td><td>Samsung Galaxy S25 Ultra</td><td>60 fps estável</td></tr>
+          </tbody>
+        </table></div>
+      </section>
+
+      <section id="identidade">
+        <h2><span class="n">03</span>Identidade</h2>
+        <div class="cols">
+          <div>
+            <dl class="kv">
+              <dt>Nome</dt><dd>ACESSO (nome de trabalho; checagem de marca pendente, D-16).</dd>
+              <dt>Tom</dt><dd>Brasileiro, bem-humorado e seco. Notícias em linguagem de rádio e jornal local, sem caricatura.</dd>
+              <dt>Menus</dt><dd>Placar de estádio antigo, cartaz lambe-lambe e jornal esportivo: papel texturizado, faixas diagonais, carimbos. Menus em retrato.</dd>
+              <dt>Partida</dt><dd>3D low-poly estilizado, camisas em cor sólida, número legível. Legibilidade acima de realismo. Em paisagem.</dd>
+            </dl>
+          </div>
+          <div>
+            <dl class="kv">
+              <dt>Escudos</dt><dd>Gerados por templates (forma + 2 cores + símbolo genérico).</dd>
+              <dt>Rostos</dt><dd>Sem rostos realistas no MVP; avatar em silhueta.</dd>
+              <dt>Cores</dt><dd>Base verde-escuro, superfície papel, destaque amarelo, mais positivo/negativo/neutro. Modo escuro padrão.</dd>
+              <dt>Tipografia</dt><dd>Display condensada (Bebas Neue / Barlow Condensed); interface em Barlow com números tabulares.</dd>
+            </dl>
+          </div>
+        </div>
+        <p>Hoje a partida usa arte provisória (bonecos de primitivas com animação procedural). Modelos 3D e animações finais dependem da decisão D-02 e entram na etapa C4.</p>
+      </section>
+
+      <section id="carreira">
+        <h2><span class="n">04</span>Modo carreira</h2>
+        <p class="lede">Um save, um clube. A temporada é o ano civil; a carreira só termina com demissão. No MVP, tudo isso já existe como lógica testada (trilha B), ainda sem telas.</p>
+
+        <h3>Estrutura do MVP</h3>
+        <div class="tbl"><table>
+          <thead><tr><th>Competição</th><th class="num">Clubes</th><th>Formato</th></tr></thead>
+          <tbody>
+            <tr><td>Liga Nacional — Divisões A, B, C, D</td><td class="num">16 cada</td><td>Pontos corridos, 30 rodadas; acesso e rebaixamento entre divisões</td></tr>
+            <tr><td>Copa Nacional</td><td class="num">32</td><td>Mata-mata em jogo único; empate vai para pênaltis</td></tr>
+          </tbody>
+        </table></div>
+        <p>O design-alvo (pós-MVP) aproxima o formato real: Divisão D em grupos regionais, C com quadrangulares, estaduais, competição continental.</p>
+
+        <h3>Curva de progressão</h3>
+        <div class="tbl"><table>
+          <thead><tr><th>Etapa</th><th class="num">Temporadas</th><th class="num">OVR do elenco</th><th>Problema dominante</th></tr></thead>
+          <tbody>
+            <tr><td>Divisão D</td><td class="num">1–2</td><td class="num">45–55</td><td>Pouco dinheiro, elenco fraco</td></tr>
+            <tr><td>Divisão C</td><td class="num">1–2</td><td class="num">55–62</td><td>Acesso incerto, estádio pequeno</td></tr>
+            <tr><td>Divisão B</td><td class="num">2–3</td><td class="num">62–70</td><td>Maratona + copa</td></tr>
+            <tr><td>Divisão A (sobreviver)</td><td class="num">1–2</td><td class="num">70–75</td><td>Risco de queda</td></tr>
+            <tr><td>Divisão A (brigar)</td><td class="num">2+</td><td class="num">75–85</td><td>Expectativa, assédio aos craques</td></tr>
+          </tbody>
+        </table></div>
+
+        <div class="cols">
+          <div>
+            <h3>Jogadores</h3>
+            <ul class="plain">
+              <li>18 atributos (1–99), incluindo 4 de goleiro; OVR por posição com pesos em dados.</li>
+              <li>Posições GOL, ZAG, LD, LE, VOL, MC, MEI, PD, PE, ATA; fora de posição −10%, secundária −3%.</li>
+              <li>Potencial oculto (40–99) visto em faixa conforme o olheiro.</li>
+              <li>Curva de idade: cresce rápido até 21, estabiliza 27–30, cai a partir de 31 (físico primeiro).</li>
+              <li>Energia, moral (5 níveis), forma, lesões e suspensões (3 amarelos = 1 jogo).</li>
+              <li>Base gera 3 jovens por ano.</li>
+            </ul>
+            <h3>Mercado</h3>
+            <ul class="plain">
+              <li>Negociação em duas etapas: clube (valor) e jogador (salário, anos, status).</li>
+              <li>Craques recusam clubes pequenos; clubes estrangeiros compram jovens de alto potencial.</li>
+              <li>Agentes livres, renovação, pré-contrato, scouting por faixa; IA mantém elencos de 20–26.</li>
+            </ul>
+          </div>
+          <div>
+            <h3>Economia</h3>
+            <ul class="plain">
+              <li>Receitas: TV por divisão, bilheteria, 1 patrocinador, premiações, transferências.</li>
+              <li>Despesas: salários, comissão técnica, manutenção, obras.</li>
+              <li>Caixa negativo: alerta no 1º mês, bloqueio de contratações em 3 meses. Sem empréstimo bancário.</li>
+              <li>Meta: clube médio fecha o ano perto de zero; acesso gera superávit.</li>
+            </ul>
+            <h3>Clube e diretoria</h3>
+            <ul class="plain">
+              <li>Estádio (níveis 1–10, requisito por divisão) e Centro de Treinamento (1–5), com obras.</li>
+              <li>Comissão: preparador físico, auxiliar técnico e olheiro.</li>
+              <li>Objetivo da temporada, confiança da diretoria (0–100) e demissão; reputação de clube e treinador.</li>
+            </ul>
+          </div>
+        </div>
+      </section>
+
+      <section id="partida">
+        <h2><span class="n">05</span>A partida</h2>
+        <p class="lede">Modos Jogar e Simular (Simular rende o mesmo que jogar). Duração real de 4, 6 ou 10 minutos, com relógio acelerado até 90. Câmera broadcast lateral, time do jogador sempre atacando da esquerda para a direita.</p>
+
+        <h3>Controles (toque)</h3>
+        <div class="tbl"><table>
+          <thead><tr><th>Botão</th><th>Atacando</th><th>Defendendo</th></tr></thead>
+          <tbody>
+            <tr><td>Grande (base)</td><td>Chute (segurar = força)</td><td>Carrinho <span class="pill todo">A9</span></td></tr>
+            <tr><td>À esquerda</td><td>Passe (toque curto, segurar longo)</td><td>Trocar jogador</td></tr>
+            <tr><td>Acima</td><td>Enfiada</td><td>Contenção (segurar)</td></tr>
+            <tr><td>Diagonal</td><td>Alto: lançamento e cruzamento <span class="pill todo">A9</span></td><td>Pressionar com 2º defensor <span class="pill todo">A9</span></td></tr>
+            <tr><td>Borda</td><td colspan="2">Sprint (segurar), com memória de 0,4 s</td></tr>
+          </tbody>
+        </table></div>
+        <p>Analógico flutuante à esquerda. Buffer de entrada de ~150 ms. Passe com assistência Semi: gruda em quem estiver até 25° da mira; sem ninguém nessa faixa, vai para o espaço.</p>
+
+        <div class="cols">
+          <div>
+            <h3>Sistemas já prontos</h3>
+            <ul class="plain">
+              <li><strong>Física própria e determinística</strong> da bola: atrito, parábola, quique, trave, rede.</li>
+              <li><strong>Movimento</strong>: sprint de 7,0 a 9,5 m/s conforme Velocidade, perda de velocidade em curvas, fadiga normalizada pela duração.</li>
+              <li><strong>Passe e chute</strong> com erro por atributo, pressão, pé ruim e orientação do corpo.</li>
+              <li><strong>IA em 3 camadas</strong>: time (fases), função (posição por formação) e indivíduo (apoio, marcação, pressão).</li>
+              <li><strong>Defesa</strong>: contenção, desarme em pé automático, troca automática com histerese.</li>
+              <li><strong>Goleiro</strong>: posicionamento, reação 0,15–0,30 s, encaixe ou espalma, rebote.</li>
+              <li><strong>Reinícios</strong>: saída, lateral, tiro de meta curto, escanteio curto, falta, pênalti.</li>
+              <li><strong>Árbitro</strong>: faltas, cartões, expulsão, impedimento.</li>
+              <li>Pausa e retomada após o app ir para segundo plano.</li>
+            </ul>
+          </div>
+          <div>
+            <h3>Ritmo de jogo (decisão X-65)</h3>
+            <p>Uma partida de 4 a 10 minutos com as taxas reais (~25 faltas e ~5,6 amarelos) teria uma falta a cada 15 segundos. Por isso o jogo usa cerca de 40% do real em eventos disciplinares, nas duas engines:</p>
+            <div class="tbl"><table>
+              <thead><tr><th>Por partida</th><th class="num">Real</th><th class="num">Jogo</th></tr></thead>
+              <tbody>
+                <tr><td>Faltas</td><td class="num">~25</td><td class="num">~8–10</td></tr>
+                <tr><td>Amarelos</td><td class="num">~5,6</td><td class="num">~2</td></tr>
+                <tr><td>Vermelhos</td><td class="num">0,25–0,5</td><td class="num">~0,1</td></tr>
+                <tr><td>Impedimentos</td><td class="num">3–4</td><td class="num">~0,7</td></tr>
+                <tr><td>Pênaltis</td><td class="num">~0,3</td><td class="num">~0,3</td></tr>
+              </tbody>
+            </table></div>
+          </div>
+        </div>
+
+        <h3>Bola parada no MVP</h3>
+        <div class="tbl"><table>
+          <thead><tr><th>Lance</th><th>Como funciona</th><th>Situação</th></tr></thead>
+          <tbody>
+            <tr><td>Lateral</td><td>Passe para companheiro livre</td><td><span class="pill ok">Pronto</span></td></tr>
+            <tr><td>Tiro de meta</td><td>Só curto, passe rasteiro do goleiro (X-55)</td><td><span class="pill ok">Pronto</span></td></tr>
+            <tr><td>Escanteio</td><td>Curto hoje; região + cruzamento chegam com o botão Alto</td><td><span class="pill todo">A9</span></td></tr>
+            <tr><td>Falta direta</td><td>Mira + força, sem curva, barreira automática</td><td><span class="pill now">IA pronta; controles A8b</span></td></tr>
+            <tr><td>Pênalti</td><td>Batendo: canto + força; defendendo: escolher o lado</td><td><span class="pill now">IA pronta; controles A8b</span></td></tr>
+          </tbody>
+        </table></div>
+      </section>
+
+      <section id="tecnica">
+        <h2><span class="n">06</span>Tecnologia</h2>
+        <dl class="kv">
+          <dt>Motor</dt><dd>Unity 6 LTS, C#, Android ARM64 com IL2CPP, URP, Input System para toque, UI Toolkit para menus, Cinemachine na câmera.</dd>
+          <dt>Núcleo</dt><dd>C# puro, sem Unity, compilado também por uma solution .NET paralela. Partida, simulação, carreira e save rodam e são testados por linha de comando (<code>dotnet test</code>).</dd>
+          <dt>Dados</dt><dd>Todo número de balanceamento vive em JSON versionado na pasta <code>Data/</code> da raiz, validado ao carregar. Atributos só têm efeito através do catálogo <code>Balance.Eval(Effect, jogador)</code>.</dd>
+          <dt>Determinismo</dt><dd>RNG com fluxos independentes por sistema; mesma semente + mesmas entradas = mesmo resultado. Sem relógio real na lógica.</dd>
+          <dt>Desempenho</dt><dd>Simulação em passo fixo de 50 Hz desacoplada do render; zero alocação por passo; sem física da Unity na partida.</dd>
+          <dt>Save</dt><dd>JSON + gzip com versão de schema, migrações, checksum, escrita atômica e 3 backups.</dd>
+          <dt>Duas engines</dt><dd>MatchEngine (partida jogada) e QuickSim (simulação em milissegundos) com a mesma entrada (<code>MatchSetup</code>) e a mesma saída (<code>MatchResult</code>) e regras compartilhadas.</dd>
+        </dl>
+        <div class="callout"><p><strong>Regra de ouro do repositório:</strong> o arquivo <code>CLAUDE.md</code> é o contrato de trabalho. Só se trabalha na etapa atual do roadmap; ideias novas viram sugestão em <code>DECISIONS.md</code> antes de qualquer código; nada é dado como pronto sem testes rodando.</p></div>
+      </section>
+
+      <section id="roadmap">
+        <h2><span class="n">07</span>Roadmap</h2>
+        <p class="lede">O peso de cada etapa mostra quanto ela vale no progresso total (soma 100).</p>
+        <div class="tbl"><table>
+          <thead><tr><th>Etapa</th><th>Conteúdo</th><th class="num">Peso</th><th>Situação</th></tr></thead>
+          <tbody>
+            <tr><td>Stage 0</td><td>Base: projeto, assemblies, dados, RNG, loop fixo, testes</td><td class="num">2</td><td><span class="pill ok">Feito</span></td></tr>
+            <tr><td>A1</td><td>Física da bola</td><td class="num">3</td><td><span class="pill ok">Feito</span></td></tr>
+            <tr><td>A2</td><td>Movimento e posse</td><td class="num">4</td><td><span class="pill ok">Feito</span></td></tr>
+            <tr><td>A3</td><td>Passe e chute</td><td class="num">4</td><td><span class="pill ok">Feito</span></td></tr>
+            <tr><td>A4</td><td>Posicionamento da IA 11×11</td><td class="num">5</td><td><span class="pill ok">Feito</span></td></tr>
+            <tr><td>A5</td><td>Defesa e troca de jogador</td><td class="num">4</td><td><span class="pill ok">Feito</span></td></tr>
+            <tr><td>A6</td><td>Goleiro</td><td class="num">3</td><td><span class="pill ok">Feito</span></td></tr>
+            <tr><td>A7</td><td>Reinícios, placar, Vertical Slice no aparelho</td><td class="num">6</td><td><span class="pill ok">Feito</span></td></tr>
+            <tr><td>A8</td><td>Árbitro e bola parada completa (A8a + A8b)</td><td class="num">5</td><td><span class="pill now">Em andamento</span></td></tr>
+            <tr><td>A9</td><td>Resto da partida: Alto, cabeceio, carrinho, 2º defensor, ruptura, substituições, táticas</td><td class="num">8</td><td><span class="pill todo">A fazer</span></td></tr>
+            <tr><td>B1–B8</td><td>Mundo, QuickSim, calendário, jogadores, mercado, economia, diretoria, save</td><td class="num">24</td><td><span class="pill ok">Feito</span></td></tr>
+            <tr><td>C1</td><td>Integração carreira ↔ partida</td><td class="num">5</td><td><span class="pill todo">A fazer</span></td></tr>
+            <tr><td>C2</td><td>Calibração QuickSim × partida</td><td class="num">4</td><td><span class="pill todo">A fazer</span></td></tr>
+            <tr><td>C3</td><td>Todas as telas (menus, elenco, mercado…)</td><td class="num">12</td><td><span class="pill todo">A fazer</span></td></tr>
+            <tr><td>C4</td><td>Áudio e apresentação</td><td class="num">5</td><td><span class="pill todo">A fazer</span></td></tr>
+            <tr><td>C5</td><td>Polimento, tutorial, loja</td><td class="num">6</td><td><span class="pill todo">A fazer</span></td></tr>
+          </tbody>
+        </table></div>
+      </section>
+
+      <section id="dados">
+        <h2><span class="n">08</span>Dados reais e referências</h2>
+        <p class="lede">Os valores do jogo são estimativas iniciais calibradas por testes, com metas de futebol real onde há fonte. O registro completo, com links e grau de confiança, está em <code>docs/REFERENCES.md</code>.</p>
+        <div class="tbl"><table>
+          <thead><tr><th>Referência</th><th>Valor</th><th>Situação</th></tr></thead>
+          <tbody>
+            <tr><td>Gols por jogo, Série A 2024</td><td>2,44</td><td><span class="pill ok">Confirmado</span></td></tr>
+            <tr><td>Faltas por jogo, Brasileirão</td><td>~24,6</td><td><span class="pill ok">Confirmado</span></td></tr>
+            <tr><td>Vermelhos por jogo</td><td>0,25–0,5</td><td><span class="pill ok">Corrigido</span></td></tr>
+            <tr><td>Série D a partir de 2026</td><td>96 clubes, 16 grupos, 6 sobem</td><td><span class="pill ok">Corrigido</span></td></tr>
+            <tr><td>Série C 2026</td><td>20 clubes, 19 rodadas + quadrangulares, 2 caem</td><td><span class="pill ok">Corrigido</span></td></tr>
+            <tr><td>Cota CBF Série D 2026</td><td>R$ 500 mil a ~R$ 1,8 mi por clube</td><td><span class="pill ok">Confirmado</span></td></tr>
+            <tr><td>Receita somada Série A 2024</td><td>R$ 10,2 bi</td><td><span class="pill ok">Confirmado</span></td></tr>
+            <tr><td>Finalizações, escanteios, impedimentos da liga</td><td>sem média encontrada</td><td><span class="pill todo">Não verificado</span></td></tr>
+            <tr><td>Lesões por jogo</td><td>0,8–1,2</td><td><span class="pill todo">Plausível</span></td></tr>
+          </tbody>
+        </table></div>
+      </section>
+
+      <section id="pendente">
+        <h2><span class="n">09</span>Decisões em aberto</h2>
+        <h3>Pendências registradas</h3>
+        <div class="tbl"><table>
+          <thead><tr><th>Id</th><th>O que decidir</th><th>Até quando</th></tr></thead>
+          <tbody>
+            <tr><td>D-02</td><td>Origem dos modelos 3D e animações</td><td>Antes de C4</td></tr>
+            <tr><td>D-04</td><td>Idiomas no lançamento</td><td>Antes de C3</td></tr>
+            <tr><td>D-07</td><td>Monetização (hipótese: grátis + anúncio recompensado + compra para remover anúncios)</td><td>Antes de C5</td></tr>
+            <tr><td>D-08</td><td>Versão mínima do Android</td><td>Antes de C5</td></tr>
+            <tr><td>D-15</td><td>Traits dos jogadores (quais, quantos, onde têm efeito)</td><td>Antes da etapa que os usar</td></tr>
+            <tr><td>D-16</td><td>Nome do jogo (INPI e lojas)</td><td>Antes de C5</td></tr>
+            <tr><td>D-17b</td><td>Dificuldade da partida no MVP</td><td>Antes de A9</td></tr>
+            <tr><td>D-18</td><td>Criar clube próprio ou só escolher entre clubes da D</td><td>Antes de C3</td></tr>
+            <tr><td>D-19b</td><td>Efeito do preparador físico no risco de lesão</td><td>Em rebalanceamento de lesões</td></tr>
+          </tbody>
+        </table></div>
+        <h3>Sugestões aguardando sua aprovação</h3>
+        <ul class="plain">
+          <li><strong>S-01</strong> HUD rico: placar no canto superior esquerdo, pop-ups de posse, distância e nota ao vivo, indicador sobre o jogador, avisos de ação.</li>
+          <li><strong>S-02</strong> Outros ângulos de câmera além da broadcast.</li>
+          <li><strong>S-03</strong> Economia em reais na escala real das divisões.</li>
+          <li><strong>S-04</strong> Lesões na taxa real (hoje ~4× menor).</li>
+          <li><strong>S-05</strong> Calendário espelhando o formato real das séries.</li>
+          <li><strong>S-06</strong> Velocidade e aceleração pelos números da especificação.</li>
+        </ul>
+      </section>
+
+      <section id="problemas">
+        <h2><span class="n">10</span>Problemas conhecidos</h2>
+        <div class="tbl"><table>
+          <thead><tr><th>Problema</th><th>Por quê</th><th>Quando resolve</th></tr></thead>
+          <tbody>
+            <tr><td>Ataque da IA modesto (~0,85 gol do time forte em 4 min)</td><td>Sem cruzamento, cabeceio e corrida às costas da defesa</td><td>A9</td></tr>
+            <tr><td>Poucos impedimentos (~0,7 por jogo; meta ~1,2–1,6)</td><td>Atacantes não fazem ruptura e a linha defensiva não sobe</td><td>A9 (ruptura e tática de linha)</td></tr>
+            <tr><td>Poucos escanteios (~0,1–0,2 por jogo)</td><td>Pouca finalização e pouco jogo pelos lados</td><td>A9 e calibração C2</td></tr>
+            <tr><td>IA quase não faz falta em quem toca rápido</td><td>A IA não chega atrasada na pressão</td><td>Ajuste se o teste pedir</td></tr>
+            <tr><td>Arte provisória (bonecos de primitivas)</td><td>Depende da decisão D-02</td><td>C4</td></tr>
+            <tr><td>Carreira ainda sem telas</td><td>Toda a lógica existe e é testada, mas a interface é da C3</td><td>C1 e C3</td></tr>
+          </tbody>
+        </table></div>
+      </section>
+
+      <section id="docs">
+        <h2><span class="n">11</span>Mapa dos documentos</h2>
+        <div class="tbl"><table>
+          <thead><tr><th>Arquivo</th><th>Para que serve</th></tr></thead>
+          <tbody>
+            <tr><td><code>CLAUDE.md</code></td><td>Contrato de trabalho e etapa atual</td></tr>
+            <tr><td><code>docs/GAME_DESIGN.md</code></td><td>Visão, carreira, identidade e design da partida</td></tr>
+            <tr><td><code>docs/MVP_SCOPE.md</code></td><td>O que entra e o que fica fora do MVP</td></tr>
+            <tr><td><code>docs/ROADMAP.md</code></td><td>Ordem das etapas e progresso</td></tr>
+            <tr><td><code>docs/TECHNICAL_SPEC.md</code> e <code>ARCHITECTURE.md</code></td><td>Arquitetura, sistemas e testes</td></tr>
+            <tr><td><code>docs/DECISIONS.md</code></td><td>Todas as decisões (X-nn), pendências (D-nn) e sugestões (S-nn)</td></tr>
+            <tr><td><code>docs/REFERENCES.md</code></td><td>Dados reais, fontes e grau de confiança</td></tr>
+            <tr><td><code>docs/TEST_PLAN.md</code> e <code>DEFINITION_OF_DONE.md</code></td><td>Quando algo está pronto</td></tr>
+            <tr><td><code>Data/Balance/README.md</code></td><td>Cada número de balanceamento e o que ele controla</td></tr>
+          </tbody>
+        </table></div>
+      </section>
+
+      <footer>Gerado a partir dos documentos do repositório <code>brazilian-soccer</code>, branch de desenvolvimento, em 15/10/2026. Os números de balanceamento são valores iniciais e mudam com os testes.</footer>
+    </main>
+  </div>
+</div>

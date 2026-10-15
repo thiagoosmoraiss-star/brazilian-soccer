@@ -40,6 +40,7 @@
     "shotPower": 0.65,
     "keeperStayChance": 0.15,
     "keeperDiveLateral": 1.6,
-    "areaClearance": 1.0
+    "areaClearance": 1.0,
+    "userDiveDeadzone": 0.3
   }
 }

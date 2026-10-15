@@ -257,3 +257,4 @@ Fouls on contact before the ball, cards, offside at the pass, free kicks with an
 | `penalty.keeperStayChance` | The AI keeper stays in the middle with this chance; otherwise he dives to a side as the ball is struck | 0–1 |
 | `penalty.keeperDiveLateral` | A diving keeper aims this far from the goal's centre (m) | ≥ 0 |
 | `penalty.areaClearance` | Players wait this far outside the penalty area (m) | ≥ 0 |
+| `penalty.userDiveDeadzone` | Defending a penalty, the user's stick must point at least this far across the goal (0-1) for his keeper to dive that way; less, he stays in the middle (A8b) | 0 ≤ x < 1 |

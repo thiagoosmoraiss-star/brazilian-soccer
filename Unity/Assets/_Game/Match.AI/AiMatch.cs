@@ -305,7 +305,7 @@ namespace Game.Match.AI
                 var noTarget = p.Body.Position;
                 if (Restart != RestartKind.None && p == Taker) MoveTaker(p, dt);
                 else if (p.IsGoalkeeper) KeeperMove(KeeperOf(p.Team), dt);
-                else if (IsHuman(p)) { if (KeepOut(p, ref noTarget)) WalkOut(p, dt); else MoveHuman(p, input, dt); }
+                else if (IsHuman(p)) { if (KeepOut(p, ref noTarget)) WalkOut(p, dt); else MoveHuman(p, PenaltyAgainstUser ? HumanInput.None : input, dt); }
                 else Move(p, dt);
             }
             Contact.Separate(_allBodies, _allBodies.Length, _mv.PlayerRadius);

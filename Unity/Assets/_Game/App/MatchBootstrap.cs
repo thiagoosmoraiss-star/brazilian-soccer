@@ -39,7 +39,9 @@ namespace Game.App
         private InputAdapter _input;
         private MaterialCache _materials;
         private PlayerView[] _players;
-        private Transform _ball, _ballShadow;
+        private Transform _ball, _ballShadow, _aimArrow;
+        // Placeholder art for the set-piece aim (A8b): a flat bar from the ball along the stick.
+        private const float AimArrowLength = 4f, AimArrowWidth = 0.25f, AimArrowGap = 0.6f;
         private BroadcastCamera _camera;
         private MatchHudView _hud;
         private bool _userStrong;
@@ -131,15 +133,26 @@ namespace Game.App
             float r = _db.Ball.Ball.Radius;
             _ball = _materials.Part(PrimitiveType.Sphere, null, Vector3.zero, Vector3.one * r * 2f * 1.6f, Color.white, "Ball").transform;
             _ballShadow = _materials.Part(PrimitiveType.Cylinder, null, Vector3.zero, new Vector3(r * 3f, 0.005f, r * 3f), new Color(0f, 0f, 0f, 1f), "Ball shadow").transform;
+            _aimArrow = _materials.Part(PrimitiveType.Cube, null, Vector3.zero, new Vector3(AimArrowWidth, 0.02f, AimArrowLength), new Color(1f, 0.85f, 0.1f), "Aim arrow").transform;
+            _aimArrow.gameObject.SetActive(false);
 
             _camera = new BroadcastCamera(_view, m.Pitch.HalfLength, m.Pitch.HalfWidth, userAttacksPositiveX: true);
             _hud = new MatchHudView(_view, Resources.Load<UnityEngine.UIElements.ThemeStyleSheet>("AcessoRuntimeTheme"), mine.Name, theirs.Name,
-                homeShirt, awayShirt, m.Pitch.HalfLength, m.Pitch.HalfWidth, true, m.Players.Length);
+                homeShirt, awayShirt, m.Pitch.HalfLength, m.Pitch.HalfWidth, true, m.Players.Length, PlayerName);
             _hud.PauseRequested += Pause;
             _hud.ResumeRequested += Resume;
             _hud.RestartRequested += () => NewMatch(_userStrong, (ulong)Environment.TickCount);
             _input.ReservedTopFraction = _hud.ReservedTopFraction;
             _hud.ShowPause(session.Paused);
+        }
+
+        /// <summary>Display name of a vertical-slice player by his id value (HUD card notices).</summary>
+        private string PlayerName(int id)
+        {
+            foreach (var key in new[] { "strong", "weak" })
+                foreach (var p in _teams.Team(key).Players)
+                    if (p.Id == id) return p.Name;
+            return "#" + id;
         }
 
         private void DestroyViews()
@@ -148,6 +161,7 @@ namespace Game.App
                 foreach (var p in _players) Destroy(p.Root.gameObject);
             if (_ball != null) Destroy(_ball.gameObject);
             if (_ballShadow != null) Destroy(_ballShadow.gameObject);
+            if (_aimArrow != null) Destroy(_aimArrow.gameObject);
             foreach (var name in new[] { "Match HUD", "Broadcast VCam", "Camera focus" })
             {
                 var go = GameObject.Find(name);
@@ -238,9 +252,25 @@ namespace Game.App
             _ball.position = ball + Vector3.up * r * 1.6f;
             _ballShadow.position = new Vector3(ball.x, 0.015f, ball.z);
             var v = m.Ball.Velocity;
-            bool setPiece = m.Restart == RestartKind.ThrowIn || m.Restart == RestartKind.Corner || m.Restart == RestartKind.GoalKick;
+            bool setPiece = m.Restart == RestartKind.ThrowIn || m.Restart == RestartKind.Corner || m.Restart == RestartKind.GoalKick
+                            || m.Restart == RestartKind.FreeKick || m.Restart == RestartKind.DirectFreeKick || m.Restart == RestartKind.Penalty;
+            UpdateAimArrow(m, ball);
             _camera.Update(ball, new Vector3(v.X, v.Z, v.Y), setPiece, dt);
             _hud.UpdateLive(_session);
+        }
+
+        /// <summary>The user's set piece (A8b): a bar from the ball shows where the stick aims (the taker's facing at rest).</summary>
+        private void UpdateAimArrow(AiMatch m, Vector3 ball)
+        {
+            bool show = m.RestartReady && m.HumanTeam != null && m.RestartTeam == m.HumanTeam && m.Taker != null && !m.Finished;
+            if (_aimArrow.gameObject.activeSelf != show) _aimArrow.gameObject.SetActive(show);
+            if (!show) return;
+            var aim = m.HumanAim;
+            var dir = aim.LengthSquared() > 0.01f ? new Vector3(aim.X, 0f, aim.Y) : new Vector3(m.Taker.Body.Facing.X, 0f, m.Taker.Body.Facing.Y);
+            if (dir.sqrMagnitude < 1e-4f) return;
+            dir.Normalize();
+            _aimArrow.position = new Vector3(ball.x, 0.03f, ball.z) + dir * (AimArrowGap + AimArrowLength * 0.5f);
+            _aimArrow.rotation = Quaternion.LookRotation(dir, Vector3.up);
         }
 
         private void OnGUI()

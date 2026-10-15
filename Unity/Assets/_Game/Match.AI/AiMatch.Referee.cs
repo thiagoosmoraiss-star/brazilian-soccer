@@ -56,6 +56,8 @@ namespace Game.Match.AI
         public int Yellows(AiPlayer p) => _playerYellows[p.Global];
         public bool SentOff(AiPlayer p) => p.Body.OffPitch;
         public int WallCount => _wallCount;
+        /// <summary>The user's stick this step (set-piece aim and the penalty dive; A8b presentation).</summary>
+        public Vector2 HumanAim => _humanAim;
         public AiPlayer WallPlayer(int i) => Players[_wallPlayer[i]];
         /// <summary>True when <paramref name="p"/> was in an offside position at the last pass of his side.</summary>
         public bool InOffsidePosition(AiPlayer p) => _offsideTeam == p.Team && _offsideMask[p.Global];
@@ -478,7 +480,9 @@ namespace Game.Match.AI
             if (penalty)
             {
                 _penaltyInPlay = true;
-                KeeperGuess(KeeperOf(Opponents(team)));
+                var keeper = KeeperOf(Opponents(team));
+                if (Opponents(team) == HumanTeam) UserKeeperGuess(keeper);
+                else KeeperGuess(keeper);
             }
             if (team == HumanTeam) Control.OnCaptured(p.Local);
             else _opponentPassed = true;
@@ -498,6 +502,22 @@ namespace Game.Match.AI
             k.Dove = true;
             k.Timer = MathF.Abs(k.Target.Y - body.Position.Y) / _gk.DiveSpeed + 0.3f;
         }
+
+        /// <summary>GAME_DESIGN §28 "Pênalti defendendo: escolher lado no chute" (A8b): the user's keeper dives to the side
+        /// the stick points to (across the goal) as the ball is struck; a stick at rest keeps him set in the middle.</summary>
+        private void UserKeeperGuess(Keeper k)
+        {
+            float lateral = _humanAim.Y; // across the goal mouth (the goal lines are at ±x)
+            if (MathF.Abs(lateral) < _referee.UserDiveDeadzone) return;
+            var body = k.Player.Body;
+            k.Target = new Vector3(body.Position.X, MathF.Sign(lateral) * _referee.KeeperDiveLateral, 0f);
+            k.State = KeeperState.Diving;
+            k.Dove = true;
+            k.Timer = MathF.Abs(k.Target.Y - body.Position.Y) / _gk.DiveSpeed + 0.3f;
+        }
+
+        /// <summary>A penalty against the user: the stick picks the keeper's dive, so it does not move his player.</summary>
+        private bool PenaltyAgainstUser => Restart == RestartKind.Penalty && HumanTeam != null && RestartTeam != HumanTeam;
 
         private void EndRestart()
         {

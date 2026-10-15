@@ -26,7 +26,10 @@ namespace Game.Presentation
         private readonly string _homeName, _awayName;
         private readonly float _halfLength, _halfWidth, _side;
         private readonly VisualElement _root, _radar, _radarField, _pauseMenu, _final;
-        private readonly Label _score, _clock, _banner, _finalScore, _finalStats, _radarToggle, _fps;
+        private readonly Label _score, _clock, _banner, _finalScore, _finalStats, _radarToggle, _fps, _hint, _card;
+        private readonly Func<int, string> _playerName;
+        private int _shownHint = -1, _seenEvents = -1;
+        private float _cardUntil;
         private readonly VisualElement[] _dots;
         private readonly VisualElement _ballDot;
         private readonly float _radarW, _radarH;
@@ -37,10 +40,12 @@ namespace Game.Presentation
         /// <summary>Fraction of the screen height the HUD occupies at the top (touches there are not the stick).</summary>
         public float ReservedTopFraction => (_radarH + 2f * Margin + 40f) / RefHeight;
 
+        /// <param name="playerName">Display name of a player by his id value (card notices).</param>
         public MatchHudView(MatchViewDefinition view, ThemeStyleSheet theme, string homeName, string awayName, Color homeColor, Color awayColor,
-            float pitchHalfLength, float pitchHalfWidth, bool userAttacksPositiveX, int players)
+            float pitchHalfLength, float pitchHalfWidth, bool userAttacksPositiveX, int players, Func<int, string> playerName)
         {
             _v = view;
+            _playerName = playerName;
             _homeName = homeName;
             _awayName = awayName;
             _halfLength = pitchHalfLength;
@@ -147,6 +152,37 @@ namespace Game.Presentation
             _banner.style.display = DisplayStyle.None;
             _root.Add(_banner);
 
+            // Card notice (A8b), under the banner.
+            _card = Text("", 40, Color.black);
+            _card.style.paddingLeft = _card.style.paddingRight = 24;
+            _card.style.paddingTop = _card.style.paddingBottom = 8;
+            _card.style.display = DisplayStyle.None;
+            var cardRow = new VisualElement();
+            cardRow.style.position = Position.Absolute;
+            cardRow.style.left = 0;
+            cardRow.style.right = 0;
+            cardRow.style.top = RefHeight * 0.44f;
+            cardRow.style.alignItems = Align.Center;
+            cardRow.pickingMode = PickingMode.Ignore;
+            cardRow.Add(_card);
+            _root.Add(cardRow);
+
+            // Set-piece instructions for the user (A8b), lower centre.
+            _hint = Text("", 28, Color.white);
+            _hint.style.backgroundColor = new Color(0f, 0f, 0f, 0.65f);
+            _hint.style.paddingLeft = _hint.style.paddingRight = 18;
+            _hint.style.paddingTop = _hint.style.paddingBottom = 6;
+            _hint.style.display = DisplayStyle.None;
+            var hintRow = new VisualElement();
+            hintRow.style.position = Position.Absolute;
+            hintRow.style.left = 0;
+            hintRow.style.right = 0;
+            hintRow.style.bottom = RefHeight * 0.06f;
+            hintRow.style.alignItems = Align.Center;
+            hintRow.pickingMode = PickingMode.Ignore;
+            hintRow.Add(_hint);
+            _root.Add(hintRow);
+
             // Pause menu.
             _pauseMenu = Overlay();
             _pauseMenu.Add(Text("PAUSA", 64, Color.white));
@@ -191,6 +227,8 @@ namespace Game.Presentation
                 _clock.text = $"{minute:00}'  {m.Half}ºT";
             }
             UpdateBanner(session);
+            UpdateHint(m);
+            UpdateCards(m);
             if (_radarOpen) UpdateRadar(session);
         }
 
@@ -216,6 +254,45 @@ namespace Game.Presentation
                 _banner.style.display = DisplayStyle.Flex;
             }
             _lastBannerEvent = newest;
+        }
+
+        // What the user does at a set piece (A8b): 0 none, 1 shot or pass, 2 pass, 3 choose the penalty dive.
+        private void UpdateHint(AiMatch m)
+        {
+            int hint = 0;
+            if (m.RestartReady && m.HumanTeam != null && !m.Finished)
+            {
+                bool shot = m.Restart == RestartKind.DirectFreeKick || m.Restart == RestartKind.Penalty;
+                if (m.RestartTeam == m.HumanTeam) hint = shot ? 1 : 2;
+                else if (m.Restart == RestartKind.Penalty) hint = 3;
+            }
+            if (hint == _shownHint) return;
+            _shownHint = hint;
+            if (hint == 0) { _hint.style.display = DisplayStyle.None; return; }
+            _hint.text = hint == 1 ? "Mire com o analógico  ·  segure CHUTE para a força  ·  PASSE toca curto"
+                : hint == 2 ? "Mire com o analógico  ·  PASSE ou ENFIADA"
+                : "Pênalti contra: segure o analógico para cima ou para baixo para o goleiro escolher o lado";
+            _hint.style.display = DisplayStyle.Flex;
+        }
+
+        /// <summary>A yellow or red card shows the player's name for a few seconds (A8b).</summary>
+        private void UpdateCards(AiMatch m)
+        {
+            var events = m.Events;
+            if (_seenEvents < 0) _seenEvents = events.Count; // a resumed match does not replay old cards
+            for (; _seenEvents < events.Count; _seenEvents++)
+            {
+                var e = events[_seenEvents];
+                if (e.Type != MatchEventType.YellowCard && e.Type != MatchEventType.RedCard) continue;
+                bool red = e.Type == MatchEventType.RedCard;
+                string team = e.Side == MatchSide.Home ? _homeName : _awayName;
+                _card.text = $"{(red ? "EXPULSO" : "CARTÃO AMARELO")}  {_playerName(e.PlayerId.Value)} ({team})";
+                _card.style.backgroundColor = red ? new Color(0.85f, 0.12f, 0.18f) : new Color(0.98f, 0.82f, 0.1f);
+                _card.style.color = red ? Color.white : Color.black;
+                _card.style.display = DisplayStyle.Flex;
+                _cardUntil = Time.unscaledTime + _v.BannerSeconds;
+            }
+            if (_card.style.display == DisplayStyle.Flex && Time.unscaledTime > _cardUntil) _card.style.display = DisplayStyle.None;
         }
 
         private void UpdateRadar(MatchSession s)

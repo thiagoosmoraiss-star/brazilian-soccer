@@ -315,6 +315,31 @@ namespace Game.Tests.Unit
         }
 
         [Test]
+        public void DefendingAPenalty_TheUsersKeeperDivesWhereTheStickPoints_OrStaysWithItAtRest([Values(1f, -1f, 0f)] float stick)
+        {
+            // A8b, GAME_DESIGN §28 "Pênalti defendendo: escolher lado no chute".
+            var m = new AiMatch(Db(), AiMatchTests.Setup(4), Dt);
+            m.EnableHuman(MatchSide.Away);
+            m.CancelRestart();
+            m.AwardPenalty(MatchSide.Home);
+            var input = new HumanInput(new Vector2(0f, stick), false, ActionCommand.None, false, false);
+            for (int i = 0; i < 500 && !m.RestartReady; i++) m.Step(input);
+            var controlled = m.Controlled;
+            var before = controlled.Body.Position;
+            var ev = AiMatchEvent.None;
+            for (int i = 0; i < 500 && ev != AiMatchEvent.Shot; i++) ev = m.Step(input);
+            Assert.AreEqual(AiMatchEvent.Shot, ev, "the AI took the penalty.");
+            var k = m.AwayKeeper;
+            if (stick == 0f) Assert.IsFalse(k.Dove, "a stick at rest keeps the keeper in the middle.");
+            else
+            {
+                Assert.IsTrue(k.Dove);
+                Assert.AreEqual(Math.Sign(stick), Math.Sign(k.Target.Y), "he dives to the side the stick points to.");
+            }
+            Assert.Less(Vector3.Distance(controlled.Body.Position, before), 0.5f, "the stick picks the dive; it does not run his player around.");
+        }
+
+        [Test]
         public void ADirectFreeKickNearGoal_GetsAWall_AndIsShotAtWithoutStalling()
         {
             var m = new AiMatch(Db(), AiMatchTests.Setup(2), Dt);
