@@ -42,7 +42,7 @@ namespace Game.Input
         private Vector2 _stickOrigin;
         private Vector2 _stickPos;
         private Texture2D _disc;
-        private readonly int[] _buttonFinger = { NoFinger, NoFinger, NoFinger, NoFinger };
+        private readonly int[] _buttonFinger = NewFingers(); // one per button (sized from ButtonCount)
         private readonly bool[] _buttonHeld = new bool[ButtonCount];
         private readonly bool[] _buttonWasHeld = new bool[ButtonCount];
         /// <summary>Phase each button was pressed in (GAME_DESIGN §17: "botão pressionado na troca executa a função da
@@ -210,6 +210,13 @@ namespace Game.Input
                 case Button.High: return new Vector2(w - 0.37f * h, 0.34f * h); // diagonal above (GAME_DESIGN §17)
                 default: return new Vector2(w - 0.62f * h, 0.12f * h); // sprint at the edge of the cluster
             }
+        }
+
+        private static int[] NewFingers()
+        {
+            var f = new int[ButtonCount];
+            for (int i = 0; i < f.Length; i++) f[i] = NoFinger;
+            return f;
         }
 
         private static float ButtonRadius(Button b) => (b == Button.Shot ? 0.12f : 0.075f) * Screen.height;
