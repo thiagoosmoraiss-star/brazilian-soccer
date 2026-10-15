@@ -9,7 +9,7 @@ using Game.Rules.Match;
 
 namespace Game.Match
 {
-    /// <summary>A3 passes (GAME_DESIGN §19): ground passes only; Alto (lançamento/cruzamento) comes in A9.</summary>
+    /// <summary>Ground passes (A3, GAME_DESIGN §19); the high ball (Alto) is <see cref="HighBallSystem"/> (A9a).</summary>
     public enum PassKind
     {
         /// <summary>Passe: tap = short pass with automatic force, hold = long ground pass with manual force.</summary>
@@ -54,7 +54,12 @@ namespace Game.Match
         private const float RadToDeg = 180f / MathF.PI;
 
         /// <summary>Best teammate inside the cone around <paramref name="aim"/> (score = angle + distance × weight), or -1.</summary>
-        public static int FindTarget(int kicker, PlayerBody[] bodies, int count, Vector2 aim, PassParameters p)
+        public static int FindTarget(int kicker, PlayerBody[] bodies, int count, Vector2 aim, PassParameters p) =>
+            FindTarget(kicker, bodies, count, aim, p.ConeHalfAngleDegrees, p.ConeDistanceWeightDegPerMeter, p.MaxTargetDistance);
+
+        /// <summary>Same cone with an explicit reach (the high ball looks farther, A9a).</summary>
+        public static int FindTarget(int kicker, PlayerBody[] bodies, int count, Vector2 aim, float coneHalfAngleDegrees,
+            float coneDistanceWeight, float maxTargetDistance)
         {
             var from = bodies[kicker].Position;
             int best = -1;
@@ -65,11 +70,11 @@ namespace Game.Match
                 float dx = bodies[i].Position.X - from.X;
                 float dy = bodies[i].Position.Y - from.Y;
                 float dist = MathF.Sqrt(dx * dx + dy * dy);
-                if (dist < 1e-3f || dist > p.MaxTargetDistance) continue;
+                if (dist < 1e-3f || dist > maxTargetDistance) continue;
                 float cos = MathUtil.Clamp((dx * aim.X + dy * aim.Y) / dist, -1f, 1f);
                 float angle = MathF.Acos(cos) * RadToDeg;
-                if (angle > p.ConeHalfAngleDegrees) continue;
-                float score = angle + dist * p.ConeDistanceWeightDegPerMeter;
+                if (angle > coneHalfAngleDegrees) continue;
+                float score = angle + dist * coneDistanceWeight;
                 if (score < bestScore) { bestScore = score; best = i; }
             }
             return best;

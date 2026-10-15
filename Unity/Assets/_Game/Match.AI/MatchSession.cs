@@ -131,7 +131,8 @@ namespace Game.Match.AI
         private void Record(AiMatchEvent ev)
         {
             if (ev == AiMatchEvent.None) return;
-            if ((ev == AiMatchEvent.Pass || ev == AiMatchEvent.Shot) && Match.Ball.LastTouch >= 0) _lastKickStep[Match.Ball.LastTouch] = _steps;
+            if ((ev == AiMatchEvent.Pass || ev == AiMatchEvent.Shot || ev == AiMatchEvent.Header) && Match.Ball.LastTouch >= 0)
+                _lastKickStep[Match.Ball.LastTouch] = _steps;
             _eventKinds[_eventHead] = ev;
             _eventSteps[_eventHead] = _steps;
             _eventHead = (_eventHead + 1) % EventCapacity;

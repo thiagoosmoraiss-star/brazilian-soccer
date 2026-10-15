@@ -23,6 +23,8 @@ namespace Game.Match.AI
         Grounded = 4,
         /// <summary>Ball in his hands; distributes after a moment.</summary>
         Holding = 5,
+        /// <summary>Coming for a cross in his area (A9a): to where it comes down to his hands.</summary>
+        Claiming = 6,
     }
 
     /// <summary>One prediction of a loose ball's path against a keeper.</summary>
@@ -62,6 +64,8 @@ namespace Game.Match.AI
         public Vector3 Target;
         /// <summary>The current or last save attempt needed a dive.</summary>
         public bool Dove;
+        /// <summary>He already decided about this ball in the air (A9a: once per cross).</summary>
+        public bool ClaimDecided;
         public float AngleErrorDegrees;
         internal float ErrorTimer;
 
@@ -81,6 +85,7 @@ namespace Game.Match.AI
             State = KeeperState.Positioning;
             Timer = 0f;
             Dove = false;
+            ClaimDecided = false;
             Target = Player.Body.Position;
         }
     }

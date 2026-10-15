@@ -256,22 +256,28 @@ namespace Game.Presentation
             _lastBannerEvent = newest;
         }
 
-        // What the user does at a set piece (A8b): 0 none, 1 shot or pass, 2 pass, 3 choose the penalty dive.
+        // What the user does at a set piece (A8b; Alto A9a): 0 none, 1 penalty, 2 direct free kick, 3 corner, 4 other
+        // restarts, 5 choose the dive against a penalty.
         private void UpdateHint(AiMatch m)
         {
             int hint = 0;
             if (m.RestartReady && m.HumanTeam != null && !m.Finished)
             {
-                bool shot = m.Restart == RestartKind.DirectFreeKick || m.Restart == RestartKind.Penalty;
-                if (m.RestartTeam == m.HumanTeam) hint = shot ? 1 : 2;
-                else if (m.Restart == RestartKind.Penalty) hint = 3;
+                if (m.RestartTeam == m.HumanTeam)
+                    hint = m.Restart == RestartKind.Penalty ? 1 : m.Restart == RestartKind.DirectFreeKick ? 2 : m.Restart == RestartKind.Corner ? 3 : 4;
+                else if (m.Restart == RestartKind.Penalty) hint = 5;
             }
             if (hint == _shownHint) return;
             _shownHint = hint;
             if (hint == 0) { _hint.style.display = DisplayStyle.None; return; }
-            _hint.text = hint == 1 ? "Mire com o analógico  ·  segure CHUTE para a força  ·  PASSE toca curto"
-                : hint == 2 ? "Mire com o analógico  ·  PASSE ou ENFIADA"
-                : "Pênalti contra: segure o analógico para cima ou para baixo para o goleiro escolher o lado";
+            switch (hint)
+            {
+                case 1: _hint.text = "Mire com o analógico  ·  segure CHUTE para a força"; break;
+                case 2: _hint.text = "Mire com o analógico  ·  CHUTE bate  ·  ALTO levanta na área  ·  PASSE toca curto"; break;
+                case 3: _hint.text = "Mire a região com o analógico  ·  ALTO cruza  ·  PASSE curto"; break;
+                case 4: _hint.text = "Mire com o analógico  ·  PASSE ou ENFIADA  ·  ALTO longo"; break;
+                default: _hint.text = "Pênalti contra: segure o analógico para cima ou para baixo para o goleiro escolher o lado"; break;
+            }
             _hint.style.display = DisplayStyle.Flex;
         }
 

@@ -15,7 +15,7 @@ namespace Game.Match.AI
         private const int SnapshotMagic = 0x534D4341; // "ACMS"
         /// <summary>Bump when the snapshot layout changes; older snapshots are then rejected (a match in progress is
         /// short-lived, it is not migrated like a career save).</summary>
-        public const int SnapshotVersion = 2; // 2: referee (A8a)
+        public const int SnapshotVersion = 4; // 2: referee (A8a); 4: high ball (A9a)
 
         /// <summary>
         /// The whole match state, binary (TECHNICAL_SPEC §5 "Snapshot e pausa": "MatchState inteiro serializável: ao ir
@@ -45,6 +45,10 @@ namespace Game.Match.AI
                 Write(w, _shotRng.GetState());
                 Write(w, _keeperRng.GetState());
                 Write(w, _refereeRng.GetState());
+                Write(w, _aerialRng.GetState());
+                w.Write(HasDropPoint);
+                w.Write(_headerShotInFlight);
+                Write(w, DropPoint);
 
                 w.Write(TeamRef(HumanTeam));
                 if (HumanTeam != null)
@@ -155,6 +159,10 @@ namespace Game.Match.AI
             _shotRng.SetState(ReadRng(r));
             _keeperRng.SetState(ReadRng(r));
             _refereeRng.SetState(ReadRng(r));
+            _aerialRng.SetState(ReadRng(r));
+            HasDropPoint = r.ReadBoolean();
+            _headerShotInFlight = r.ReadBoolean();
+            DropPoint = ReadV3(r);
 
             var human = TeamFrom(r.ReadInt32());
             if (human != null)
@@ -258,6 +266,7 @@ namespace Game.Match.AI
             w.Write(t.Goals);
             for (int i = 0; i < t.Supporter.Length; i++) w.Write(t.Supporter[i]);
             for (int i = 0; i < t.Presser.Length; i++) w.Write(t.Presser[i]);
+            for (int i = 0; i < t.DropZone.Length; i++) w.Write(t.DropZone[i]);
             w.Write(t.Chaser);
             w.Write(t.HasPossession);
             w.Write(t.OffsideU);
@@ -273,6 +282,7 @@ namespace Game.Match.AI
             t.Goals = r.ReadInt32();
             for (int i = 0; i < t.Supporter.Length; i++) t.Supporter[i] = r.ReadBoolean();
             for (int i = 0; i < t.Presser.Length; i++) t.Presser[i] = r.ReadBoolean();
+            for (int i = 0; i < t.DropZone.Length; i++) t.DropZone[i] = r.ReadBoolean();
             t.Chaser = r.ReadInt32();
             t.HasPossession = r.ReadBoolean();
             t.OffsideU = r.ReadSingle();
@@ -348,6 +358,7 @@ namespace Game.Match.AI
             w.Write(k.Timer);
             Write(w, k.Target);
             w.Write(k.Dove);
+            w.Write(k.ClaimDecided);
             w.Write(k.AngleErrorDegrees);
             w.Write(k.ErrorTimer);
             w.Write(k.LastReactionSeconds);
@@ -362,6 +373,7 @@ namespace Game.Match.AI
             k.Timer = r.ReadSingle();
             k.Target = ReadV3(r);
             k.Dove = r.ReadBoolean();
+            k.ClaimDecided = r.ReadBoolean();
             k.AngleErrorDegrees = r.ReadSingle();
             k.ErrorTimer = r.ReadSingle();
             k.LastReactionSeconds = r.ReadSingle();
@@ -388,6 +400,12 @@ namespace Game.Match.AI
             w.Write(s.FreeKicks);
             w.Write(s.Penalties);
             w.Write(s.PenaltyGoals);
+            w.Write(s.Crosses);
+            w.Write(s.LongBalls);
+            w.Write(s.Headers);
+            w.Write(s.AerialDuels);
+            w.Write(s.HeaderShots);
+            w.Write(s.HeaderGoals);
         }
 
         private static void ReadStats(BinaryReader r, AiTeamStats s)
@@ -408,6 +426,12 @@ namespace Game.Match.AI
             s.FreeKicks = r.ReadInt32();
             s.Penalties = r.ReadInt32();
             s.PenaltyGoals = r.ReadInt32();
+            s.Crosses = r.ReadInt32();
+            s.LongBalls = r.ReadInt32();
+            s.Headers = r.ReadInt32();
+            s.AerialDuels = r.ReadInt32();
+            s.HeaderShots = r.ReadInt32();
+            s.HeaderGoals = r.ReadInt32();
         }
 
         private static void Write(BinaryWriter w, Vector3 v)

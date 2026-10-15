@@ -17,8 +17,8 @@ namespace Game.Input
     /// </summary>
     public sealed class InputAdapter : MonoBehaviour
     {
-        private enum Button { None = -1, Shot = 0, Pass = 1, Through = 2, Sprint = 3 }
-        private const int ButtonCount = 4;
+        private enum Button { None = -1, Shot = 0, Pass = 1, Through = 2, Sprint = 3, High = 4 }
+        private const int ButtonCount = 5;
         private const int NoFinger = int.MinValue;
         private const int MouseFinger = int.MaxValue;
 
@@ -120,6 +120,7 @@ namespace Game.Input
                 _buttonHeld[(int)Button.Pass] |= keyboard.jKey.isPressed;
                 _buttonHeld[(int)Button.Through] |= keyboard.kKey.isPressed;
                 _buttonHeld[(int)Button.Shot] |= keyboard.spaceKey.isPressed;
+                _buttonHeld[(int)Button.High] |= keyboard.lKey.isPressed;
             }
 
             for (int b = 0; b < ButtonCount; b++)
@@ -137,7 +138,7 @@ namespace Game.Input
             MoveIntent = move;
             SprintHeld = sprint;
 
-            var command = _actionFilter.Step(Attack(Button.Pass), Attack(Button.Through), Attack(Button.Shot), _timings, Time.deltaTime);
+            var command = _actionFilter.Step(Attack(Button.Pass), Attack(Button.Through), Attack(Button.Shot), Attack(Button.High), _timings, Time.deltaTime);
             if (command.Kind != ActionKind.None) _pending = command;
         }
 
@@ -206,7 +207,8 @@ namespace Game.Input
                 case Button.Shot: return new Vector2(w - 0.16f * h, 0.18f * h);
                 case Button.Pass: return new Vector2(w - 0.40f * h, 0.12f * h);
                 case Button.Through: return new Vector2(w - 0.17f * h, 0.42f * h);
-                default: return new Vector2(w - 0.42f * h, 0.36f * h);
+                case Button.High: return new Vector2(w - 0.37f * h, 0.34f * h); // diagonal above (GAME_DESIGN §17)
+                default: return new Vector2(w - 0.62f * h, 0.12f * h); // sprint at the edge of the cluster
             }
         }
 
@@ -239,7 +241,7 @@ namespace Game.Input
                 float r = ButtonRadius(button);
                 var rect = new Rect(c.x - r, Screen.height - c.y - r, 2f * r, 2f * r); // OnGUI y grows downwards
                 var old = GUI.color;
-                if (DefenseMode && button == Button.Shot) GUI.color = new Color(1f, 1f, 1f, 0.35f); // carrinho: A9
+                if (DefenseMode && (button == Button.Shot || button == Button.High)) GUI.color = new Color(1f, 1f, 1f, 0.35f); // carrinho, 2º defensor: A9b
                 GUI.Box(rect, DefenseMode ? DefenseLabel(button) : Label(button), _buttonHeld[b] ? _heldStyle : _labelStyle);
                 GUI.color = old;
             }
@@ -314,6 +316,7 @@ namespace Game.Input
                 case Button.Shot: return "CARRINHO";
                 case Button.Pass: return "TROCAR";
                 case Button.Through: return "CONTENÇÃO";
+                case Button.High: return "PRESSIONAR";
                 default: return "SPRINT";
             }
         }
@@ -325,6 +328,7 @@ namespace Game.Input
                 case Button.Shot: return "CHUTE";
                 case Button.Pass: return "PASSE";
                 case Button.Through: return "ENFIADA";
+                case Button.High: return "ALTO";
                 default: return "SPRINT";
             }
         }

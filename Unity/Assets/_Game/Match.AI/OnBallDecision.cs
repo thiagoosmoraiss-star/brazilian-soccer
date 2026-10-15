@@ -12,6 +12,8 @@ namespace Game.Match.AI
         Dribble = 0,
         Pass = 1,
         Shot = 2,
+        /// <summary>Alto (A9a): a cross from the cross zone, or a lançamento to <see cref="OnBallDecisionResult.Receiver"/>.</summary>
+        High = 3,
     }
 
     public readonly struct OnBallDecisionResult
@@ -39,7 +41,8 @@ namespace Game.Match.AI
     {
         private const int MaxSeen = 11;
 
-        public static OnBallDecisionResult Decide(AiPlayer holder, AiTeam opponents, Pitch pitch, Balance balance, AiDefinition ai)
+        public static OnBallDecisionResult Decide(AiPlayer holder, AiTeam opponents, Pitch pitch, Balance balance, AiDefinition ai,
+            AerialDefinition aerial = null)
         {
             var team = holder.Team;
             var rng = team.Rng;
@@ -91,6 +94,8 @@ namespace Game.Match.AI
                 if (value > bestValue) { bestValue = value; best = new OnBallDecisionResult(OnBallChoice.Pass, candidate, receiver); }
             }
 
+            if (aerial != null && !holder.IsGoalkeeper) HighOptions(holder, opponents, pitch, balance, ai, aerial, noise, ref bestValue, ref best);
+
             // Shot: chance falls with distance and with how little of the goal is visible, and with bodies in the way.
             float chance = ShotChance(pos, team, pitch, ai);
             if (chance > 0f)
@@ -100,6 +105,53 @@ namespace Game.Match.AI
                 if (value >= ai.ShootChanceThreshold || value > bestValue) best = new OnBallDecisionResult(OnBallChoice.Shot, -1, goal);
             }
             return best;
+        }
+
+        /// <summary>Alto options (A9a): from the cross zone, a cross valued by Cruzamento and how many teammates wait in the
+        /// box; elsewhere, a lançamento to an open teammate far up the pitch. Receiver -1 = the default cross point.</summary>
+        private static void HighOptions(AiPlayer holder, AiTeam opponents, Pitch pitch, Balance balance, AiDefinition ai, AerialDefinition a,
+            float noise, ref float bestValue, ref OnBallDecisionResult best)
+        {
+            var team = holder.Team;
+            var rng = team.Rng;
+            var pos = holder.Body.Position;
+            if (HighBallSystem.InCrossZone(pos, team.Frame.AttackingPositiveX, pitch, a))
+            {
+                int inBox = 0, target = -1;
+                float bestOpen = -1f;
+                for (int i = 0; i < team.Players.Length; i++)
+                {
+                    var q = team.Players[i];
+                    if (q == holder || q.IsGoalkeeper || q.Body.OffPitch) continue;
+                    var qp = q.Body.Position;
+                    if (!pitch.InPenaltyArea(qp.X, qp.Y, team.Frame.AttackingPositiveX)) continue;
+                    inBox++;
+                    float open = NearestOpponentDistance(qp, opponents);
+                    if (open > bestOpen) { bestOpen = open; target = i; }
+                }
+                // Nobody in the box: only a pressed winger puts it in anyway (a quarter of the value).
+                bool pressed = NearestOpponentDistance(pos, opponents) < ai.ReceiverPressureRadius;
+                if (inBox > 0 || pressed)
+                {
+                    float company = inBox > 0 ? MathF.Min(1f, inBox * 0.5f) : 0.25f;
+                    float value = a.AiCrossValue * balance.Eval(Effect.CrossQuality, holder.Setup.Attributes) * company
+                                  + noise * KickErrorRules.Triangular(rng);
+                    if (value > bestValue) { bestValue = value; best = new OnBallDecisionResult(OnBallChoice.High, target, pos); }
+                }
+                return;
+            }
+            float u0 = team.Frame.U(pos);
+            for (int i = 0; i < team.Players.Length; i++)
+            {
+                var q = team.Players[i];
+                if (q == holder || q.IsGoalkeeper || q.Body.OffPitch) continue;
+                var qp = q.Body.Position;
+                float d = Vector3.Distance(qp, pos);
+                if (d < a.AiLongBallMinDistance || d > a.MaxTargetDistance || team.Frame.U(qp) <= u0) continue;
+                float open = MathUtil.Clamp01(NearestOpponentDistance(qp, opponents) / (2f * ai.ReceiverPressureRadius));
+                float value = a.AiLongBallValue * open * Threat(qp, team, pitch, ai) + noise * KickErrorRules.Triangular(rng);
+                if (value > bestValue) { bestValue = value; best = new OnBallDecisionResult(OnBallChoice.High, i, qp); }
+            }
         }
 
         /// <summary>Clear-shot quality 0-1 from <paramref name="point"/>: falls with distance (0 beyond the shot range)

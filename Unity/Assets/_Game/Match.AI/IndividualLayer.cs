@@ -16,17 +16,43 @@ namespace Game.Match.AI
     public static class IndividualLayer
     {
         /// <summary>Team-rate refresh of who supports / presses / chases.</summary>
-        public static void Assign(AiTeam team, AiTeam opponents, Ball ball, Balance balance, AiDefinition ai)
+        /// <param name="hasDrop">A ball in the air comes down at <paramref name="drop"/> (A9a): the loose-ball chaser is
+        /// timed to there, and <paramref name="dropPlayers"/> more of the nearest players go for it too.</param>
+        public static void Assign(AiTeam team, AiTeam opponents, Ball ball, Balance balance, AiDefinition ai,
+            bool hasDrop = false, Vector3 drop = default, int dropPlayers = 0)
         {
-            for (int i = 0; i < team.Players.Length; i++) { team.Supporter[i] = false; team.Presser[i] = false; }
+            for (int i = 0; i < team.Players.Length; i++) { team.Supporter[i] = false; team.Presser[i] = false; team.DropZone[i] = false; }
 
             bool controlled = ball.State == BallState.Controlled && ball.Owner >= 0;
             if (team.HasPossession) PickNearest(team, ball.Position, ai.SupportPlayers, team.Supporter, controlled ? ball.Owner : -1, float.PositiveInfinity, ai, balance, false);
             else if (controlled) PickNearest(team, ball.Position, team.Tactics.Pressers, team.Presser, -1, team.Tactics.PressTriggerDistance, ai, balance, true);
 
             if (controlled || ball.State == BallState.Dead) { team.Chaser = -1; return; }
-            if (team.Receiver >= 0) { team.Chaser = team.Receiver; return; } // our pass: its receiver goes for it
+            var loose = hasDrop ? drop : ball.Position;
+            if (team.Receiver >= 0) team.Chaser = team.Receiver; // our pass: its receiver goes for it
+            else team.Chaser = LooseBallChaser(team, loose, balance, ai);
+            if (hasDrop)
+            {
+                // A high ball: more bodies attack (or defend) the drop zone.
+                for (int n = 0; n < dropPlayers; n++)
+                {
+                    int best = -1;
+                    float bestSqr = float.PositiveInfinity;
+                    for (int i = 0; i < team.Players.Length; i++)
+                    {
+                        var p = team.Players[i];
+                        if (p.IsGoalkeeper || p.Body.OffPitch || i == team.Chaser || team.DropZone[i]) continue;
+                        float d = Vector3.DistanceSquared(p.Body.Position, loose);
+                        if (d < bestSqr) { bestSqr = d; best = i; }
+                    }
+                    if (best < 0) break;
+                    team.DropZone[best] = true;
+                }
+            }
+        }
 
+        private static int LooseBallChaser(AiTeam team, Vector3 loose, Balance balance, AiDefinition ai)
+        {
             // Loose ball: the player who would get there first (sprint + reaction), sticky by hysteresis.
             int best = -1;
             float bestTime = float.PositiveInfinity;
@@ -34,12 +60,12 @@ namespace Game.Match.AI
             {
                 var p = team.Players[i];
                 if (p.IsGoalkeeper || p.Body.OffPitch) continue;
-                float time = Vector3.Distance(p.Body.Position, ball.Position) / balance.Eval(Effect.SprintSpeed, p.Setup.Attributes)
+                float time = Vector3.Distance(p.Body.Position, loose) / balance.Eval(Effect.SprintSpeed, p.Setup.Attributes)
                              + balance.Eval(Effect.LooseBallReaction, p.Setup.Attributes);
                 if (i == team.Chaser) time *= 1f - ai.AssignmentHysteresis;
                 if (time < bestTime) { bestTime = time; best = i; }
             }
-            team.Chaser = best;
+            return best;
         }
 
         /// <summary>Marks the <paramref name="count"/> outfield players nearest to <paramref name="point"/>; current
@@ -73,7 +99,8 @@ namespace Game.Match.AI
             bool controlled = ball.State == BallState.Controlled && ball.Owner >= 0;
             if (controlled && ball.Owner == p.Global) return AiIntention.OnBall;
             if (p.IsGoalkeeper) return AiIntention.HoldShape;
-            if (!controlled && ball.State != BallState.Dead && (team.Chaser == p.Local || team.Receiver == p.Local)) return AiIntention.ChaseBall;
+            if (!controlled && ball.State != BallState.Dead && (team.Chaser == p.Local || team.Receiver == p.Local || team.DropZone[p.Local]))
+                return AiIntention.ChaseBall;
             if (team.HasPossession) return team.Supporter[p.Local] ? AiIntention.Support : AiIntention.HoldShape;
             if (controlled && team.Presser[p.Local]) return AiIntention.Press;
             return MarkTarget(p, opponents, ball, ai, out _) >= 0 ? AiIntention.Mark : AiIntention.HoldShape;
@@ -115,7 +142,7 @@ namespace Game.Match.AI
 
         /// <summary>Where the intention wants the player to stand.</summary>
         public static Vector3 Target(AiPlayer p, AiTeam opponents, Ball ball, Pitch pitch, AiDefinition ai, float tick, Balance balance,
-            float rollingFriction)
+            float rollingFriction, bool hasDrop = false, Vector3 drop = default)
         {
             switch (p.Intention)
             {
@@ -133,6 +160,7 @@ namespace Game.Match.AI
                 case AiIntention.Press:
                     return GoalSide(ball.Position, p.Team.Frame.OwnGoal, ai.ContainDistance);
                 case AiIntention.ChaseBall:
+                    if (hasDrop) return drop; // a ball in the air: where it comes down to head height (A9a)
                     return InterceptPoint(p.Body.Position, balance.Eval(Effect.SprintSpeed, p.Setup.Attributes), ball, rollingFriction, ai);
                 case AiIntention.OnBall:
                     return p.DribbleTarget;

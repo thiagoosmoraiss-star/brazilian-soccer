@@ -26,6 +26,7 @@ namespace Game.Match.AI
         public int FreeKicks;
         public int Penalties;
         public int PenaltyGoals;
+        public int Crosses, LongBalls, Headers, AerialDuels, HeaderShots, HeaderGoals;
 
         internal void Clear()
         {
@@ -73,6 +74,7 @@ namespace Game.Match.AI
         {
             Stats(p.Team).Shots++;
             _playerShots[p.Global]++;
+            _headerShotInFlight = false;
             _pendingShot = p.Global;
             MarkOffside(p.Team, p); // a rebound to an offside teammate is offside
             RecordEvent(MatchEventType.Shot, p.Team.Side, p.Setup.PlayerId, Id.None);

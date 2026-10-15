@@ -8,6 +8,8 @@ namespace Game.Match
         Pass = 1,
         Through = 2,
         Shot = 3,
+        /// <summary>Alto: lançamento, or a cross in the cross zone (A9a; GAME_DESIGN §19).</summary>
+        High = 4,
     }
 
     /// <summary>One action released by the player. <see cref="Power"/> is 0-1 from the hold time, or
@@ -61,7 +63,11 @@ namespace Game.Match
         /// <summary>0-1 fill of the bar currently charging (for the HUD).</summary>
         public float ChargeFraction => _charging == ActionKind.None ? 0f : PowerFor(_charging, _heldSeconds, _lastTimings, forHud: true);
 
-        public ActionCommand Step(bool passHeld, bool throughHeld, bool shotHeld, KickTimings timings, float dt)
+        public ActionCommand Step(bool passHeld, bool throughHeld, bool shotHeld, KickTimings timings, float dt) =>
+            Step(passHeld, throughHeld, shotHeld, false, timings, dt);
+
+        /// <summary>With the Alto button (A9a): tap = automatic force to the target, hold = manual distance.</summary>
+        public ActionCommand Step(bool passHeld, bool throughHeld, bool shotHeld, bool highHeld, KickTimings timings, float dt)
         {
             _lastTimings = timings;
             if (_charging == ActionKind.None)
@@ -70,11 +76,13 @@ namespace Game.Match
                 if (shotHeld) _charging = ActionKind.Shot;
                 else if (passHeld) _charging = ActionKind.Pass;
                 else if (throughHeld) _charging = ActionKind.Through;
+                else if (highHeld) _charging = ActionKind.High;
                 _heldSeconds = 0f;
                 return ActionCommand.None;
             }
 
-            bool stillHeld = _charging == ActionKind.Shot ? shotHeld : _charging == ActionKind.Pass ? passHeld : throughHeld;
+            bool stillHeld = _charging == ActionKind.Shot ? shotHeld : _charging == ActionKind.Pass ? passHeld
+                : _charging == ActionKind.High ? highHeld : throughHeld;
             if (stillHeld)
             {
                 _heldSeconds += dt;

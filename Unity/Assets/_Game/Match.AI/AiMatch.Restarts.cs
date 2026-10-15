@@ -102,6 +102,12 @@ namespace Game.Match.AI
                     if (Restart == RestartKind.DirectFreeKick || Restart == RestartKind.Penalty) return TakeShotRestart(_humanAim, command.Power);
                     return AiMatchEvent.None;
                 }
+                if (command.Kind == ActionKind.High)
+                {
+                    // Alto (A9a): corner cross, long goal kick, long throw-in, lofted free kick (no lofted penalty).
+                    if (Restart == RestartKind.Penalty) return AiMatchEvent.None;
+                    return TakeHighRestart(_humanAim, command.Power);
+                }
                 var kind = command.Kind == ActionKind.Through && Restart != RestartKind.GoalKick ? PassKind.Through : PassKind.Ground;
                 return TakeRestart(_humanAim, kind, command.Power);
             }
@@ -109,8 +115,65 @@ namespace Game.Match.AI
             if (Restart == RestartKind.FreeKick || Restart == RestartKind.DirectFreeKick || Restart == RestartKind.Penalty) return AiSetPiece();
 
             var opp = Opponents(RestartTeam);
+            // A9a: the AI crosses most corners and sometimes goes long from a goal kick.
+            if (Restart == RestartKind.Corner && _aerialRng.NextFloat() < _aerial.AiCornerCrossChance)
+            {
+                var c = DefaultCrossPoint(RestartTeam);
+                return TakeHighRestart(new Vector2(c.X - Ball.Position.X, c.Y - Ball.Position.Y), ActionCommand.AutoPower);
+            }
+            if (Restart == RestartKind.GoalKick && _aerialRng.NextFloat() < _aerial.AiGoalKickLongChance)
+            {
+                var f = RestartTeam.Players[MostAdvanced(RestartTeam)].Body.Position;
+                return TakeHighRestart(new Vector2(f.X - Ball.Position.X, f.Y - Ball.Position.Y), ActionCommand.AutoPower);
+            }
             var to = RestartTeam.Players[Outlet(Taker, opp)].Body.Position;
             return TakeRestart(new Vector2(to.X - Ball.Position.X, to.Y - Ball.Position.Y), PassKind.Ground, ActionCommand.AutoPower);
+        }
+
+        /// <summary>A restart played with Alto (A9a): a cross from a corner (or a free kick in range of the box), otherwise a
+        /// lançamento; a throw-in goes no farther than a long throw.</summary>
+        private AiMatchEvent TakeHighRestart(Vector2 aim, float power)
+        {
+            var p = Taker;
+            var team = RestartTeam;
+            _offsideExempt = Restart == RestartKind.ThrowIn || Restart == RestartKind.Corner || Restart == RestartKind.GoalKick;
+            var goal = team.Frame.TargetGoal;
+            bool nearBox = Vector2.Distance(new Vector2(goal.X, goal.Y), new Vector2(RestartSpot.X, RestartSpot.Y)) <= _aerial.CrossZoneDepth;
+            bool cross = Restart == RestartKind.Corner || ((Restart == RestartKind.FreeKick || Restart == RestartKind.DirectFreeKick) && nearBox)
+                         || HighBallSystem.InCrossZone(RestartSpot, team.Frame.AttackingPositiveX, Pitch, _aerial);
+            float maxRange = Restart == RestartKind.ThrowIn ? _aerial.ThrowInMaxDistance : float.PositiveInfinity;
+            float pressure = OnBallDecision.NearestOpponentDistance(p.Body.Position, Opponents(team));
+            var pass = HighBallSystem.Execute(p.Local, team.Bodies, team.Bodies.Length, Ball, p.Setup, _balance, _kicking, _aerial, _ballCfg,
+                Pitch, team.Frame.AttackingPositiveX, cross, aim, power, false, pressure, maxRange, _passRng);
+            Ball.LastTouch = p.Global;
+            if (p.IsGoalkeeper) KeeperOf(team).State = KeeperState.Positioning;
+            SetIntention(p, AiIntention.HoldShape);
+            EndRestart();
+            if (cross) Stats(team).Crosses++; else Stats(team).LongBalls++;
+            OnPassed(team, p, pass.Target);
+            _offsideExempt = false;
+            if (team == HumanTeam)
+            {
+                Control.OnPassReleased(p.Local, pass.Target, pass.PredictedStop, team.Bodies, team.Bodies.Length);
+                if (team.Players[Control.Controlled].IsGoalkeeper) Control.OnCaptured(Outlet(p, Opponents(team)));
+            }
+            else _opponentPassed = true;
+            return AiMatchEvent.Pass;
+        }
+
+        /// <summary>The outfield player furthest up the pitch.</summary>
+        private int MostAdvanced(AiTeam team)
+        {
+            int best = -1;
+            float bestU = float.MinValue;
+            for (int i = 0; i < team.Players.Length; i++)
+            {
+                var q = team.Players[i];
+                if (q.IsGoalkeeper || q.Body.OffPitch) continue;
+                float u = team.Frame.U(q.Body.Position);
+                if (u > bestU) { bestU = u; best = i; }
+            }
+            return best;
         }
 
         private AiMatchEvent TakeRestart(Vector2 aim, PassKind kind, float power)

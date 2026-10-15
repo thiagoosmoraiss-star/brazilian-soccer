@@ -25,6 +25,8 @@ namespace Game.Match.AI
         // Team-layer assignments (refreshed at the team rate, read by the individual layer).
         internal readonly bool[] Supporter = new bool[MatchTeamSetup.StarterCount];
         internal readonly bool[] Presser = new bool[MatchTeamSetup.StarterCount];
+        /// <summary>Goes for a high ball's drop zone besides the chaser/receiver (A9a).</summary>
+        internal readonly bool[] DropZone = new bool[MatchTeamSetup.StarterCount];
         internal int Chaser = -1;
         /// <summary>Team-local index of the teammate an own pass in flight is meant for (he goes to meet it at once), or -1.</summary>
         public int Receiver { get; internal set; } = -1;

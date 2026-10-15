@@ -38,8 +38,12 @@ namespace Game.Match
             float currentSpeed = new Vector3(body.Velocity.X, body.Velocity.Y, 0f).Length();
             Vector3 currentDir = currentSpeed > mv.StopSpeedEpsilon ? Vector3.Normalize(body.Velocity) : body.Facing;
 
+            bool wasStumbling = body.TurnStunRemaining > 0f;
             body.TurnStunRemaining = MathF.Max(0f, body.TurnStunRemaining - dt);
-            if (body.TurnStunRemaining <= 0f && moving && currentSpeed > mv.StopSpeedEpsilon && currentSpeed >= mv.TurnStumbleMinSpeed)
+            // The step a stumble ends, it has absorbed the turn: he sets off the new way at the reduced speed instead of
+            // stumbling again on the same turn (X-73: a reversal chained 4-5 stumbles, ~1 s frozen).
+            if (wasStumbling && body.TurnStunRemaining <= 0f) { }
+            else if (body.TurnStunRemaining <= 0f && moving && currentSpeed > mv.StopSpeedEpsilon && currentSpeed >= mv.TurnStumbleMinSpeed)
             {
                 float dot = MathUtil.Clamp(Vector3.Dot(currentDir, desiredDir), -1f, 1f);
                 float angleDeg = MathF.Acos(dot) * RadToDeg;

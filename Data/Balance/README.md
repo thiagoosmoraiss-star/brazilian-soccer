@@ -63,7 +63,7 @@ Used by `Game.Match.Movement`/`Possession`/`DribbleSystem`. Attribute-dependent 
 | `sprintMemorySeconds` | Sprint keeps going this long after release if the stick is still pushed (GAME_DESIGN §17: 0.4 s) | ≥ 0 |
 | `inputBufferSeconds` | Input buffer (GAME_DESIGN §17: ~150 ms) | ≥ 0 |
 | `stopSpeedEpsilon` | Speed below which a player is considered stopped | > 0 |
-| `turnStumbleMinSpeed` | A sharp turn only stumbles (speed loss + recovery time) a player moving at least this fast (m/s); a player all but stopped turns freely (X-69) | ≥ 0 |
+| `turnStumbleMinSpeed` | A sharp turn only stumbles (speed loss + recovery time) a player moving at least this fast (m/s); a player all but stopped turns freely (X-69). The step a stumble ends it has absorbed the turn: no second stumble on the same turn (X-73) | ≥ 0 |
 
 ## fatigue.json — fatigue coefficients (A2, baseline v1, X-49)
 
@@ -258,3 +258,33 @@ Fouls on contact before the ball, cards, offside at the pass, free kicks with an
 | `penalty.keeperDiveLateral` | A diving keeper aims this far from the goal's centre (m) | ≥ 0 |
 | `penalty.areaClearance` | Players wait this far outside the penalty area (m) | ≥ 0 |
 | `penalty.userDiveDeadzone` | Defending a penalty, the user's stick must point at least this far across the goal (0-1) for his keeper to dive that way; less, he stays in the middle (A8b) | 0 ≤ x < 1 |
+
+## aerial.json — the high ball (A9a, baseline v1, X-73)
+
+"Alto" (lançamento and cruzamento alto, GAME_DESIGN §19), the header and its aerial duel (§20), the keeper and crosses (§23) and the AI's use of high balls. Attribute effects: CrossAngleError, PassAngleError, PassPowerError (the flight), AerialDuel (Cabeceio + Força), HeaderAccuracy, HeaderPower, CrossQuality (AI), GkCrossClaimRange, GkCrossDecisionQuality (keeper). The launch speed is solved in closed form under the same gravity and linear air drag the ball physics integrates (`HighBallSystem`). Ranges in `Data/TestRanges/aerial.json`.
+
+| Field | Controls | Valid values |
+| --- | --- | --- |
+| `high.longElevationDegrees` / `crossElevationDegrees` | Launch elevation of a lançamento (lands at the target's feet) and of a cross (arrives at `crossArrivalHeight`) (deg) | (0, 80] |
+| `high.crossArrivalHeight` | Height a cross arrives at its target (m) | ≥ 0 |
+| `high.minDistance` / `maxDistance` | A held Alto sends the ball this far between empty and full bar (m) | max > min > 0 |
+| `high.maxTargetDistance` | The Semi cone looks this far for a high-ball target (m) | > 0 |
+| `high.spaceDistance` | A tapped Alto with nobody in the cone goes this far into space (m) | > 0 |
+| `high.maxLaunchSpeed` | Cap on the launch speed (m/s) | > 0 |
+| `high.longErrorMultiplier` | A lançamento's direction error = PassAngleError × this (a cross uses CrossAngleError) | ≥ 0 |
+| `high.powerErrorScale` | PassPowerError applied to the launch speed, times this | ≥ 0 |
+| `high.crossZoneDepth` / `crossZoneMinLateral` | Cross zone: within this far of the goal line (m) and at least this far from the centre line (m) | > 0 / ≥ 0 |
+| `high.crossDefaultDepth` | A cross with nobody in the cone aims at the centre of the goal this far out (m) | > 0 |
+| `high.throwInMaxDistance` | A long throw-in goes no farther (m) | > 0 |
+| `header.reachHeight` | Highest ball a jumping player meets with his head (m); below the capture height it is feet | > 0 |
+| `header.radius` | Horizontal distance within which a player contests a dropping ball (m) | > 0 |
+| `header.closenessWeight` | In a duel, being closer adds up to this much to the AerialDuel weight | 0–1 |
+| `header.shotRange` | An attacker this close to the goal heads at it (m) | ≥ 0 |
+| `header.shotTargetHeight` / `verticalErrorFraction` | Header shots aim at this height; vertical error = HeaderAccuracy × fraction | ≥ 0 |
+| `header.passSpeedFactor` / `passElevationDegrees` | A headed pass leaves at HeaderPower × factor, at this elevation | (0, 1] / (0, 80] |
+| `header.clearanceElevationDegrees` / `clearanceSpreadDegrees` | A defender's clearance: elevation, and up to this far off straight away from his goal | (0, 80] / 0–90 |
+| `ai.crossValue` | Weight of a cross in the AI's on-ball decision (× CrossQuality × teammates in the box; a quarter when nobody is there and the crosser is pressed) | ≥ 0 |
+| `ai.longBallMinDistance` / `longBallValue` | The AI plays a lançamento only to a teammate at least this far away and further up, with this weight (× openness × threat) | ≥ 0 |
+| `ai.dropZonePlayers` | Besides the receiver/chaser, this many of each side's nearest players go for a high ball's drop zone | ≥ 0 |
+| `ai.cornerCrossChance` / `goalKickLongChance` | The AI crosses this share of its corners and goes long from this share of its goal kicks | 0–1 |
+

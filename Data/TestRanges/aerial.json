@@ -1,0 +1,18 @@
+{
+  "schemaVersion": 1,
+  "sources": {
+    "flight": "DESIGN: the closed-form launch (gravity + linear drag) must agree with the integrated ball physics; an elite passer (99) lands a 30 m lançamento near the target's feet",
+    "duel": "GAME_DESIGN §20: 'disputa por posição > altura + Força + Cabeceio'. A much better header (Cabeceio + Força) wins most duels at equal distance; DESIGN ESTIMATE for 'most'",
+    "headless": "DESIGN ESTIMATE (A9a, X-73): the AI crosses from the cross zone and plays some lançamentos; headers happen every match; real-football references (scaled by the rhythm of X-65): ~15-20% of goals are headers (ESTIMATE, widely reported)"
+  },
+  "flight": { "maxIntegrationErrorMeters": 1.0, "eliteLandingErrorMeters": 3.0, "trials": 40 },
+  "duel": { "trials": 120, "strongWinMin": 0.6, "strong": 90, "weak": 30 },
+  "headless": {
+    "matches": 100,
+    "minutes": 4,
+    "seed": 1,
+    "crossesPerMatch": [0.8, 5.0],
+    "headersPerMatch": [3.0, 20.0],
+    "headerShotsPerMatch": [0.1, 1.5]
+  }
+}

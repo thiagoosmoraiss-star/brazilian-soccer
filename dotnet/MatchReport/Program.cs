@@ -112,6 +112,9 @@ namespace Game.Tools.MatchReport
             Console.WriteLine($"  referee per match: fouls {r.PerMatch(r.Fouls):F1}, yellow {r.PerMatch(r.Yellows):F2}, red {r.PerMatch(r.Reds):F2}, "
                               + $"offsides {r.PerMatch(r.Offsides):F1}, free kicks {r.PerMatch(r.FreeKicks):F1}, penalties {r.PerMatch(r.Penalties):F2} "
                               + $"(scored {(r.Penalties > 0 ? r.PenaltyGoals / r.Penalties : 0):P0})");
+            Console.WriteLine($"  high ball per match: crosses {r.PerMatch(r.Crosses):F1}, long balls {r.PerMatch(r.LongBalls):F1}, "
+                              + $"headers {r.PerMatch(r.Headers):F1} ({r.PerMatch(r.HeaderShots):F2} shots, {r.PerMatch(r.HeaderGoals):F2} goals), "
+                              + $"aerial duels {r.PerMatch(r.AerialDuels):F1}");
         }
     }
 }

@@ -1,0 +1,39 @@
+{
+  "schemaVersion": 1,
+  "high": {
+    "longElevationDegrees": 30.0,
+    "crossElevationDegrees": 22.0,
+    "crossArrivalHeight": 1.7,
+    "minDistance": 12.0,
+    "maxDistance": 55.0,
+    "maxTargetDistance": 50.0,
+    "spaceDistance": 30.0,
+    "maxLaunchSpeed": 32.0,
+    "longErrorMultiplier": 1.3,
+    "powerErrorScale": 0.5,
+    "crossZoneDepth": 30.0,
+    "crossZoneMinLateral": 10.0,
+    "crossDefaultDepth": 8.0,
+    "throwInMaxDistance": 25.0
+  },
+  "header": {
+    "reachHeight": 2.4,
+    "radius": 0.9,
+    "closenessWeight": 0.5,
+    "shotRange": 14.0,
+    "shotTargetHeight": 1.0,
+    "verticalErrorFraction": 0.5,
+    "passSpeedFactor": 0.7,
+    "passElevationDegrees": 15.0,
+    "clearanceElevationDegrees": 30.0,
+    "clearanceSpreadDegrees": 30.0
+  },
+  "ai": {
+    "crossValue": 0.9,
+    "longBallMinDistance": 30.0,
+    "longBallValue": 0.25,
+    "dropZonePlayers": 2,
+    "cornerCrossChance": 0.8,
+    "goalKickLongChance": 0.3
+  }
+}

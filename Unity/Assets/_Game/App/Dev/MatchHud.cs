@@ -57,8 +57,8 @@ namespace Game.App.Dev
             if (!m.RestartReady) return $"{RestartName(m.Restart)} ({who}) — posicionando";
             if (m.RestartTeam != m.HumanTeam) return $"{RestartName(m.Restart)} ({who})";
             return m.Restart == RestartKind.DirectFreeKick || m.Restart == RestartKind.Penalty
-                ? $"{RestartName(m.Restart)}: mire com o analógico e toque CHUTE (Espaço), PASSE (J) ou ENFIADA (K)"
-                : $"{RestartName(m.Restart)}: mire com o analógico e toque PASSE (J) ou ENFIADA (K)";
+                ? $"{RestartName(m.Restart)}: mire com o analógico e toque CHUTE (Espaço), PASSE (J), ENFIADA (K) ou ALTO (L)"
+                : $"{RestartName(m.Restart)}: mire com o analógico e toque PASSE (J), ENFIADA (K) ou ALTO (L)";
         }
     }
 }
