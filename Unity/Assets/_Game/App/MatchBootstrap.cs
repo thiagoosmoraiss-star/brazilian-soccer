@@ -89,7 +89,7 @@ namespace Game.App
             _input.Configure(new KickTimings(_db.Kicking.Common.TapMaxSeconds, _db.Kicking.Pass.PowerBarSeconds, _db.Kicking.Shot.PowerBarSeconds),
                 _db.Movement.SprintMemorySeconds);
 
-            if (CareerContext.Ready && CareerContext.Career.PendingUserMatch != null) StartCareerMatch();
+            if (CareerContext.Ready && CareerContext.Session.HasCareer && CareerContext.Career.PendingUserMatch != null) StartCareerMatch();
             else if (!TryResume()) NewMatch(PlayStrongTeam, (ulong)Environment.TickCount);
         }
 
@@ -113,14 +113,15 @@ namespace Game.App
         {
             var career = CareerContext.Career;
             _pending = career.PendingUserMatch;
+            var setup = CareerContext.Session.PlaySetup(_pending); // the duration chosen in the settings (C3a)
             var saved = career.State.MatchInProgress;
             MatchSession session = null;
             if (saved != null && saved.FixtureId == _pending.Fixture.Id)
             {
-                try { session = MatchSession.Restore(_db, _pending.Setup, StepSeconds, saved.Snapshot); }
+                try { session = MatchSession.Restore(_db, setup, StepSeconds, saved.Snapshot); }
                 catch (ArgumentException e) { Debug.LogWarning("MatchBootstrap: the saved match could not be restored, starting it again: " + e.Message); }
             }
-            if (session == null) session = new MatchSession(_db, _pending.Setup, StepSeconds, _pending.UserSide);
+            if (session == null) session = new MatchSession(_db, setup, StepSeconds, _pending.UserSide);
             var f = _pending.Fixture;
             Build(session, CareerContext.ClubName(f.HomeClubId), CareerContext.ClubName(f.AwayClubId), _pending.UserSide, CareerContext.PlayerName);
             _hud.SetCareerMode();

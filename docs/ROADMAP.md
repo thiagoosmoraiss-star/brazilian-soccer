@@ -235,6 +235,7 @@ Pedido do usuário (13/10/2026): a cada etapa concluída, informar a porcentagem
 - **Testes:** PlayMode de navegação; alvos de toque ≥ 44 pt; fim de partida → próxima em ≤ 3 toques.
 - **Aceite:** carreira completa jogável pela UI.
 - **Não implementar:** animações e cenas especiais (C4), telas de funcionalidades fora do MVP.
+- **Divisão (X-95):** **C3a** base e ciclo do jogo (strings, `UI.Presenters`, Shell em pilha + barra inferior, inicial, escolha de clube, Hub, pré/pós-jogo, competições, calendário, configurações); **C3b** elenco (lista, perfil, escalação e tática do usuário na carreira); **C3c** mercado (comandos do usuário + telas Mercado/Negociação); **C3d** clube, diretoria e finanças (obras e staff pelo usuário); **C3e** identidade e aceite (fontes, PlayMode, alvos de toque, ≤ 3 toques, carreira completa pela UI). A C3 conta no progresso só com as cinco concluídas.
 
 ### C4 — Áudio e apresentação
 - **Objetivo:** emoção básica.

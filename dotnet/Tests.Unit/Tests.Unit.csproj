@@ -26,5 +26,6 @@
     <ProjectReference Include="../Career.Market/Career.Market.csproj" />
     <ProjectReference Include="../Career.Economy/Career.Economy.csproj" />
     <ProjectReference Include="../Save/Save.csproj" />
+    <ProjectReference Include="../UI.Presenters/UI.Presenters.csproj" />
   </ItemGroup>
 </Project>

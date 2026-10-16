@@ -1,0 +1,26 @@
+<Project Sdk="Microsoft.NET.Sdk">
+  <!-- Compiles the pure UI presenters in place (C3a, X-95). No Unity references are available here:
+       any UnityEngine usage in UI.Presenters fails this build. -->
+  <PropertyGroup>
+    <TargetFramework>netstandard2.1</TargetFramework>
+    <AssemblyName>UI.Presenters</AssemblyName>
+    <RootNamespace>Game.UI.Presenters</RootNamespace>
+  </PropertyGroup>
+  <ItemGroup>
+    <Compile Include="$(GameSources)UI.Presenters/**/*.cs" />
+  </ItemGroup>
+  <ItemGroup>
+    <ProjectReference Include="../Core/Core.csproj" />
+    <ProjectReference Include="../Data/Data.csproj" />
+    <ProjectReference Include="../Rules/Rules.csproj" />
+    <ProjectReference Include="../Simulation/Simulation.csproj" />
+    <ProjectReference Include="../Career/Career.csproj" />
+    <ProjectReference Include="../Career.Market/Career.Market.csproj" />
+    <ProjectReference Include="../Career.Economy/Career.Economy.csproj" />
+    <ProjectReference Include="../Save/Save.csproj" />
+  </ItemGroup>
+  <ItemGroup>
+    <!-- D-11: same Json.NET version bundled by Unity's com.unity.nuget.newtonsoft-json 3.2.1. -->
+    <PackageReference Include="Newtonsoft.Json" Version="13.0.2" />
+  </ItemGroup>
+</Project>

@@ -39,6 +39,10 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Tests.Save", "Tests.Save\Te
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "MatchReport", "MatchReport\MatchReport.csproj", "{69107729-6E60-4B2F-8BF7-F3EAB0684165}"
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "UI.Presenters", "UI.Presenters\UI.Presenters.csproj", "{A7931A9E-05A0-4948-9224-BC4186B62C15}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Tests.UI", "Tests.UI\Tests.UI.csproj", "{2132DB48-221F-41BB-AD69-C4B18B927DB0}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -120,5 +124,13 @@ Global
 		{69107729-6E60-4B2F-8BF7-F3EAB0684165}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{69107729-6E60-4B2F-8BF7-F3EAB0684165}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{69107729-6E60-4B2F-8BF7-F3EAB0684165}.Release|Any CPU.Build.0 = Release|Any CPU
+		{A7931A9E-05A0-4948-9224-BC4186B62C15}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{A7931A9E-05A0-4948-9224-BC4186B62C15}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{A7931A9E-05A0-4948-9224-BC4186B62C15}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{A7931A9E-05A0-4948-9224-BC4186B62C15}.Release|Any CPU.Build.0 = Release|Any CPU
+		{2132DB48-221F-41BB-AD69-C4B18B927DB0}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{2132DB48-221F-41BB-AD69-C4B18B927DB0}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{2132DB48-221F-41BB-AD69-C4B18B927DB0}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{2132DB48-221F-41BB-AD69-C4B18B927DB0}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 EndGlobal

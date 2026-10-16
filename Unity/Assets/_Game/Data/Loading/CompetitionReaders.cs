@@ -62,18 +62,22 @@ namespace Game.Data.Loading
             var mr = j.Object(root, "matchRules", "root");
             if (mr != null)
             {
-                j.Keys(mr, "matchRules", "benchSize", "maxSubstitutions", "durationMinutes", "aiTactic");
+                j.Keys(mr, "matchRules", "benchSize", "maxSubstitutions", "durationMinutes", "durationOptions", "aiTactic");
                 var ai = j.Object(mr, "aiTactic", "matchRules");
                 if (ai != null) j.Keys(ai, "matchRules.aiTactic", "mentality", "defensiveLine", "pressure");
                 d.MatchRules = new CompetitionMatchRules
                 {
                     BenchSize = j.Int(mr, "benchSize", "matchRules"), MaxSubstitutions = j.Int(mr, "maxSubstitutions", "matchRules"),
                     DurationMinutes = j.Int(mr, "durationMinutes", "matchRules"),
+                    DurationOptions = j.IntList(mr, "durationOptions", "matchRules") ?? new System.Collections.Generic.List<int>(),
                     AiMentality = ai == null ? 0 : j.Int(ai, "mentality", "matchRules.aiTactic"),
                     AiDefensiveLine = ai == null ? 0 : j.Int(ai, "defensiveLine", "matchRules.aiTactic"),
                     AiPressure = ai == null ? 0 : j.Int(ai, "pressure", "matchRules.aiTactic"),
                 };
                 Check(d.MatchRules.BenchSize >= 0 && d.MatchRules.MaxSubstitutions >= 0, "matchRules bench/subs must be >= 0.");
+                Check(d.MatchRules.DurationOptions.Count > 0 && d.MatchRules.DurationOptions.Contains(d.MatchRules.DurationMinutes)
+                      && d.MatchRules.DurationOptions.TrueForAll(m => m > 0 && m <= 45),
+                      "matchRules.durationOptions must list 1-45 minute options including durationMinutes.");
                 Check(d.MatchRules.AiMentality >= 1 && d.MatchRules.AiMentality <= 5 && d.MatchRules.AiDefensiveLine >= 1 && d.MatchRules.AiDefensiveLine <= 3
                       && d.MatchRules.AiPressure >= 1 && d.MatchRules.AiPressure <= 3, "matchRules.aiTactic outside the MVP ranges.");
             }

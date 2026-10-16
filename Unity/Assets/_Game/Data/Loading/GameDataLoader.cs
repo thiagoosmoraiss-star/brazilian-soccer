@@ -50,6 +50,7 @@ namespace Game.Data.Loading
         public const string VerticalSliceTeamsFile = "VerticalSlice/teams.json";
         /// <summary>Match-scene presentation tunables (A7b): camera, radar, placeholder animation, HUD.</summary>
         public const string MatchViewFile = "Presentation/match_view.json";
+        public const string DefaultLocale = "pt-BR";
 
         public const string MissingFile = "MISSING_FILE";
         public const string ReadFailed = "READ_FAILED";
@@ -238,6 +239,14 @@ namespace Game.Data.Loading
             if (db == null) throw new ArgumentNullException(nameof(db));
             var text = ReadText(source, VerticalSliceTeamsFile);
             return text.IsSuccess ? VerticalSliceReader.Read(text.Value, db) : Result<VerticalSliceDefinition>.Fail(text.Errors);
+        }
+
+        /// <summary>The UI texts (C3; X-92: PT-BR only at launch).</summary>
+        public static Result<Strings.StringTable> LoadStrings(IDataSource source, string locale = DefaultLocale)
+        {
+            string file = "Strings/" + locale + ".json";
+            var text = ReadText(source, file);
+            return text.IsSuccess ? StringsReader.Read(text.Value, file) : Result<Strings.StringTable>.Fail(text.Errors);
         }
 
         public static Result<Presentation.MatchViewDefinition> LoadMatchView(IDataSource source)

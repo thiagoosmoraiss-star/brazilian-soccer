@@ -44,6 +44,8 @@ Cada pasta em `Assets/_Game/` com código tem um Assembly Definition com o mesmo
 - `Data/VerticalSlice/teams.json`: os dois times fictícios do vertical slice (forte ~70, fraco ~50); dados de demonstração/teste, fora do banco da carreira.
 - Contratos `MatchSetup`/`MatchResult`/`MatchEvent` em `Core/Contracts/Match/` (D-19), criados na B2.
 - `dotnet/WorldGen/`: ferramenta de linha de comando da B1 para gerar e inspecionar o mundo (fora de `Assets/`, não entra na build do jogo).
+- `Assets/_Game/UI.Presenters/` (pura, C3a, X-96): sessão da carreira, navegação e presenters das telas da Shell; `Tests/UI/` (+ `dotnet/UI.Presenters/`, `dotnet/Tests.UI/`) testa o fluxo das telas sem Unity.
+- `Data/Strings/pt-BR.json`: textos da interface por chave (C3a, X-92, X-96).
 
 ## Responsabilidades
 
@@ -63,7 +65,8 @@ Cada pasta em `Assets/_Game/` com código tem um Assembly Definition com o mesmo
 | Input | Unity | Toques → comandos da partida |
 | Presentation | Unity | View da partida, câmera, animação, radar, VFX, vibração |
 | Audio | Unity | Mixagem, eventos → sons |
-| UI | Unity | Telas, presenters, HUD, strings |
+| UI | Unity | Telas (views em UI Toolkit), HUD |
+| UI.Presenters | Pura | Presenters, navegação e sessão da carreira da Shell (X-96); textos vêm de `Data/Strings/` |
 | Tools/Editor | Unity Editor | Editor de curvas, visualizador de IA, simulador de temporadas, relatórios de calibração |
 | Tests | Ambas | Unit, Simulation, Career (puros, `dotnet test`); PlayMode (Unity) |
 | Content | Unity | Assets de arte e áudio (origem: PENDENTE D-02) |

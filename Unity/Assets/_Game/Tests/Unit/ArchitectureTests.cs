@@ -26,6 +26,8 @@ namespace Game.Tests.Unit
             ["Career.Market"] = new[] { "Core", "Data", "Rules", "Career" },
             ["Career.Economy"] = new[] { "Core", "Data", "Rules", "Career" },
             ["Save"] = new[] { "Core", "Data", "Career", "Career.Market", "Career.Economy" },
+            // C3a (X-95): the Shell's presenters, pure so the screens' logic runs in dotnet test; only Unity's UI/App use them.
+            ["UI.Presenters"] = new[] { "Core", "Data", "Rules", "Simulation", "Career", "Career.Market", "Career.Economy", "Save" },
         };
 
         private static readonly Dictionary<string, string[]> UnityAllowed = new Dictionary<string, string[]>
@@ -34,7 +36,7 @@ namespace Game.Tests.Unit
             ["Input"] = new[] { "Core", "Match", "Unity.InputSystem" },
             ["Presentation"] = new[] { "Core", "Data", "Match", "Match.AI", "Unity.Cinemachine" }, // A7b: the match view reads the AiMatch/MatchSession and drives the Cinemachine camera (X-59)
             ["Audio"] = new[] { "Core", "Match" },
-            ["UI"] = new[] { "Core", "Data", "Career", "Career.Market", "Career.Economy", "Simulation" },
+            ["UI"] = new[] { "Core", "Data", "Career", "Career.Market", "Career.Economy", "Simulation", "UI.Presenters" },
         };
 
         private static string AsmdefPath(string name) =>

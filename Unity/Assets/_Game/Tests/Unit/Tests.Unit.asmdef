@@ -12,6 +12,7 @@
         "Career.Market",
         "Career.Economy",
         "Save",
+        "UI.Presenters",
         "UnityEngine.TestRunner",
         "UnityEditor.TestRunner"
     ],

@@ -13,6 +13,7 @@
         "Career.Economy",
         "Save",
         "UI",
+        "UI.Presenters",
         "Presentation",
         "Input",
         "Audio",

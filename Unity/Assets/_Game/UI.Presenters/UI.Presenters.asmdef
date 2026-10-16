@@ -1,0 +1,25 @@
+{
+    "name": "UI.Presenters",
+    "rootNamespace": "Game.UI.Presenters",
+    "references": [
+        "Core",
+        "Data",
+        "Rules",
+        "Simulation",
+        "Career",
+        "Career.Market",
+        "Career.Economy",
+        "Save"
+    ],
+    "includePlatforms": [],
+    "excludePlatforms": [],
+    "allowUnsafeCode": false,
+    "overrideReferences": true,
+    "precompiledReferences": [
+        "Newtonsoft.Json.dll"
+    ],
+    "autoReferenced": true,
+    "defineConstraints": [],
+    "versionDefines": [],
+    "noEngineReferences": true
+}

@@ -42,7 +42,7 @@ Conflitos: técnica → TECHNICAL_SPEC; partida → design da partida; visão/ca
 
 ## 5. Princípios arquiteturais
 
-1. **Zona pura não conhece a Unity.** `Core`, `Data`, `Rules`, `Match`, `Match.AI`, `Simulation`, `Career`, `Career.Market`, `Career.Economy`, `Save` não referenciam `UnityEngine` (asmdef com `noEngineReferences: true`).
+1. **Zona pura não conhece a Unity.** `Core`, `Data`, `Rules`, `Match`, `Match.AI`, `Simulation`, `Career`, `Career.Market`, `Career.Economy`, `Save`, `UI.Presenters` (X-96) não referenciam `UnityEngine` (asmdef com `noEngineReferences: true`).
 2. **Estado separado de apresentação.** A partida é simulação em passo fixo; câmera, animação, áudio e UI apenas leem estado e eventos.
 3. **Uma entrada e uma saída por partida:** `MatchSetup` → `MatchResult`, para `MatchEngine` e `QuickSim`. Esses contratos pertencem ao `Core` (D-19); nem `Match` nem `Simulation` dependem um do outro por causa deles.
 4. **Dados do jogo ≠ estado do save.** Definições vêm com o app; o save guarda apenas `CareerState`.
@@ -106,4 +106,4 @@ Uma funcionalidade só está pronta quando cumpre `DEFINITION_OF_DONE.md`. Compi
 
 ## 14. Etapa atual
 
-**Track C — C3 (UI) na sessão principal e o código de partida que ficou da C1/C2 numa sessão auxiliar, em paralelo (X-94).** Sessão principal (branch `claude/loving-brahmagupta-poh7zs`): **C3** — telas do MVP na Shell (`TECHNICAL_SPEC` §15), presenters, strings em tabela; só PT-BR (X-92); nova carreira = escolher um clube da Série D (X-93). Sessão auxiliar (branch `claude/c1-partida`, X-100 a X-109): **X-91** (lesão em campo + troca forçada; fecha a C1) e **X-84 (a)** (ataque da IA); a principal faz a junção. C2 concluída (X-84 a X-87, juntada). C1 implementada e validada no editor (X-90); conclui com a X-91. Track A concluída (A1–A9). Track B concluída (B1–B8). Progresso do roadmap: 72% (`ROADMAP.md`, seção Progresso). Contexto geral do projeto: `docs/DOSSIE_ACESSO.html`. Atualize esta seção quando a etapa mudar.
+**Track C — C3 (UI) na sessão principal e o código de partida que ficou da C1/C2 numa sessão auxiliar, em paralelo (X-94).** Sessão principal (branch `claude/loving-brahmagupta-poh7zs`): **C3** — telas do MVP na Shell (`TECHNICAL_SPEC` §15), dividida em C3a–C3e (X-95); **C3a implementada (X-96)**, aguardando validação no editor; depois C3b (elenco). Sessão auxiliar (branch `claude/c1-partida`, X-100 a X-109): **X-91** (lesão em campo + troca forçada; fecha a C1) e **X-84 (a)** (ataque da IA); a principal faz a junção. C2 concluída (X-84 a X-87, juntada). C1 implementada e validada no editor (X-90); conclui com a X-91. Track A concluída (A1–A9). Track B concluída (B1–B8). Progresso do roadmap: 72% (`ROADMAP.md`, seção Progresso). Contexto geral do projeto: `docs/DOSSIE_ACESSO.html`. Atualize esta seção quando a etapa mudar.

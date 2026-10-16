@@ -22,3 +22,11 @@ Side-by-side table (Release, ~1 min; `--groups-only` adds the attribute groups, 
 ```bash
 dotnet run --project dotnet/MatchReport -c Release -- --calibration [--played N] [--quick N] [--groups-only | --sensitivity]
 ```
+
+## UI (C3a)
+
+`UI.Presenters` is the pure half of the Shell (career session, navigation, screen presenters; DECISIONS X-96). `Tests.UI` drives the screens through their commands, as a player would: new career and club choice, a whole season with at most three taps from one match to the next, a played match coming back as a post-match report, the duration setting, every screen's texts present in `Data/Strings/pt-BR.json`.
+
+```
+dotnet test dotnet/Tests.UI
+```

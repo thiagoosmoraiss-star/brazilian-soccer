@@ -33,6 +33,7 @@
     "benchSize": 9,
     "maxSubstitutions": 5,
     "durationMinutes": 6,
+    "durationOptions": [4, 6, 10],
     "aiTactic": {
       "mentality": 3,
       "defensiveLine": 2,
