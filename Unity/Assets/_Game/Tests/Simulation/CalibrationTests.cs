@@ -13,7 +13,7 @@ namespace Game.Tests.Simulation
     /// C2 acceptance (ROADMAP; TEST_PLAN "Divergência QuickSim × Headless", blocks merge): the same matchups in the
     /// QuickSim and in the played match stay within the tolerances of Data/TestRanges/calibration.json. Each metric
     /// declares how it is compared ("ratio" played/QuickSim, "difference" played − QuickSim, or "played" / "quickSim"
-    /// alone); the OVR curve and the attribute sensitivity must point the same way in both engines.
+    /// alone; "ratioAllQuickSim" against the QuickSim of all its matchups, for a rare event like injuries); the OVR curve and the attribute sensitivity must point the same way in both engines.
     /// </summary>
     [Category("Slow")]
     public class CalibrationTests
@@ -79,6 +79,12 @@ namespace Game.Tests.Simulation
                 case "difference": value = p[name] - q[name]; break;
                 case "played": value = p[name]; break;
                 case "quickSim": value = q[name]; break;
+                case "ratioAllQuickSim":
+                    var (w, c) = Buckets();
+                    var all = Calibration.Measure(_matchups, _quick, w, c);
+                    value = all[name] == 0 ? double.NaN : p[name] / all[name];
+                    q = all;
+                    break;
                 default: throw new ArgumentException($"Unknown compare '{compare}' for {name}.");
             }
             Assert.That(value, Is.InRange(min, max),

@@ -203,6 +203,7 @@ namespace Game.Match.AI
             for (int i = 0; i < Players.Length; i++) _allBodies[i] = Players[i].Body;
             InitDuels();
             InitSubstitutions(setup);
+            InitInjuries(streams);
             HomeKeeper = new Keeper(GoalkeeperOf(Home));
             AwayKeeper = new Keeper(GoalkeeperOf(Away));
 
@@ -261,6 +262,7 @@ namespace Game.Match.AI
         public AiMatchEvent Step(in HumanInput input)
         {
             if (Finished) return AiMatchEvent.Finished;
+            ResolvePendingInjuries(); // X-91: the user's injured player still waiting gets the AI's choice
             float dt = StepSeconds;
             var ev = AiMatchEvent.None;
             _possessionChanged = false;
@@ -404,6 +406,7 @@ namespace Game.Match.AI
             _ballWasLoose = Ball.State != BallState.Controlled;
             SubstitutionTick(); // A9c: the AI substitutes at a dead ball once its window has come
             _step++;
+            InjuryTick(); // X-91: QuickSim's injury chance per displayed minute
 
             // 8. Clock: at the end of a half the other side kicks off the next one.
             if (!Finished && _step % _halfSteps == 0)

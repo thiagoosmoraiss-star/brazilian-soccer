@@ -27,6 +27,7 @@ namespace Game.Match.AI
             public int MinuteOn, MinuteOff;
             public int Goals, Assists, Shots, ShotsOnTarget, Fouls, Yellows;
             public float Energy;
+            public InjurySeverity Injury;
         }
 
         private MatchSetup _matchSetup;
@@ -84,7 +85,10 @@ namespace Game.Match.AI
             var bench = _matchSetup.Team(side).Bench;
             if (Finished || outLocal < 0 || outLocal >= team.Players.Length || benchIndex < 0 || benchIndex >= bench.Count) return false;
             if (!SubRules.HasSubstitutionLeft(_subsMade[s], _matchSetup.MaxSubstitutions)) return false;
-            if (!StoppageAvailable(s)) return false;
+            // X-91: while the user's injured player waits, only he may leave, and his forced change needs no stoppage.
+            int injured = _pendingInjury[s];
+            if (injured >= 0 && outLocal != injured) return false;
+            if (injured < 0 && !StoppageAvailable(s)) return false;
             var off = team.Players[outLocal];
             if (!SubRules.CanLeave(!off.Body.OffPitch, _sentOffMinute[off.Global] > 0)) return false;
             return SubRules.CanEnter(_benchUsed[s][benchIndex], false); // nobody on the bench is booked in this engine
@@ -96,7 +100,9 @@ namespace Game.Match.AI
         public bool Substitute(MatchSide side, int outLocal, int benchIndex)
         {
             if (!CanSubstitute(side, outLocal, benchIndex)) return false;
-            Apply(side == MatchSide.Home ? Home : Away, outLocal, benchIndex);
+            bool forced = _pendingInjury[(int)side] == outLocal;
+            if (forced) _pendingInjury[(int)side] = -1;
+            Apply(side == MatchSide.Home ? Home : Away, outLocal, benchIndex, forced);
             return true;
         }
 
@@ -105,7 +111,8 @@ namespace Game.Match.AI
 
         private int SubMinute => Math.Max(0, Math.Min(TotalDisplayMinutes, (int)ClockMinutes));
 
-        private void Apply(AiTeam team, int local, int benchIndex)
+        /// <param name="forced">An injured player's replacement (X-91): as in QuickSim it uses no stoppage.</param>
+        private void Apply(AiTeam team, int local, int benchIndex, bool forced = false)
         {
             int s = (int)team.Side;
             var p = team.Players[local];
@@ -125,6 +132,8 @@ namespace Game.Match.AI
             d.Fouls = _playerFouls[g];
             d.Yellows = _playerYellows[g];
             d.Energy = p.Body.Energy;
+            d.Injury = _slotInjury[g];
+            _slotInjury[g] = InjurySeverity.None;
             RecordEvent(MatchEventType.Substitution, team.Side, p.Setup.PlayerId, on.PlayerId);
             _playerGoals[g] = _playerAssists[g] = _playerShots[g] = _playerShotsOnTarget[g] = _playerFouls[g] = _playerYellows[g] = 0;
             if (_assistCandidate == g) _assistCandidate = -1;
@@ -135,8 +144,11 @@ namespace Game.Match.AI
             _slotBench[g] = benchIndex;
             _slotMinuteOn[g] = minute;
             _subsMade[s]++;
-            if (_stoppageStep[s] != _step && !IsHalfTimeBreak) _stoppagesUsed[s]++;
-            _stoppageStep[s] = _step;
+            if (!forced)
+            {
+                if (_stoppageStep[s] != _step && !IsHalfTimeBreak) _stoppagesUsed[s]++;
+                _stoppageStep[s] = _step;
+            }
 
             EnterSlot(p, on);
             ResetForEntry(p);
@@ -253,10 +265,10 @@ namespace Game.Match.AI
             for (int i = 0; i < Players.Length; i++)
             {
                 var p = Players[i];
-                int off = _sentOffMinute[i] > 0 ? _sentOffMinute[i] : TotalDisplayMinutes;
+                int off = _sentOffMinute[i] > 0 ? _sentOffMinute[i] : _injuredOffMinute[i] > 0 ? _injuredOffMinute[i] : TotalDisplayMinutes;
                 players[i] = new PlayerMatchStats(p.Setup.PlayerId, p.Team.Side, _slotBench[i] < 0, Math.Max(0, off - _slotMinuteOn[i]),
                     _playerGoals[i], _playerAssists[i], _playerShots[i], _playerShotsOnTarget[i], _playerFouls[i], _playerYellows[i],
-                    p.Body.OffPitch, null, p.Body.Energy, InjurySeverity.None);
+                    _sentOffMinute[i] > 0, null, p.Body.Energy, _slotInjury[i]);
             }
             for (int k = 0; k < _departedCount; k++)
             {
@@ -264,7 +276,7 @@ namespace Game.Match.AI
                 var side = Players[d.Global].Team.Side;
                 players[Players.Length + k] = new PlayerMatchStats(DepartedSetup(d).PlayerId, side, d.BenchIndex < 0,
                     Math.Max(0, d.MinuteOff - d.MinuteOn), d.Goals, d.Assists, d.Shots, d.ShotsOnTarget, d.Fouls, d.Yellows, false, null,
-                    d.Energy, InjurySeverity.None);
+                    d.Energy, d.Injury);
             }
             return players;
         }

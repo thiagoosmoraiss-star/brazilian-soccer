@@ -25,6 +25,13 @@ namespace Game.Match.AI
         public bool Paused { get; private set; }
         /// <summary>Stop (pause) at the end of a half, for the half-time screen (A9c: substitutions at the interval).</summary>
         public bool PauseAtHalfTime { get; set; }
+        /// <summary>Stop (pause) when the user's side has an injury (X-91): the view warns and, with a substitution left,
+        /// opens the forced substitution; the match does not go on until the injured player is replaced.</summary>
+        public bool PauseOnInjury { get; set; }
+        /// <summary>The session paused for an injury of the user's side (<see cref="PauseOnInjury"/>); cleared on resume.</summary>
+        public bool InjuryStop { get; private set; }
+        /// <summary>Team slot of the user's injured player who must be replaced before play goes on, or -1.</summary>
+        public int PendingInjury => Match.HumanTeam == null ? -1 : Match.PendingInjury(Match.HumanTeam.Side);
         /// <summary>0-1: how far the render time is between the previous step and the current one.</summary>
         public float Alpha => Match.StepSeconds > 0f ? MathF.Min(1f, _accumulator / Match.StepSeconds) : 1f;
 
@@ -37,6 +44,7 @@ namespace Game.Match.AI
         private ActionCommand _pendingAction = ActionCommand.None;
         private bool _pendingSwitch;
         private bool _pendingSlide;
+        private int _seenInjuries;
 
         private readonly AiMatchEvent[] _eventKinds = new AiMatchEvent[EventCapacity];
         private readonly long[] _eventSteps = new long[EventCapacity];
@@ -58,7 +66,10 @@ namespace Game.Match.AI
             for (int i = 0; i < _lastKickStep.Length; i++) _lastKickStep[i] = long.MinValue / 2;
             CaptureCurrent();
             CopyCurrentToPrevious();
+            _seenInjuries = HumanInjuries;
         }
+
+        private int HumanInjuries => Match.HumanTeam == null ? 0 : Match.Injuries(Match.HumanTeam.Side);
 
         /// <summary>Rebuilds a session from <see cref="Snapshot"/> (same data and setup), paused.</summary>
         public static MatchSession Restore(GameDatabase db, MatchSetup setup, float stepSeconds, byte[] snapshot)
@@ -73,10 +84,13 @@ namespace Game.Match.AI
 
         public void Pause() => Paused = true;
 
-        /// <summary>Resumes; the time spent paused is not caught up.</summary>
+        /// <summary>Resumes; the time spent paused is not caught up. Refused (still paused) while the user's injured player
+        /// waits to be replaced (<see cref="PauseOnInjury"/>).</summary>
         public void Resume()
         {
+            if (PauseOnInjury && PendingInjury >= 0) return;
             Paused = false;
+            InjuryStop = false;
             _accumulator = 0f;
         }
 
@@ -98,6 +112,12 @@ namespace Game.Match.AI
         public int Advance(float frameSeconds, Vector2 move, bool sprint, bool containHeld, bool pressHeld = false)
         {
             if (Paused || Match.Finished || frameSeconds <= 0f) return 0;
+            if (PauseOnInjury && PendingInjury >= 0)
+            {
+                Paused = InjuryStop = true; // never step past the user's choice (a step would make the AI's)
+                _accumulator = 0f;
+                return 0;
+            }
             _accumulator += frameSeconds;
             int steps = 0;
             while (_accumulator >= Match.StepSeconds && steps < MaxStepsPerFrame && !Match.Finished)
@@ -113,6 +133,13 @@ namespace Game.Match.AI
                 Record(ev);
                 _accumulator -= Match.StepSeconds;
                 steps++;
+                if (PauseOnInjury && HumanInjuries != _seenInjuries)
+                {
+                    _seenInjuries = HumanInjuries;
+                    Paused = InjuryStop = true;
+                    _accumulator = 0f;
+                    break;
+                }
                 if (ev == AiMatchEvent.HalfTime && PauseAtHalfTime)
                 {
                     Paused = true;

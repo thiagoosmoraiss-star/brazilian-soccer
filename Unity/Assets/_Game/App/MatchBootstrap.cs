@@ -192,6 +192,7 @@ namespace Game.App
             };
             // Substitutions (A9c): from the pause menu, and at half-time (the session stops there).
             session.PauseAtHalfTime = true;
+            session.PauseOnInjury = true; // X-91: an injury of the user's side stops the match for the forced substitution
             _halfTimeShown = false;
             _subs = new SubstitutionPanel(_hud.Root, session, userSide, playerName);
             _subs.Closed += OnSubstitutionsClosed;
@@ -250,7 +251,26 @@ namespace Game.App
             if (_session == null) return;
             _subs?.Close();
             _session.Resume();
+            if (_session.Paused && _session.PendingInjury >= 0) { OpenInjury(); return; } // the injured player first
             _hud.ShowPause(false);
+        }
+
+        /// <summary>An injury of the user's side (X-91): the panel in its injury mode (forced substitution, or "one short").</summary>
+        private void OpenInjury()
+        {
+            if (_session == null || _session.Match.Finished) return;
+            var m = _session.Match;
+            int injured = _session.PendingInjury;
+            if (injured < 0)
+            {
+                // Without a substitution left: the last injured player of the user's side, already off (or the keeper playing on).
+                var team = m.HumanTeam;
+                for (int i = 0; i < team.Players.Length; i++)
+                    if (m.Injured(team.Players[i])) injured = i;
+            }
+            if (injured < 0) { Resume(); return; }
+            _hud.ShowPause(false);
+            _subs.OpenInjury(injured);
         }
 
         /// <summary>The substitutions panel over the paused match (at half-time the interval does not use a stoppage).</summary>
@@ -264,7 +284,7 @@ namespace Game.App
         /// <summary>Closing the panel: at half-time the second half starts; otherwise back to the pause menu.</summary>
         private void OnSubstitutionsClosed()
         {
-            if (_session.Match.IsHalfTimeBreak) Resume();
+            if (_session.Match.IsHalfTimeBreak || _subs.InjuryMode) Resume();
             else _hud.ShowPause(true);
         }
 
@@ -295,6 +315,17 @@ namespace Game.App
             {
                 if (_session.Paused) Resume(); else Pause();
             }
+#if UNITY_EDITOR || DEVELOPMENT_BUILD
+            // Dev (X-91): L injures the user's controlled player, K an opponent's outfield player, to try the forced substitution.
+            if (!_session.Paused && Keys.Pressed(Shortcut.L) && _session.Match.Controlled != null)
+                _session.Match.Injure(_session.Match.HumanTeam.Side, _session.Match.Controlled.Local, InjurySeverity.Light);
+            if (!_session.Paused && Keys.Pressed(Shortcut.K))
+            {
+                var opp = _session.Match.Opponents(_session.Match.HumanTeam);
+                for (int i = opp.Players.Length - 1; i >= 0; i--)
+                    if (!opp.Players[i].IsGoalkeeper && _session.Match.Injure(opp.Side, i, InjurySeverity.Light)) break;
+            }
+#endif
 
             var m = _session.Match;
             _input.DefenseMode = !m.HumanTeam.HasPossession;
@@ -308,7 +339,12 @@ namespace Game.App
                 var move = _userHome ? _input.MoveIntent : -_input.MoveIntent;
                 _session.Advance(Time.deltaTime, move, _input.SprintHeld, _input.ContainHeld, _input.PressHeld);
             }
-            if (_session.Paused && m.IsHalfTimeBreak && !_halfTimeShown)
+            if (_session.Paused && (_session.InjuryStop || _session.PendingInjury >= 0) && !_subs.IsOpen)
+            {
+                if (m.IsHalfTimeBreak) _halfTimeShown = true; // the injury panel is also the interval's
+                OpenInjury();
+            }
+            else if (_session.Paused && m.IsHalfTimeBreak && !_halfTimeShown)
             {
                 _halfTimeShown = true; // the session stopped at half-time: the interval's substitutions
                 OpenSubstitutions();
