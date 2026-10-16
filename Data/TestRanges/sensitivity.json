@@ -1,0 +1,27 @@
+{
+  "schemaVersion": 1,
+  "sources": {
+    "rule": "TEST_PLAN: 'sensibilidade: para cada atributo, time com +15 nele vs clone → diferença estatisticamente significativa na métrica associada (headless e QuickSim)'; GAME_DESIGN §26: '5 pontos quase imperceptíveis em um lance; 15+ óbvios' — so the metric is the action the attribute drives, repeated in the played-match engine (full headless matches where the attribute shows in every match: speed, agility, stamina, positioning). QuickSim keeps its own sensitivity test (quicksim.json). minZ = 3 as QuickSim. Trial counts are sized for z well above 3 (A9c, X-81)"
+  },
+  "base": 60,
+  "boost": 15,
+  "minZ": 3.0,
+  "seed": 1,
+  "matches": { "minutes": 4, "speed": 24, "agility": 48, "stamina": 12, "positioning": 12 },
+  "trials": {
+    "strength": 3000,
+    "heading": 8000,
+    "passing": 600,
+    "crossing": 600,
+    "vision": 600,
+    "composure": 6000,
+    "finishing": 600,
+    "longShots": 600,
+    "tackling": 3000,
+    "dribblingSteps": 400,
+    "gkReflexes": 260,
+    "gkPositioningMatches": 4,
+    "gkAerial": 300,
+    "gkHandling": 900
+  }
+}

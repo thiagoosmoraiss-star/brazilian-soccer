@@ -240,7 +240,7 @@ namespace Game.Presentation
             }
             UpdateBanner(session);
             UpdateHint(m);
-            UpdateCards(m);
+            UpdateCards(m, session.Paused);
             if (_radarOpen) UpdateRadar(session);
         }
 
@@ -294,10 +294,18 @@ namespace Game.Presentation
         }
 
         /// <summary>A yellow or red card shows the player's name for a few seconds (A8b); so does an AI substitution (A9c).</summary>
-        private void UpdateCards(AiMatch m)
+        /// <param name="paused">While paused (pause menu, half-time panel) new notices wait: a notice shown behind a panel
+        /// would expire unseen (the AI makes most of its substitutions at half-time).</param>
+        private void UpdateCards(AiMatch m, bool paused)
         {
             var events = m.Events;
             if (_seenEvents < 0) _seenEvents = events.Count; // a resumed match does not replay old cards
+            if (paused)
+            {
+                if (_card.style.display == DisplayStyle.Flex) _cardUntil += Time.unscaledDeltaTime; // the clock of a shown notice stops too
+                return;
+            }
+            string subs = null;
             for (; _seenEvents < events.Count; _seenEvents++)
             {
                 var e = events[_seenEvents];
@@ -305,7 +313,10 @@ namespace Game.Presentation
                 if (e.Type == MatchEventType.Substitution)
                 {
                     if (m.HumanTeam != null && e.Side == m.HumanTeam.Side) continue; // the user made it himself
-                    _card.text = $"SUBSTITUIÇÃO ({team}): sai {_playerName(e.PlayerId.Value)}, entra {_playerName(e.OtherPlayerId.Value)}";
+                    // Several at once (half-time) are shown together.
+                    subs = (subs == null ? $"SUBSTITUIÇÃO ({team}): " : subs + "  ·  ")
+                           + $"sai {_playerName(e.PlayerId.Value)}, entra {_playerName(e.OtherPlayerId.Value)}";
+                    _card.text = subs;
                     _card.style.backgroundColor = new Color(0.15f, 0.45f, 0.9f);
                     _card.style.color = Color.white;
                     _card.style.display = DisplayStyle.Flex;
