@@ -2,7 +2,7 @@
 
 Fonte: Especificação Técnica §20. **O Claude Code trabalha somente na etapa atual.** Nada de etapas futuras, mesmo que pareça rápido ou útil. Cada etapa termina quando cumpre seus critérios e o `DEFINITION_OF_DONE.md`.
 
-**Etapa atual:** A9 — Resto da partida do MVP (ver `CLAUDE.md` §14). A1–A8 concluídas (A7 = Vertical Slice, X-63; A8 = árbitro e bola parada, X-71). Track B concluída (B1–B8). D-01 decidida: Track B primeiro. Com uma pessoa só, as trilhas são sequenciais; em paralelo apenas se houver mais de um desenvolvedor.
+**Etapa atual:** C1 — Integração (sessão principal) e C2 — Calibração (sessão auxiliar), em paralelo (X-83; ver `CLAUDE.md` §14). A1–A9 concluídas (A7 = Vertical Slice, X-63; A8 = árbitro e bola parada, X-71; A9 = resto da partida, X-82). Track B concluída (B1–B8). D-01 decidida: Track B primeiro. Com uma pessoa só, as trilhas são sequenciais; em paralelo apenas se houver mais de um desenvolvedor.
 
 Regras comuns a todas as etapas:
 
@@ -31,7 +31,7 @@ Pedido do usuário (13/10/2026): a cada etapa concluída, informar a porcentagem
 | A8 | 5 | | | | |
 | A9 | 8 | | | **Total** | **100** |
 
-**Concluído:** Stage 0, A1–A8, B1–B8 = **60%** (15/10/2026).
+**Concluído:** Stage 0, A1–A9, B1–B8 = **68%** (16/10/2026).
 
 ---
 
@@ -126,7 +126,7 @@ Pedido do usuário (13/10/2026): a cada etapa concluída, informar a porcentagem
 ### A9 — Resto da partida do MVP
 - **Objetivo:** fechar a partida do MVP (`MVP_SCOPE.md`).
 - **Pré-requisitos:** A8; D-17 (dificuldade da partida no MVP) — decidida em X-72: nível único.
-- **Dividida em três entregas (X-72):** **A9a** (validada, X-74) bola alta (Alto, cabeceio, escanteio com cruzamento, goleiro em cruzamentos, tiro de meta e lateral longos); **A9b** (validada, X-76) carrinho, 2º defensor, disputa de corpo, ruptura e cobertura, saída do goleiro no 1×1; **A9c** (implementada, X-77/X-78/X-80/X-81; aguardando validação final) táticas (3 formações, mentalidade, linha, pressão), substituições e sensibilidade de todos os atributos.
+- **Dividida em três entregas (X-72):** **A9a** (validada, X-74) bola alta (Alto, cabeceio, escanteio com cruzamento, goleiro em cruzamentos, tiro de meta e lateral longos); **A9b** (validada, X-76) carrinho, 2º defensor, disputa de corpo, ruptura e cobertura, saída do goleiro no 1×1; **A9c** (validada, X-82) táticas (3 formações, mentalidade, linha, pressão), substituições e sensibilidade de todos os atributos.
 - **Sistemas:** Alto (lançamento, cruzamento alto), cabeceio, carrinho, 2º defensor, disputa de corpo básica, ruptura e cobertura, substituições (regras + IA), TacticsRuntime (3 formações, mentalidade, linha, pressão).
 - **Módulos:** `Match`, `Match.AI`, `formations/*.json`, `tactics.json`.
 - **Testes:** mudança tática altera posições médias; substituições respeitam limite; cabeceio disputado pela regra; sensibilidade de cada atributo da partida.
