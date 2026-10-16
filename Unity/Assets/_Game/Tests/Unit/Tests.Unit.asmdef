@@ -7,6 +7,11 @@
         "Rules",
         "Match",
         "Match.AI",
+        "Simulation",
+        "Career",
+        "Career.Market",
+        "Career.Economy",
+        "Save",
         "UnityEngine.TestRunner",
         "UnityEditor.TestRunner"
     ],
