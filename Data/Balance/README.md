@@ -139,7 +139,7 @@ Used by `Game.Match.PassSystem`/`ShotSystem`, `Game.Rules.Match.KickErrorRules` 
 
 ## tactics.json — tactic-dependent AI parameters (A4, baseline v1, X-52)
 
-TECHNICAL_SPEC §9 "Parâmetros afetados (`tactics.json`)". A4 has only the **default** tactic; per-level values for mentalidade / linha / pressão arrive with TacticsRuntime (A9). Distances are meters in the team's own frame (from its own goal line along its attack).
+TECHNICAL_SPEC §9 "Parâmetros afetados (`tactics.json`)". The **default** block is the tactic (3, 2, 2); `modifiers` (A9c, X-78) changes it by level: mentality moves the block and the depth and the on-ball risk, the line moves the defensive line, pressure sets pressers, trigger distance and counter-press; `changeSmoothSeconds` eases a change made in play; `formationRolePenalty` weighs position fit when a formation change re-maps the players. Distances are meters in the team's own frame (from its own goal line along its attack).
 
 | Field | Controls | Valid values |
 | --- | --- | --- |

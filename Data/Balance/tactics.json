@@ -12,5 +12,27 @@
     "lateralShift": 0.5,
     "pressers": 1,
     "pressTriggerDistance": 18.0
+  },
+  "modifiers": {
+    "mentality": {
+      "lineOffset": [-6.0, -3.0, 0.0, 3.0, 6.0],
+      "attackDepthScale": [0.85, 0.92, 1.0, 1.08, 1.15],
+      "defendDepthScale": [0.8, 0.9, 1.0, 1.05, 1.1],
+      "progressWeightScale": [0.8, 0.9, 1.0, 1.1, 1.2],
+      "shootThresholdScale": [1.15, 1.07, 1.0, 0.94, 0.88],
+      "runCooldownScale": [1.8, 1.35, 1.0, 0.8, 0.65]
+    },
+    "defensiveLine": {
+      "lineBehindBallOffset": [5.0, 0.0, -5.0],
+      "maxLineOffset": [-8.0, 0.0, 8.0],
+      "minLineOffset": [-3.0, 0.0, 5.0]
+    },
+    "pressure": {
+      "pressersOffset": [0, 0, 1],
+      "pressTriggerScale": [0.55, 1.0, 1.6],
+      "transitionDefenseScale": [0.7, 1.0, 1.4]
+    },
+    "changeSmoothSeconds": 1.5,
+    "formationRolePenalty": 0.3
   }
 }

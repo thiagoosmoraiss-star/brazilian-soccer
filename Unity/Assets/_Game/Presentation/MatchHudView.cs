@@ -21,6 +21,8 @@ namespace Game.Presentation
         public event Action PauseRequested;
         public event Action ResumeRequested;
         public event Action RestartRequested;
+        /// <summary>"Tática" in the pause menu (A9c).</summary>
+        public event Action TacticsRequested;
 
         private readonly MatchViewDefinition _v;
         private readonly string _homeName, _awayName;
@@ -187,6 +189,7 @@ namespace Game.Presentation
             _pauseMenu = Overlay();
             _pauseMenu.Add(Text("PAUSA", 64, Color.white));
             _pauseMenu.Add(MenuButton("Continuar", () => ResumeRequested?.Invoke()));
+            _pauseMenu.Add(MenuButton("Tática", () => TacticsRequested?.Invoke()));
             _pauseMenu.Add(MenuButton("Recomeçar partida", () => RestartRequested?.Invoke()));
             _root.Add(_pauseMenu);
 
@@ -206,6 +209,9 @@ namespace Game.Presentation
 
         /// <summary>Shows the frame rate of the last measuring window (called about once a second, not per frame).</summary>
         public void SetFps(float average, float worst) => _fps.text = $"FPS {average:0} (pior {worst:0})";
+
+        /// <summary>Adds a full-screen panel (tactics, substitutions) over the HUD and the pause menu.</summary>
+        public void AddOverlay(VisualElement panel) => _root.Add(panel);
 
         public void ShowPause(bool on) => _pauseMenu.style.display = on ? DisplayStyle.Flex : DisplayStyle.None;
 

@@ -144,6 +144,14 @@ namespace Game.App
             _hud.RestartRequested += () => NewMatch(_userStrong, (ulong)Environment.TickCount);
             _input.ReservedTopFraction = _hud.ReservedTopFraction;
             _hud.ShowPause(session.Paused);
+
+            // Tactics from the pause (A9c): the user's side changes formation, mentality, line and pressure.
+            var formations = new System.Collections.Generic.List<string>();
+            foreach (var f in _db.Formations) formations.Add(f.Id);
+            var tactics = new TacticsPanel(formations);
+            _hud.AddOverlay(tactics.Root);
+            _hud.TacticsRequested += () => tactics.Show(_session.Match.TacticOf(_session.Match.HumanTeam.Side));
+            tactics.Applied += t => _session.Match.SetTactic(_session.Match.HumanTeam.Side, t);
         }
 
         /// <summary>Display name of a vertical-slice player by his id value (HUD card notices).</summary>

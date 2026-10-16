@@ -27,7 +27,8 @@ namespace Game.Match.AI
         /// <summary>Index within the team (formation slot order).</summary>
         public readonly int Local;
         public readonly AiTeam Team;
-        public readonly FormationSlot Slot;
+        /// <summary>The formation slot he plays (it changes with a formation change, A9c).</summary>
+        public FormationSlot Slot { get; internal set; }
         public readonly MatchPlayerSetup Setup;
         public readonly PlayerBody Body = new PlayerBody();
 

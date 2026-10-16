@@ -15,7 +15,7 @@ namespace Game.Match.AI
         private const int SnapshotMagic = 0x534D4341; // "ACMS"
         /// <summary>Bump when the snapshot layout changes; older snapshots are then rejected (a match in progress is
         /// short-lived, it is not migrated like a career save).</summary>
-        public const int SnapshotVersion = 5; // 2: referee (A8a); 4: high ball (A9a); 5: duels (A9b)
+        public const int SnapshotVersion = 6; // 2: referee (A8a); 4: high ball (A9a); 5: duels (A9b); 6: tactics (A9c)
 
         /// <summary>
         /// The whole match state, binary (TECHNICAL_SPEC §5 "Snapshot e pausa": "MatchState inteiro serializável: ao ir
@@ -115,6 +115,7 @@ namespace Game.Match.AI
                     w.Write(e.PlayerId.Value);
                     w.Write(e.OtherPlayerId.Value);
                 }
+                WriteTactics(w); // A9c: the tactic in force, its eased block and the slot of each player
                 w.Flush();
                 return ms.ToArray();
             }
@@ -234,6 +235,7 @@ namespace Game.Match.AI
             _events.Clear();
             for (int i = 0; i < events; i++)
                 _events.Add(new MatchEvent(r.ReadInt32(), (MatchEventType)r.ReadInt32(), (MatchSide)r.ReadInt32(), new Id(r.ReadInt32()), new Id(r.ReadInt32())));
+            ReadTactics(r);
             if (r.BaseStream.Position != r.BaseStream.Length) throw new ArgumentException("Corrupt match snapshot (trailing data).");
         }
 

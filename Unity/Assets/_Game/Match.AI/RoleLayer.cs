@@ -19,20 +19,20 @@ namespace Game.Match.AI
         public static Vector3 IdealTarget(AiPlayer p, float ballU, float ballV, float offsideU, float pitchLength, float pitchHalfWidth, AiDefinition ai)
         {
             var team = p.Team;
-            var t = team.Tactics;
+            var t = team.Runtime; // the side's tactic (A9c)
+            var phase = team.Phase;
             float shiftV = t.LateralShift * ballV;
             if (p.IsGoalkeeper) return team.Frame.World(ai.GoalkeeperDistance, ai.GoalkeeperLateralShift * ballV);
 
-            var block = t.Phases[(int)team.Phase];
-            float line = MathUtil.Clamp(ballU - block.LineBehindBall, t.MinLine, block.MaxLine);
+            float line = MathUtil.Clamp(ballU - t.LineBehindBall(phase), t.MinLine, MathF.Max(t.MinLine, t.MaxLine(phase)));
             float span = team.SlotMaxX - team.SlotMinX;
             float rel = span > 1e-4f ? (p.Slot.X - team.SlotMinX) / span : 0f;
-            float u = line + rel * block.Depth;
+            float u = line + rel * t.Depth(phase);
             u = MathF.Min(u, offsideU - ai.OffsideMargin);
             u = MathUtil.Clamp(u, 1f, pitchLength - 1f);
 
             float maxV = pitchHalfWidth - ai.SidelineMargin;
-            float v = (0.5f - p.Slot.Y) * 2f * pitchHalfWidth * block.WidthScale + shiftV;
+            float v = (0.5f - p.Slot.Y) * 2f * pitchHalfWidth * t.WidthScale(phase) + shiftV;
             v = MathUtil.Clamp(v, -maxV, maxV);
             return team.Frame.World(u, v);
         }
@@ -89,7 +89,7 @@ namespace Game.Match.AI
             var team = p.Team;
             if (p.IsGoalkeeper) return team.Frame.World(ai.GoalkeeperDistance, 0f);
             float u = p.Slot.X * (pitchLength * 0.5f - 1f);
-            float v = (0.5f - p.Slot.Y) * 2f * pitchHalfWidth * team.Tactics.Phases[(int)Game.Data.Definitions.TeamPhase.Build].WidthScale;
+            float v = (0.5f - p.Slot.Y) * 2f * pitchHalfWidth * team.Runtime.WidthScale(Game.Data.Definitions.TeamPhase.Build);
             return team.Frame.World(u, v);
         }
     }

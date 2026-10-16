@@ -13,9 +13,9 @@ namespace Game.Match
     public static class Fatigue
     {
         public static void Drain(PlayerBody body, Balance balance, MatchPlayerSetup player, bool sprinting,
-            FatigueDefinition fatigue, float configuredDurationMinutes, float dt)
+            FatigueDefinition fatigue, float configuredDurationMinutes, float dt, float intensity = 1f)
         {
-            float staminaMult = balance.Eval(Effect.EnergyDrainMult, player.Attributes);
+            float staminaMult = balance.Eval(Effect.EnergyDrainMult, player.Attributes) * intensity;
             float ratePerMinute = fatigue.JogDrainPerMinuteAt6Min * (sprinting ? fatigue.SprintCostMultiplier : 1f)
                                    * staminaMult * (fatigue.ReferenceDurationMinutes / configuredDurationMinutes);
             float drainPerSecond = ratePerMinute / 60f;

@@ -106,7 +106,7 @@ namespace Game.Match.AI
             {
                 var goal = team.Frame.TargetGoal;
                 float value = chance * BlockSurvival(pos, goal, opponents, balance, ai.PassLaneClearance) + noise * KickErrorRules.Triangular(rng);
-                if (value >= ai.ShootChanceThreshold || value > bestValue) best = new OnBallDecisionResult(OnBallChoice.Shot, -1, goal);
+                if (value >= ai.ShootChanceThreshold * team.Runtime.ShootThresholdScale || value > bestValue) best = new OnBallDecisionResult(OnBallChoice.Shot, -1, goal);
             }
             return best;
         }
@@ -194,7 +194,7 @@ namespace Game.Match.AI
         {
             float progress = MathUtil.Clamp01(team.Frame.U(point) / pitch.Length);
             float wide = MathUtil.Clamp01(MathF.Abs(point.Y) / pitch.HalfWidth);
-            float build = ai.ProgressWeight * progress * progress * (1f - ai.LateralValuePenalty * wide);
+            float build = ai.ProgressWeight * team.Runtime.ProgressWeightScale * progress * progress * (1f - ai.LateralValuePenalty * wide);
             return MathF.Max(build, ShotChance(point, team, pitch, ai));
         }
 

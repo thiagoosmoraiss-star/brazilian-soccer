@@ -29,10 +29,10 @@ namespace Game.Match.AI
             if (team.HasPossession) PickNearest(team, ball.Position, ai.SupportPlayers, team.Supporter, controlled ? ball.Owner : -1, float.PositiveInfinity, ai, balance, false);
             else if (controlled)
             {
-                PickNearest(team, ball.Position, team.Tactics.Pressers, team.Presser, -1, team.Tactics.PressTriggerDistance, ai, balance, true);
+                PickNearest(team, ball.Position, team.Runtime.Pressers, team.Presser, -1, team.Runtime.PressTriggerDistance, ai, balance, true);
                 // A beaten presser chases back, and the nearest goal-side defender steps up to the carrier too (A9b cobertura).
                 if (defense != null && PresserBeaten(team, ball, defense))
-                    PickNearest(team, ball.Position, 1, team.Presser, -1, team.Tactics.PressTriggerDistance, ai, balance, true, defense);
+                    PickNearest(team, ball.Position, 1, team.Presser, -1, team.Runtime.PressTriggerDistance, ai, balance, true, defense);
                 if (duels != null) team.Cover = CoverPlayer(team, ball, duels, defense);
             }
 

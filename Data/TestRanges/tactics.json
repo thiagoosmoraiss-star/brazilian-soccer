@@ -1,0 +1,16 @@
+{
+  "schemaVersion": 1,
+  "sources": {
+    "direction": "TEST_PLAN: 'mudança tática altera posições médias na direção esperada'; TECHNICAL_SPEC §9: mentalidade = altura do bloco, linha = x-alvo da linha, pressão = pressionadores e energia. Minimum differences are DESIGN ESTIMATES well below the measured ones (A9c, X-78: mentality 1 vs 5 moves the mean outfield position ~22 m, line 1 vs 3 the defensive line ~11 m, pressure 1 vs 3 costs ~9 energy points in 4 min)",
+    "smoothing": "TECHNICAL_SPEC §9: 'bloco recalcula no próximo ciclo (≤ 200 ms) com suavização de 1–2 s'"
+  },
+  "direction": {
+    "matches": 6,
+    "minutes": 4,
+    "attributes": 60,
+    "mentalityMeanUMin": 8.0,
+    "lineDefensiveLineMin": 4.0,
+    "pressureEnergyMin": 3.0
+  },
+  "smoothing": { "settledSeconds": 6.0, "toleranceMeters": 0.5 }
+}

@@ -14,7 +14,8 @@ namespace Game.Match.AI
         public static void OnPossessionChanged(AiTeam team, bool nowInPossession, AiDefinition ai)
         {
             team.Phase = nowInPossession ? TeamPhase.TransitionAttack : TeamPhase.TransitionDefense;
-            team.TransitionTimer = nowInPossession ? ai.TransitionAttackSeconds : ai.TransitionDefenseSeconds;
+            team.TransitionTimer = nowInPossession ? ai.TransitionAttackSeconds
+                : ai.TransitionDefenseSeconds * team.Runtime.TransitionDefenseScale; // pressure: a longer counter-press (A9c)
         }
 
         public static TeamPhase UpdatePhase(AiTeam team, bool inPossession, float ballU, float pitchLength, AiDefinition ai)

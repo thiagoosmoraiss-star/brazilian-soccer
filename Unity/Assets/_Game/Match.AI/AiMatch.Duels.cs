@@ -249,7 +249,7 @@ namespace Game.Match.AI
                 r.RunRemaining = 0f;
                 r.RunCooldown = _duels.RunCooldownSeconds;
                 team.Runner = -1;
-                team.RunCooldown = _duels.RunCooldownSeconds;
+                team.RunCooldown = _duels.RunCooldownSeconds * team.Runtime.RunCooldownScale; // mentality (A9c)
             }
             if (team.RunCooldown > 0f) { team.RunCooldown = MathF.Max(0f, team.RunCooldown - _teamEvery * StepSeconds); return; }
             if (Restart != RestartKind.None || !team.HasPossession || Ball.State != BallState.Controlled || Ball.Owner < 0) return;

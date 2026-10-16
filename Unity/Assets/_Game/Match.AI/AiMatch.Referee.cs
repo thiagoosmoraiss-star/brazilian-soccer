@@ -434,7 +434,7 @@ namespace Game.Match.AI
                 away = bd > 1e-3f ? new Vector2(bx / bd, by / bd) : -attack.Forward;
             }
             Movement.Step(body, _balance, p.Setup, away, true, false, false, _mv, _fatigue, dt);
-            Fatigue.Drain(body, _balance, p.Setup, body.Sprinting, _fatigue, _durationMinutes, dt);
+            Fatigue.Drain(body, _balance, p.Setup, body.Sprinting, _fatigue, _durationMinutes, dt, p.Team.Runtime.FatigueIntensity);
         }
 
         /// <summary>The AI plays a ready free kick or penalty: a penalty is a shot to a random side, a direct free kick

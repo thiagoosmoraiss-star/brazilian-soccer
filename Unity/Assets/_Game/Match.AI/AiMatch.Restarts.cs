@@ -216,7 +216,7 @@ namespace Game.Match.AI
             float d = MathF.Sqrt(dx * dx + dy * dy);
             var move = d > _ai.ArriveRadius ? new Vector2(dx / d, dy / d) : Vector2.Zero;
             Movement.Step(body, _balance, p.Setup, move, true, false, false, _mv, _fatigue, dt);
-            Fatigue.Drain(body, _balance, p.Setup, body.Sprinting, _fatigue, _durationMinutes, dt);
+            Fatigue.Drain(body, _balance, p.Setup, body.Sprinting, _fatigue, _durationMinutes, dt, p.Team.Runtime.FatigueIntensity);
         }
 
         private float ExclusionRadius => Restart == RestartKind.ThrowIn ? _restarts.ThrowInExclusionRadius : _restarts.ExclusionRadius;
@@ -253,7 +253,7 @@ namespace Game.Match.AI
             if (MathF.Abs(body.Position.Y) >= Pitch.HalfWidth - _restarts.LineInset && away.Y * body.Position.Y > 0f) away.Y = 0f;
             if (away.LengthSquared() < 1e-4f) away = OutwardFrom(p);
             Movement.Step(body, _balance, p.Setup, away, true, false, false, _mv, _fatigue, dt);
-            Fatigue.Drain(body, _balance, p.Setup, body.Sprinting, _fatigue, _durationMinutes, dt);
+            Fatigue.Drain(body, _balance, p.Setup, body.Sprinting, _fatigue, _durationMinutes, dt, p.Team.Runtime.FatigueIntensity);
         }
 
         private static Vector2 OutwardFrom(AiPlayer p) => -p.Team.Frame.Forward; // back towards his own goal

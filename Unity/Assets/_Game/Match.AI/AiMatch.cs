@@ -160,6 +160,7 @@ namespace Game.Match.AI
             if (db == null) throw new ArgumentNullException(nameof(db));
             if (setup == null) throw new ArgumentNullException(nameof(setup));
             if (stepSeconds <= 0f) throw new ArgumentOutOfRangeException(nameof(stepSeconds));
+            _db = db;
             _balance = db.Balance;
             _ballCfg = db.Ball.Ball;
             _mv = db.Movement;
@@ -190,9 +191,10 @@ namespace Game.Match.AI
             _refereeRng = streams.Get(RefereeStream);
             _aerialRng = streams.Get(AerialStream);
             _duelsRng = streams.Get(DuelsStream);
-            Home = new AiTeam(MatchSide.Home, new TeamFrame(true, Pitch.HalfLength), Formation(db, setup.Home), db.Tactics, setup.Home, 0, streams.Get(HomeStream));
+            Home = new AiTeam(MatchSide.Home, new TeamFrame(true, Pitch.HalfLength), Formation(db, setup.Home), db.Tactics, setup.Home, 0, streams.Get(HomeStream),
+                db.MatchRules.Fatigue);
             Away = new AiTeam(MatchSide.Away, new TeamFrame(false, Pitch.HalfLength), Formation(db, setup.Away), db.Tactics, setup.Away,
-                MatchTeamSetup.StarterCount, streams.Get(AwayStream));
+                MatchTeamSetup.StarterCount, streams.Get(AwayStream), db.MatchRules.Fatigue);
             for (int i = 0; i < MatchTeamSetup.StarterCount; i++)
             {
                 Players[i] = Home.Players[i];
@@ -292,7 +294,12 @@ namespace Game.Match.AI
             }
 
             // 2. AI: team (5 Hz), function (10 Hz), individual (10 Hz, staggered by player).
-            if (_step % _teamEvery == 0) { UpdateDropPoint(); TeamTick(Home); TeamTick(Away); }
+            if (_step % _teamEvery == 0)
+            {
+                Home.Runtime.Tick(_teamEvery * dt); // a tactic changed in play eases in (A9c)
+                Away.Runtime.Tick(_teamEvery * dt);
+                UpdateDropPoint(); TeamTick(Home); TeamTick(Away);
+            }
             if (_step % _roleEvery == 0) { RoleTick(Home); RoleTick(Away); }
             float individualTick = _individualEvery * dt;
             for (int i = 0; i < Players.Length; i++)
@@ -646,7 +653,7 @@ namespace Game.Match.AI
                 move = d > _ai.ArriveRadius ? new Vector2(dx / d, dy / d) : Vector2.Zero;
             }
             Movement.Step(body, _balance, p.Setup, move, input.Sprint, hasBall, DribbleSystem.IsLongTouch(body), _mv, _fatigue, dt);
-            Fatigue.Drain(body, _balance, p.Setup, body.Sprinting, _fatigue, _durationMinutes, dt);
+            Fatigue.Drain(body, _balance, p.Setup, body.Sprinting, _fatigue, _durationMinutes, dt, p.Team.Runtime.FatigueIntensity);
             if (IsContaining(p, input))
             {
                 float bx = Ball.Position.X - body.Position.X, by = Ball.Position.Y - body.Position.Y;
@@ -698,7 +705,7 @@ namespace Game.Match.AI
             bool urgent = p.Intention == AiIntention.Press || p.Intention == AiIntention.ChaseBall || p.Intention == AiIntention.Run;
             bool sprint = p.Moving && (d > _ai.SprintDistance || (urgent && d > _ai.ContainDistance));
             Movement.Step(body, _balance, p.Setup, move, sprint, hasBall, DribbleSystem.IsLongTouch(body), _mv, _fatigue, dt);
-            Fatigue.Drain(body, _balance, p.Setup, body.Sprinting, _fatigue, _durationMinutes, dt);
+            Fatigue.Drain(body, _balance, p.Setup, body.Sprinting, _fatigue, _durationMinutes, dt, p.Team.Runtime.FatigueIntensity);
 
             if (!p.Moving && !hasBall)
             {
@@ -841,7 +848,7 @@ namespace Game.Match.AI
                     break;
                 }
             }
-            Fatigue.Drain(body, _balance, p.Setup, body.Sprinting, _fatigue, _durationMinutes, dt);
+            Fatigue.Drain(body, _balance, p.Setup, body.Sprinting, _fatigue, _durationMinutes, dt, p.Team.Runtime.FatigueIntensity);
             if (k.State != KeeperState.Diving && k.State != KeeperState.Grounded)
             {
                 float bx = Ball.Position.X - body.Position.X, by = Ball.Position.Y - body.Position.Y;

@@ -11,8 +11,11 @@ namespace Game.Match.AI
     {
         public readonly MatchSide Side;
         public readonly TeamFrame Frame;
-        public readonly FormationDefinition Formation;
+        /// <summary>Current formation (it may change during the match, A9c).</summary>
+        public FormationDefinition Formation { get; internal set; }
         public readonly TacticsDefinition Tactics;
+        /// <summary>The side's tactic in force: the block, pressers and risk it sets (A9c).</summary>
+        public readonly TacticsRuntime Runtime;
         public readonly AiPlayer[] Players = new AiPlayer[MatchTeamSetup.StarterCount];
         /// <summary>Same body instances as <see cref="Players"/> (PassSystem/ShotSystem work on team-local arrays).</summary>
         public readonly PlayerBody[] Bodies = new PlayerBody[MatchTeamSetup.StarterCount];
@@ -45,27 +48,37 @@ namespace Game.Match.AI
         internal float OffsideU;
 
         /// <summary>Normalized x of the deepest and highest outfield slot (the formation's own vertical extent).</summary>
-        internal readonly float SlotMinX;
-        internal readonly float SlotMaxX;
+        internal float SlotMinX;
+        internal float SlotMaxX;
 
         public AiTeam(MatchSide side, TeamFrame frame, FormationDefinition formation, TacticsDefinition tactics, MatchTeamSetup setup,
-            int globalOffset, Rng rng)
+            int globalOffset, Rng rng, FatigueRules fatigueRules = null)
         {
             Side = side;
             Frame = frame;
             Formation = formation ?? throw new ArgumentNullException(nameof(formation));
             Tactics = tactics;
+            Runtime = new TacticsRuntime(tactics, fatigueRules, setup.Tactic);
             Rng = rng;
             if (formation.Slots.Count != MatchTeamSetup.StarterCount) throw new ArgumentException("Formation must have 11 slots.");
 
+            for (int i = 0; i < Players.Length; i++)
+            {
+                Players[i] = new AiPlayer(globalOffset + i, i, this, formation.Slots[i], setup.Starters[i]);
+                Players[i].Body.Energy = setup.Starters[i].Energy;
+                Bodies[i] = Players[i].Body;
+            }
+            UpdateSlotExtent();
+        }
+
+        /// <summary>Normalized x of the deepest and highest outfield slot of the current formation.</summary>
+        internal void UpdateSlotExtent()
+        {
             SlotMinX = float.MaxValue;
             SlotMaxX = float.MinValue;
             for (int i = 0; i < Players.Length; i++)
             {
-                var slot = formation.Slots[i];
-                Players[i] = new AiPlayer(globalOffset + i, i, this, slot, setup.Starters[i]);
-                Players[i].Body.Energy = setup.Starters[i].Energy;
-                Bodies[i] = Players[i].Body;
+                var slot = Players[i].Slot;
                 if (slot.Role == FormationRole.GK) continue;
                 SlotMinX = Math.Min(SlotMinX, slot.X);
                 SlotMaxX = Math.Max(SlotMaxX, slot.X);

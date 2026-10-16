@@ -1,3 +1,4 @@
+using System.Linq;
 using Game.Core.Results;
 using Game.Data.Definitions;
 using Game.Data.Match;
@@ -14,7 +15,7 @@ namespace Game.Data.Loading
         public static Result<TacticsDefinition> ReadTactics(string json)
         {
             var j = new StrictJson(GameDataLoader.TacticsFile);
-            var root = j.ParseRoot(json, SupportedSchemaVersion, "default");
+            var root = j.ParseRoot(json, SupportedSchemaVersion, "default", "modifiers");
             if (root == null) return Result<TacticsDefinition>.Fail(j.Errors);
 
             var d = j.Object(root, "default", "root");
@@ -49,13 +50,85 @@ namespace Game.Data.Loading
                     };
                 }
             }
+            t.Modifiers = ReadModifiers(j, root);
             if (!j.Ok) return Result<TacticsDefinition>.Fail(j.Errors);
 
             bool ok = t.MinLine > 0f && t.LateralShift >= 0f && t.LateralShift <= 1f && t.Pressers >= 0 && t.PressTriggerDistance > 0f;
             foreach (var p in t.Phases)
                 ok &= p != null && p.Depth > 0f && p.LineBehindBall >= 0f && p.MaxLine > t.MinLine && p.WidthScale > 0f && p.WidthScale <= 1f;
             if (!ok) { j.Fail(InvalidTactics, "tactics values invalid (every phase needs depth > 0, maxLine > minLine, widthScale 0-1)."); return Result<TacticsDefinition>.Fail(j.Errors); }
+            if (!ModifiersValid(t)) { j.Fail(InvalidTactics, "tactics modifiers invalid (5 mentality / 3 line / 3 pressure values, scales > 0, "
+                + "every level keeps maxLine > minLine > 0 and pressers >= 0, smoothing >= 0)."); return Result<TacticsDefinition>.Fail(j.Errors); }
             return Result<TacticsDefinition>.Ok(t);
+        }
+
+        private static TacticModifiers ReadModifiers(StrictJson j, Newtonsoft.Json.Linq.JObject root)
+        {
+            var m = j.Object(root, "modifiers", "root");
+            if (m == null) return null;
+            j.Keys(m, "modifiers", "mentality", "defensiveLine", "pressure", "changeSmoothSeconds", "formationRolePenalty");
+            var r = new TacticModifiers
+            {
+                ChangeSmoothSeconds = j.Float(m, "changeSmoothSeconds", "modifiers"),
+                FormationRolePenalty = j.Float(m, "formationRolePenalty", "modifiers"),
+            };
+            var me = j.Object(m, "mentality", "modifiers");
+            if (me != null)
+            {
+                j.Keys(me, "modifiers.mentality", "lineOffset", "attackDepthScale", "defendDepthScale", "progressWeightScale", "shootThresholdScale", "runCooldownScale");
+                r.MentalityLineOffset = j.FloatList(me, "lineOffset", "modifiers.mentality")?.ToArray();
+                r.MentalityAttackDepthScale = j.FloatList(me, "attackDepthScale", "modifiers.mentality")?.ToArray();
+                r.MentalityDefendDepthScale = j.FloatList(me, "defendDepthScale", "modifiers.mentality")?.ToArray();
+                r.MentalityProgressWeightScale = j.FloatList(me, "progressWeightScale", "modifiers.mentality")?.ToArray();
+                r.MentalityShootThresholdScale = j.FloatList(me, "shootThresholdScale", "modifiers.mentality")?.ToArray();
+                r.MentalityRunCooldownScale = j.FloatList(me, "runCooldownScale", "modifiers.mentality")?.ToArray();
+            }
+            var li = j.Object(m, "defensiveLine", "modifiers");
+            if (li != null)
+            {
+                j.Keys(li, "modifiers.defensiveLine", "lineBehindBallOffset", "maxLineOffset", "minLineOffset");
+                r.LineBehindBallOffset = j.FloatList(li, "lineBehindBallOffset", "modifiers.defensiveLine")?.ToArray();
+                r.LineMaxOffset = j.FloatList(li, "maxLineOffset", "modifiers.defensiveLine")?.ToArray();
+                r.LineMinOffset = j.FloatList(li, "minLineOffset", "modifiers.defensiveLine")?.ToArray();
+            }
+            var pr = j.Object(m, "pressure", "modifiers");
+            if (pr != null)
+            {
+                j.Keys(pr, "modifiers.pressure", "pressersOffset", "pressTriggerScale", "transitionDefenseScale");
+                r.PressersOffset = j.IntList(pr, "pressersOffset", "modifiers.pressure")?.ToArray();
+                r.PressTriggerScale = j.FloatList(pr, "pressTriggerScale", "modifiers.pressure")?.ToArray();
+                r.TransitionDefenseScale = j.FloatList(pr, "transitionDefenseScale", "modifiers.pressure")?.ToArray();
+            }
+            return r;
+        }
+
+        private static bool ModifiersValid(TacticsDefinition t)
+        {
+            var m = t.Modifiers;
+            if (m == null) return false;
+            bool Len(System.Array a, int n) => a != null && a.Length == n;
+            if (!Len(m.MentalityLineOffset, TacticModifiers.MentalityLevels) || !Len(m.MentalityAttackDepthScale, TacticModifiers.MentalityLevels)
+                || !Len(m.MentalityDefendDepthScale, TacticModifiers.MentalityLevels)
+                || !Len(m.MentalityProgressWeightScale, TacticModifiers.MentalityLevels) || !Len(m.MentalityShootThresholdScale, TacticModifiers.MentalityLevels)
+                || !Len(m.MentalityRunCooldownScale, TacticModifiers.MentalityLevels)
+                || !Len(m.LineBehindBallOffset, TacticModifiers.LineLevels) || !Len(m.LineMaxOffset, TacticModifiers.LineLevels)
+                || !Len(m.LineMinOffset, TacticModifiers.LineLevels)
+                || !Len(m.PressersOffset, TacticModifiers.PressureLevels) || !Len(m.PressTriggerScale, TacticModifiers.PressureLevels)
+                || !Len(m.TransitionDefenseScale, TacticModifiers.PressureLevels)) return false;
+            if (m.ChangeSmoothSeconds < 0f || m.FormationRolePenalty < 0f) return false;
+            foreach (var a in new[] { m.MentalityAttackDepthScale, m.MentalityDefendDepthScale, m.MentalityProgressWeightScale, m.MentalityShootThresholdScale,
+                         m.MentalityRunCooldownScale, m.PressTriggerScale, m.TransitionDefenseScale })
+                foreach (float v in a) if (v <= 0f) return false;
+            for (int l = 0; l < TacticModifiers.LineLevels; l++)
+            for (int me = 0; me < TacticModifiers.MentalityLevels; me++)
+            {
+                float min = t.MinLine + m.LineMinOffset[l];
+                if (min <= 0f) return false;
+                foreach (var p in t.Phases)
+                    if (p.MaxLine + m.LineMaxOffset[l] + m.MentalityLineOffset[me] <= min) return false;
+            }
+            for (int p = 0; p < TacticModifiers.PressureLevels; p++) if (t.Pressers + m.PressersOffset[p] < 0) return false;
+            return true;
         }
 
         public static Result<AiDefinition> ReadAi(string json)

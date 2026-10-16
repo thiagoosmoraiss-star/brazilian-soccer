@@ -27,6 +27,50 @@ namespace Game.Data.Match
         public int Pressers { get; internal set; }
         /// <summary>A presser only engages a carrier within this distance.</summary>
         public float PressTriggerDistance { get; internal set; }
+        /// <summary>Per-level changes of the default block by mentality / line / pressure (A9c, TECHNICAL_SPEC §9).</summary>
+        public TacticModifiers Modifiers { get; internal set; }
+    }
+
+    /// <summary>How mentality (1-5), defensive line (1-3) and pressure (1-3) change the default block (tactics.json
+    /// "modifiers", A9c, X-78; TECHNICAL_SPEC §9). Arrays are indexed by level - 1; the default tactic (3, 2, 2) is
+    /// neutral (offset 0, scale 1).</summary>
+    public sealed class TacticModifiers
+    {
+        public const int MentalityLevels = 5;
+        public const int LineLevels = 3;
+        public const int PressureLevels = 3;
+
+        /// <summary>Mentality: the whole block higher (+) or lower (-), meters ("altura do bloco").</summary>
+        public float[] MentalityLineOffset { get; internal set; }
+        /// <summary>Mentality: depth of the in-possession phases ("jogadores além da linha da bola").</summary>
+        public float[] MentalityAttackDepthScale { get; internal set; }
+        /// <summary>Mentality: depth of the out-of-possession phases (a low block is a compact one).</summary>
+        public float[] MentalityDefendDepthScale { get; internal set; }
+        /// <summary>Mentality: weight of progress up the pitch in the on-ball decision ("risco").</summary>
+        public float[] MentalityProgressWeightScale { get; internal set; }
+        /// <summary>Mentality: the clear-chance threshold to shoot.</summary>
+        public float[] MentalityShootThresholdScale { get; internal set; }
+        /// <summary>Mentality: time between runs in behind (A9b ruptura).</summary>
+        public float[] MentalityRunCooldownScale { get; internal set; }
+
+        /// <summary>Line: added to how far behind the ball the line sits when defending (+ = deeper).</summary>
+        public float[] LineBehindBallOffset { get; internal set; }
+        /// <summary>Line: added to the highest the line may push ("subida para impedimento").</summary>
+        public float[] LineMaxOffset { get; internal set; }
+        /// <summary>Line: added to the deepest the line may drop.</summary>
+        public float[] LineMinOffset { get; internal set; }
+
+        /// <summary>Pressure: pressers added to the default ("nº de pressionadores").</summary>
+        public int[] PressersOffset { get; internal set; }
+        /// <summary>Pressure: the distance at which a presser engages ("distância de disparo").</summary>
+        public float[] PressTriggerScale { get; internal set; }
+        /// <summary>Pressure: duration of the defensive transition (counter-press).</summary>
+        public float[] TransitionDefenseScale { get; internal set; }
+
+        /// <summary>A tactic changed during the match is eased in over this long ("suavização de 1-2 s").</summary>
+        public float ChangeSmoothSeconds { get; internal set; }
+        /// <summary>Formation change: cost of putting a player in a slot of another role (vs normalized distance).</summary>
+        public float FormationRolePenalty { get; internal set; }
     }
 
     /// <summary>Tactic-independent AI coefficients (Data/Balance/ai.json, A4 baseline v1, X-52; TECHNICAL_SPEC §7,
