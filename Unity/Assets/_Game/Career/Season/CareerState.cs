@@ -24,6 +24,10 @@ namespace Game.Career.Season
         /// </summary>
         public Id? ManagedClubId { get; set; }
 
+        /// <summary>The managed club's match that was being played when the career was saved (C1: "retomar partida após
+        /// fechar o app"), or null. The match is rebuilt from the same fixture and restored from the snapshot.</summary>
+        public MatchInProgress MatchInProgress { get; set; }
+
         /// <summary>Offers from AI clubs for a player of the managed club, awaiting a human decision (B5).</summary>
         public List<TransferProposal> Proposals { get; } = new List<TransferProposal>();
 
@@ -42,6 +46,19 @@ namespace Game.Career.Season
     public interface ITransferWindow
     {
         void Run(CareerState state, GameDatabase db, DateTime date, ulong seed);
+    }
+
+    /// <summary>A played match interrupted by closing the app (C1): its fixture and the match engine's snapshot.</summary>
+    public sealed class MatchInProgress
+    {
+        public Id FixtureId { get; }
+        public byte[] Snapshot { get; }
+
+        public MatchInProgress(Id fixtureId, byte[] snapshot)
+        {
+            FixtureId = fixtureId;
+            Snapshot = snapshot ?? throw new ArgumentNullException(nameof(snapshot));
+        }
     }
 
     /// <summary>An AI club's offer for a managed-club player, awaiting a human decision (B5).</summary>

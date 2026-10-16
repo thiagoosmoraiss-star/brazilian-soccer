@@ -135,10 +135,14 @@ namespace Game.Match.AI
 
         /// <summary>The single output of the match (D-19, TECHNICAL_SPEC §5): goals, events, fouls and cards (A8a),
         /// substitutions (A9c: everybody who played, with his minutes). No ratings or injuries yet.</summary>
+        /// <summary>The match's <see cref="MatchResult"/>: player ratings by the formula QuickSim uses, and — for a knockout
+        /// match level at the end — the penalty shootout by the shared rules (C1; the visual shootout is post-MVP).
+        /// Deterministic: the same match gives the same result however often it is asked.</summary>
         public MatchResult Result()
         {
-            var players = PlayerResults();
-            return new MatchResult(Home.Goals, Away.Goals, _events, TeamResult(Home), TeamResult(Away), players);
+            var players = RatePlayers(PlayerResults());
+            var (homePens, awayPens) = Shootout();
+            return new MatchResult(Home.Goals, Away.Goals, _events, TeamResult(Home), TeamResult(Away), players, homePens, awayPens);
         }
 
         private TeamMatchStats TeamResult(AiTeam team)

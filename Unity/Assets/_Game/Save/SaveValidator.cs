@@ -45,10 +45,29 @@ namespace Game.Save
             }
 
             if (state.Season != null) ValidateSeason(errors, clubIds, state.Season);
+            if (state.MatchInProgress != null) ValidateMatchInProgress(errors, state);
             foreach (var summary in state.History) ValidateSummary(errors, world.Clubs.Count, summary);
             ValidateBalances(errors, state);
 
             return Result.From(errors);
+        }
+
+        /// <summary>C1: a saved match in progress is an unplayed fixture of the managed club in the current season.</summary>
+        private static void ValidateMatchInProgress(List<Error> errors, CareerState state)
+        {
+            var id = state.MatchInProgress.FixtureId;
+            Fixture found = null;
+            if (state.Season != null)
+            {
+                foreach (var l in state.Season.Leagues) foreach (var f in l.Fixtures) if (f.Id == id) found = f;
+                foreach (var round in state.Season.Cup.Rounds) foreach (var f in round) if (f.Id == id) found = f;
+            }
+            if (found == null) { errors.Add(new Error(Code, $"matchInProgress: fixture {id} is not in the current season.")); return; }
+            if (found.Played) errors.Add(new Error(Code, $"matchInProgress: fixture {id} was already played."));
+            var managed = state.ManagedClubId;
+            if (!managed.HasValue || (found.HomeClubId != managed.Value && found.AwayClubId != managed.Value))
+                errors.Add(new Error(Code, $"matchInProgress: fixture {id} is not the managed club's."));
+            if (state.MatchInProgress.Snapshot.Length == 0) errors.Add(new Error(Code, "matchInProgress: empty snapshot."));
         }
 
         private static void ValidateSeason(List<Error> errors, HashSet<Id> clubIds, Season season)

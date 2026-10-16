@@ -23,6 +23,11 @@ namespace Game.Save.Serialization
                 ["ids"] = new JObject { ["lastIssued"] = state.Ids.LastIssued },
                 ["managedClubId"] = state.ManagedClubId.HasValue ? new JValue(state.ManagedClubId.Value.Value) : JValue.CreateNull(),
                 ["proposals"] = Array(state.Proposals, WriteProposal),
+                ["matchInProgress"] = state.MatchInProgress == null ? (JToken)JValue.CreateNull() : new JObject
+                {
+                    ["fixtureId"] = state.MatchInProgress.FixtureId.Value,
+                    ["snapshot"] = System.Convert.ToBase64String(state.MatchInProgress.Snapshot),
+                },
                 ["world"] = WriteWorld(state.World),
                 ["season"] = WriteSeason(state.Season),
                 ["history"] = Array(state.History, WriteSeasonSummary),

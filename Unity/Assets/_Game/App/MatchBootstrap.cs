@@ -1,5 +1,6 @@
 using System;
 using System.IO;
+using Game.Career.Season;
 using Game.Core.Contracts.Match;
 using Game.Data.Loading;
 using Game.Data.Match;
@@ -14,8 +15,10 @@ namespace Game.App
 {
     /// <summary>
     /// Entry point of the Match scene (A7b; TECHNICAL_SPEC §15 "Match | jogadores, câmera, HUD, pausa; paisagem" and §19
-    /// vertical slice): the user's side (the strong vertical-slice team by default, always attacking left to right)
-    /// against the AI, 2×2 min with the 90-minute clock. Wires the pure <see cref="MatchSession"/> to the views (pitch,
+    /// vertical slice). Career mode (C1): the managed club's pending match from the Shell (home or away; the result goes back
+    /// to the career, a match interrupted by closing the app goes into the career save). Opened on its own: the user's side
+    /// (the strong vertical-slice team by default) against the AI, 2×2 min with the 90-minute clock. The user always attacks
+    /// left to right. Wires the pure <see cref="MatchSession"/> to the views (pitch,
     /// animated placeholder players, ball, broadcast camera, HUD with radar, pause menu, final screen) and the touch input.
     /// Going to the background (or quitting) saves the whole match and pauses it; the next launch resumes it paused
     /// ("pausa + retomar após segundo plano"). Not pure: it is the only place that reads the frame time.
@@ -50,6 +53,9 @@ namespace Game.App
         private ulong _seed;
         private bool _finalShown;
         private string _error;
+        // Career mode (C1): the managed club's match from the Shell; the user may be the home or the away side.
+        private CareerSimulator.PendingMatch _pending;
+        private bool _userHome = true;
 
         private string SnapshotPath => Path.Combine(Application.persistentDataPath, SnapshotFile);
 
@@ -83,7 +89,8 @@ namespace Game.App
             _input.Configure(new KickTimings(_db.Kicking.Common.TapMaxSeconds, _db.Kicking.Pass.PowerBarSeconds, _db.Kicking.Shot.PowerBarSeconds),
                 _db.Movement.SprintMemorySeconds);
 
-            if (!TryResume()) NewMatch(PlayStrongTeam, (ulong)Environment.TickCount);
+            if (CareerContext.Ready && CareerContext.Career.PendingUserMatch != null) StartCareerMatch();
+            else if (!TryResume()) NewMatch(PlayStrongTeam, (ulong)Environment.TickCount);
         }
 
         private void Fail(string error)
@@ -98,7 +105,34 @@ namespace Game.App
         {
             DeleteSnapshot();
             var setup = Setup(userStrong, seed, DurationMinutes);
-            Build(new MatchSession(_db, setup, StepSeconds, MatchSide.Home), userStrong, seed);
+            BuildVerticalSlice(new MatchSession(_db, setup, StepSeconds, MatchSide.Home), userStrong, seed);
+        }
+
+        /// <summary>Career mode (C1): the managed club's pending match — restored when the app was closed during it.</summary>
+        private void StartCareerMatch()
+        {
+            var career = CareerContext.Career;
+            _pending = career.PendingUserMatch;
+            var saved = career.State.MatchInProgress;
+            MatchSession session = null;
+            if (saved != null && saved.FixtureId == _pending.Fixture.Id)
+            {
+                try { session = MatchSession.Restore(_db, _pending.Setup, StepSeconds, saved.Snapshot); }
+                catch (ArgumentException e) { Debug.LogWarning("MatchBootstrap: the saved match could not be restored, starting it again: " + e.Message); }
+            }
+            if (session == null) session = new MatchSession(_db, _pending.Setup, StepSeconds, _pending.UserSide);
+            var f = _pending.Fixture;
+            Build(session, CareerContext.ClubName(f.HomeClubId), CareerContext.ClubName(f.AwayClubId), _pending.UserSide, CareerContext.PlayerName);
+            _hud.SetCareerMode();
+        }
+
+        /// <summary>The final whistle in career mode: the result goes to the career, then back to the Shell.</summary>
+        private void FinishCareerMatch()
+        {
+            if (_pending == null || !_session.Match.Finished) return;
+            CareerContext.FinishMatch(_session.Match.Result());
+            _pending = null;
+            UnityEngine.SceneManagement.SceneManager.LoadScene(BootLoader.ShellScene);
         }
 
         private MatchSetup Setup(bool userStrong, ulong seed, int minutes)
@@ -108,17 +142,25 @@ namespace Game.App
             return new MatchSetup(mine.ToSetup(), theirs.ToSetup(), false, minutes, 5, seed);
         }
 
-        /// <summary>(Re)creates the views for a session: the user is always the home side, attacking +x (left to right).</summary>
-        private void Build(MatchSession session, bool userStrong, ulong seed)
+        /// <summary>Vertical-slice match (the scene opened on its own): the user is the home side.</summary>
+        private void BuildVerticalSlice(MatchSession session, bool userStrong, ulong seed)
+        {
+            _userStrong = userStrong;
+            _seed = seed;
+            var mine = _teams.Team(userStrong ? "strong" : "weak");
+            var theirs = _teams.Team(userStrong ? "weak" : "strong");
+            Build(session, mine.Name, theirs.Name, MatchSide.Home, PlayerName);
+        }
+
+        /// <summary>(Re)creates the views for a session. The user's side always attacks left to right on screen: when he is
+        /// the away side (attacking −x) the camera stands on the other touchline and the stick is mirrored.</summary>
+        private void Build(MatchSession session, string homeName, string awayName, MatchSide userSide, Func<int, string> playerName)
         {
             DestroyViews();
             _session = session;
-            _userStrong = userStrong;
-            _seed = seed;
+            _userHome = userSide == MatchSide.Home;
             _finalShown = false;
             var m = session.Match;
-            var mine = _teams.Team(userStrong ? "strong" : "weak");
-            var theirs = _teams.Team(userStrong ? "weak" : "strong");
 
             var homeShirt = new Color(0.15f, 0.3f, 0.95f);
             var awayShirt = new Color(0.9f, 0.15f, 0.15f);
@@ -130,7 +172,7 @@ namespace Game.App
                 bool home = p.Team == m.Home;
                 var shirt = p.IsGoalkeeper ? (home ? new Color(0.1f, 0.7f, 0.3f) : new Color(0.95f, 0.6f, 0.1f)) : (home ? homeShirt : awayShirt);
                 _players[i] = new PlayerView(_materials, shirt, home ? Color.white : Color.black, skin,
-                    (home ? mine.Name : theirs.Name) + " " + (p.Local + 1));
+                    (home ? homeName : awayName) + " " + (p.Local + 1));
             }
             float r = _db.Ball.Ball.Radius;
             _ball = _materials.Part(PrimitiveType.Sphere, null, Vector3.zero, Vector3.one * r * 2f * 1.6f, Color.white, "Ball").transform;
@@ -138,16 +180,20 @@ namespace Game.App
             _aimArrow = _materials.Part(PrimitiveType.Cube, null, Vector3.zero, new Vector3(AimArrowWidth, 0.02f, AimArrowLength), new Color(1f, 0.85f, 0.1f), "Aim arrow").transform;
             _aimArrow.gameObject.SetActive(false);
 
-            _camera = new BroadcastCamera(_view, m.Pitch.HalfLength, m.Pitch.HalfWidth, userAttacksPositiveX: true);
-            _hud = new MatchHudView(_view, Resources.Load<UnityEngine.UIElements.ThemeStyleSheet>("AcessoRuntimeTheme"), mine.Name, theirs.Name,
-                homeShirt, awayShirt, m.Pitch.HalfLength, m.Pitch.HalfWidth, true, m.Players.Length, PlayerName);
+            _camera = new BroadcastCamera(_view, m.Pitch.HalfLength, m.Pitch.HalfWidth, userAttacksPositiveX: _userHome);
+            _hud = new MatchHudView(_view, Resources.Load<UnityEngine.UIElements.ThemeStyleSheet>("AcessoRuntimeTheme"), homeName, awayName,
+                homeShirt, awayShirt, m.Pitch.HalfLength, m.Pitch.HalfWidth, _userHome, m.Players.Length, playerName);
             _hud.PauseRequested += Pause;
             _hud.ResumeRequested += Resume;
-            _hud.RestartRequested += () => NewMatch(_userStrong, (ulong)Environment.TickCount);
+            _hud.RestartRequested += () =>
+            {
+                if (_pending != null) FinishCareerMatch(); // career: "Continuar" after the final whistle
+                else NewMatch(_userStrong, (ulong)Environment.TickCount);
+            };
             // Substitutions (A9c): from the pause menu, and at half-time (the session stops there).
             session.PauseAtHalfTime = true;
             _halfTimeShown = false;
-            _subs = new SubstitutionPanel(_hud.Root, session, MatchSide.Home, PlayerName);
+            _subs = new SubstitutionPanel(_hud.Root, session, userSide, playerName);
             _subs.Closed += OnSubstitutionsClosed;
             _hud.SubstitutionsRequested += OpenSubstitutions;
             _input.ReservedTopFraction = _hud.ReservedTopFraction;
@@ -251,14 +297,16 @@ namespace Game.App
             }
 
             var m = _session.Match;
-            _input.DefenseMode = !m.Home.HasPossession;
+            _input.DefenseMode = !m.HumanTeam.HasPossession;
             var command = _input.TakeCommand();
             bool switchTap = _input.TakeSwitch();
             bool slideTap = _input.TakeSlide();
             if (!_session.Paused)
             {
                 _session.Queue(command, switchTap, slideTap);
-                _session.Advance(Time.deltaTime, _input.MoveIntent, _input.SprintHeld, _input.ContainHeld, _input.PressHeld);
+                // The away user attacks −x with the camera on the other touchline: the stick is mirrored to the world.
+                var move = _userHome ? _input.MoveIntent : -_input.MoveIntent;
+                _session.Advance(Time.deltaTime, move, _input.SprintHeld, _input.ContainHeld, _input.PressHeld);
             }
             if (_session.Paused && m.IsHalfTimeBreak && !_halfTimeShown)
             {
@@ -337,6 +385,11 @@ namespace Game.App
         {
             if (_session == null || _session.Match.Finished) return;
             Pause();
+            if (_pending != null)
+            {
+                CareerContext.SuspendMatch(_pending.Fixture.Id, _session.Snapshot()); // C1: the match goes into the career save
+                return;
+            }
             try
             {
                 string tmp = SnapshotPath + ".tmp";
@@ -375,7 +428,7 @@ namespace Game.App
                     int minutes = r.ReadInt32();
                     var snap = r.ReadBytes(r.ReadInt32());
                     var session = MatchSession.Restore(_db, Setup(userStrong, seed, minutes), StepSeconds, snap);
-                    Build(session, userStrong, seed);
+                    BuildVerticalSlice(session, userStrong, seed);
                     return true;
                 }
             }

@@ -32,6 +32,7 @@ namespace Game.Presentation
         private readonly VisualElement _root, _radar, _radarField, _pauseMenu, _final;
         private readonly Label _score, _clock, _banner, _finalScore, _finalStats, _radarToggle, _fps, _hint, _card;
         private readonly Func<int, string> _playerName;
+        private Button _restartButton, _finalButton;
         private int _shownHint = -1, _seenEvents = -1;
         private float _cardUntil;
         private readonly VisualElement[] _dots;
@@ -196,7 +197,8 @@ namespace Game.Presentation
             _pauseMenu.Add(MenuButton("Continuar", () => ResumeRequested?.Invoke()));
             _pauseMenu.Add(MenuButton("Tática", () => TacticsRequested?.Invoke()));
             _pauseMenu.Add(MenuButton("Substituições", () => SubstitutionsRequested?.Invoke()));
-            _pauseMenu.Add(MenuButton("Recomeçar partida", () => RestartRequested?.Invoke()));
+            _restartButton = MenuButton("Recomeçar partida", () => RestartRequested?.Invoke());
+            _pauseMenu.Add(_restartButton);
             _root.Add(_pauseMenu);
 
             // Final screen.
@@ -209,12 +211,20 @@ namespace Game.Presentation
             _finalStats.style.marginTop = 16;
             _finalStats.style.marginBottom = 24;
             _final.Add(_finalStats);
-            _final.Add(MenuButton("Jogar de novo", () => RestartRequested?.Invoke()));
+            _finalButton = MenuButton("Jogar de novo", () => RestartRequested?.Invoke());
+            _final.Add(_finalButton);
             _root.Add(_final);
         }
 
         /// <summary>Shows the frame rate of the last measuring window (called about once a second, not per frame).</summary>
         public void SetFps(float average, float worst) => _fps.text = $"FPS {average:0} (pior {worst:0})";
+
+        /// <summary>Career match (C1): no restart from the pause menu; after the final whistle "Continuar" (back to the career).</summary>
+        public void SetCareerMode()
+        {
+            _restartButton.style.display = DisplayStyle.None;
+            _finalButton.text = "Continuar";
+        }
 
         /// <summary>Adds a full-screen panel (tactics, substitutions) over the HUD and the pause menu.</summary>
         public void AddOverlay(VisualElement panel) => _root.Add(panel);

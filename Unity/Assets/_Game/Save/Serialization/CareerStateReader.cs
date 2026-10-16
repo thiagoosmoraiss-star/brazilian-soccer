@@ -23,7 +23,7 @@ namespace Game.Save.Serialization
         public static Result<CareerState> Read(JObject root)
         {
             var sj = new StrictJson("save");
-            sj.Keys(root, "root", "schemaVersion", "seed", "ids", "managedClubId", "proposals", "world", "season", "history");
+            sj.Keys(root, "root", "schemaVersion", "seed", "ids", "managedClubId", "proposals", "matchInProgress", "world", "season", "history");
 
             var state = new CareerState
             {
@@ -31,6 +31,23 @@ namespace Game.Save.Serialization
                 Ids = new IdAllocator(ReadIdAllocator(sj, root)),
                 ManagedClubId = ReadIdOpt(sj, root["managedClubId"], "root.managedClubId"),
             };
+
+            var mip = root["matchInProgress"];
+            if (mip == null) sj.Fail("MISSING_KEY", "root.matchInProgress is required (null when no match is in progress).");
+            else if (mip.Type != JTokenType.Null)
+            {
+                var o = sj.AsObject(mip, "root.matchInProgress");
+                if (o != null)
+                {
+                    sj.Keys(o, "root.matchInProgress", "fixtureId", "snapshot");
+                    int fixture = sj.Int(o, "fixtureId", "root.matchInProgress");
+                    string b64 = sj.String(o, "snapshot", "root.matchInProgress");
+                    byte[] bytes = null;
+                    try { if (b64 != null) bytes = System.Convert.FromBase64String(b64); }
+                    catch (System.FormatException) { sj.Fail("INVALID_VALUE", "root.matchInProgress.snapshot is not base64."); }
+                    if (bytes != null) state.MatchInProgress = new MatchInProgress(new Id(fixture), bytes);
+                }
+            }
 
             var proposalsArr = sj.Array(root, "proposals", "root");
             if (proposalsArr != null)

@@ -14,7 +14,7 @@ namespace Game.Career.Season
 {
     /// <summary>
     /// Advances a career date by date (TECHNICAL_SPEC §11): builds each season's calendar from data, resolves matchdays
-    /// with the QuickSim, draws the cup, and runs the season transition (promotion/relegation X-39, cup qualification
+    /// with the QuickSim (the managed club's match waits for the user's played or simulated result, C1), draws the cup, and runs the season transition (promotion/relegation X-39, cup qualification
     /// X-40, archive). Pure C#: 10+ seasons run in `dotnet test` without Unity.
     /// </summary>
     public sealed class CareerSimulator
@@ -71,11 +71,90 @@ namespace Game.Career.Season
 
         // ---------------- Advancing ----------------
 
+        // ---------------- The managed club's match (C1) ----------------
+
+        private MatchResult _userResult;
+        private PendingMatch _pending;
+
+        /// <summary>
+        /// The managed club's match the next calendar entry contains (C1: the career stops there until the user plays or
+        /// simulates it), or null. A cup round is drawn here already, so the opponent is known before the match.
+        /// </summary>
+        public PendingMatch PendingUserMatch
+        {
+            get
+            {
+                if (!State.ManagedClubId.HasValue) return null;
+                var season = State.Season;
+                if (season.NextEntry >= season.Calendar.Count) return null;
+                var entry = season.Calendar[season.NextEntry];
+                Fixture f = null;
+                if (entry.Kind == CalendarEntryKind.LeagueRound) f = ManagedFixture(season, entry.Round);
+                else if (entry.Kind == CalendarEntryKind.CupRound) f = ManagedCupFixture(season, entry);
+                if (f == null || f.Played) { _pending = null; return null; }
+                if (_pending != null && _pending.Fixture == f) return _pending;
+                var managed = State.ManagedClubId.Value;
+                _pending = new PendingMatch(f, BuildSetup(season, f, f.Kind == CompetitionKind.Cup),
+                    f.HomeClubId == managed ? MatchSide.Home : MatchSide.Away);
+                return _pending;
+            }
+        }
+
+        /// <summary>True when <see cref="Advance"/> would need the managed club's result first.</summary>
+        public bool AwaitingUserMatch => PendingUserMatch != null;
+
+        /// <summary>The user's result of <see cref="PendingUserMatch"/> (played, or simulated by the caller): the matchday
+        /// is resolved with it — every other match by the QuickSim — and applied exactly like a simulated result.</summary>
+        public CalendarEntry CompleteUserMatch(MatchResult result)
+        {
+            if (result == null) throw new ArgumentNullException(nameof(result));
+            if (PendingUserMatch == null) throw new InvalidOperationException("No managed-club match is pending.");
+            _userResult = result;
+            try { return Advance(); }
+            finally { _userResult = null; _pending = null; }
+        }
+
+        /// <summary>"Simular": the pending match by the career's own resolver (the QuickSim).</summary>
+        public CalendarEntry SimulateUserMatch()
+        {
+            var pending = PendingUserMatch ?? throw new InvalidOperationException("No managed-club match is pending.");
+            return CompleteUserMatch(_resolve(pending.Setup));
+        }
+
+        /// <summary>Advances until the managed club has a match to play (or the season ends). Returns the pending match or null.</summary>
+        public PendingMatch AdvanceToUserMatch()
+        {
+            int year = State.Season.Year;
+            while (PendingUserMatch == null && State.Season.Year == year) Advance();
+            return PendingUserMatch;
+        }
+
+        private Fixture ManagedFixture(Season season, int round)
+        {
+            var managed = State.ManagedClubId.Value;
+            foreach (var league in season.Leagues)
+                foreach (var f in league.Fixtures)
+                    if (f.Round == round && (f.HomeClubId == managed || f.AwayClubId == managed)) return f;
+            return null;
+        }
+
+        private Fixture ManagedCupFixture(Season season, CalendarEntry entry)
+        {
+            var managed = State.ManagedClubId.Value;
+            var round = DrawnCupRound(season, entry);
+            if (round == null) return null;
+            foreach (var f in round)
+                if (f.HomeClubId == managed || f.AwayClubId == managed) return f;
+            return null;
+        }
+
         /// <summary>Processes the next calendar entry. Returns it (a new season starts after SeasonEnd).</summary>
         public CalendarEntry Advance()
         {
             var season = State.Season;
             var entry = season.Calendar[season.NextEntry];
+            if (_userResult == null && PendingUserMatch != null)
+                throw new InvalidOperationException("The managed club's match must be played or simulated first (CompleteUserMatch / SimulateUserMatch).");
             switch (entry.Kind)
             {
                 case CalendarEntryKind.LeagueRound: PlayLeagueRound(season, entry); break;
@@ -221,6 +300,23 @@ namespace Game.Career.Season
         private void PlayCupRound(Season season, CalendarEntry entry)
         {
             var cup = season.Cup;
+            var round = DrawnCupRound(season, entry);
+            foreach (var f in round) if (!f.Played) Play(season, f, requiresWinner: true);
+
+            if (entry.Round == cup.RoundCount - 1)
+            {
+                var final = round[0];
+                cup.Winner = final.Winner;
+                cup.RunnerUp = final.Winner == final.HomeClubId ? final.AwayClubId : final.HomeClubId;
+            }
+        }
+
+        /// <summary>The cup round of <paramref name="entry"/>, drawn now if it has not been yet (C1: the managed club's
+        /// opponent is known before the match; a drawn, unplayed round is part of the saved state).</summary>
+        private List<Fixture> DrawnCupRound(Season season, CalendarEntry entry)
+        {
+            var cup = season.Cup;
+            if (cup.Rounds.Count > entry.Round) return cup.Rounds[entry.Round];
             IReadOnlyList<Id> clubs;
             if (entry.Round == 0) clubs = cup.Qualified;
             else
@@ -229,17 +325,9 @@ namespace Game.Career.Season
                 foreach (var f in cup.Rounds[entry.Round - 1]) winners.Add(f.Winner);
                 clubs = winners;
             }
-
             var round = DrawCupRound(season, clubs, entry);
             cup.Rounds.Add(round);
-            foreach (var f in round) Play(season, f, requiresWinner: true);
-
-            if (entry.Round == cup.RoundCount - 1)
-            {
-                var final = round[0];
-                cup.Winner = final.Winner;
-                cup.RunnerUp = final.Winner == final.HomeClubId ? final.AwayClubId : final.HomeClubId;
-            }
+            return round;
         }
 
         private List<Fixture> DrawCupRound(Season season, IReadOnlyList<Id> clubs, CalendarEntry entry)
@@ -264,7 +352,9 @@ namespace Game.Career.Season
             return fixtures;
         }
 
-        private void Play(Season season, Fixture f, bool requiresWinner)
+        /// <summary>The fixture's <see cref="MatchSetup"/>: both lineups by the shared lineup AI from the available players
+        /// with their condition at the match date (the same for the played and the simulated match).</summary>
+        private MatchSetup BuildSetup(Season season, Fixture f, bool requiresWinner)
         {
             var mr = MatchRulesDef;
             MatchTeamSetup Team(Id club)
@@ -272,11 +362,19 @@ namespace Game.Career.Season
                 var tactic = new TacticSetup(season.ClubFormations[club], mr.AiMentality, mr.AiDefensiveLine, mr.AiPressure);
                 return MatchSetupFactory.Team(_rules, _db, club, tactic, Candidates(club, f.Kind, f.Date), mr.BenchSize);
             }
-
-            var setup = new MatchSetup(Team(f.HomeClubId), Team(f.AwayClubId), f.NeutralVenue, mr.DurationMinutes, mr.MaxSubstitutions,
+            return new MatchSetup(Team(f.HomeClubId), Team(f.AwayClubId), f.NeutralVenue, mr.DurationMinutes, mr.MaxSubstitutions,
                 f.Seed, requiresWinner);
+        }
+
+        private bool IsManaged(Fixture f) =>
+            State.ManagedClubId.HasValue && (f.HomeClubId == State.ManagedClubId.Value || f.AwayClubId == State.ManagedClubId.Value);
+
+        private void Play(Season season, Fixture f, bool requiresWinner)
+        {
+            bool user = _userResult != null && _pending != null && _pending.Fixture == f && IsManaged(f);
+            var setup = user ? _pending.Setup : BuildSetup(season, f, requiresWinner);
             LineupsSelected?.Invoke(f, setup);
-            var r = _resolve(setup);
+            var r = user ? _userResult : _resolve(setup);
             f.Played = true;
             f.HomeGoals = r.HomeGoals;
             f.AwayGoals = r.AwayGoals;
@@ -294,6 +392,21 @@ namespace Game.Career.Season
             foreach (var club in new[] { f.HomeClubId, f.AwayClubId })
                 season.ClubMatches[club] = season.ClubMatches.TryGetValue(club, out int n) ? n + 1 : 1;
             MatchPlayed?.Invoke(f, setup, r);
+        }
+
+        /// <summary>The managed club's next match (C1): fixture, setup and the user's side.</summary>
+        public sealed class PendingMatch
+        {
+            public Fixture Fixture { get; }
+            public MatchSetup Setup { get; }
+            public MatchSide UserSide { get; }
+
+            internal PendingMatch(Fixture fixture, MatchSetup setup, MatchSide userSide)
+            {
+                Fixture = fixture;
+                Setup = setup;
+                UserSide = userSide;
+            }
         }
 
         /// <summary>Raised before a match is resolved, with the condition still as it was before the match.</summary>
