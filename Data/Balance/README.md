@@ -35,6 +35,8 @@ Used by both engines through `Rules.Match.MatchRules` (TECHNICAL_SPEC §10: shar
 
 Minute slices; possession by Creation strength; dangerous-attack chance by Attack vs Defense; play types (open play, cross, long shot) with on-target and goal-given-on-target chances; blocks, corners, penalties; selection weights per position for shooters, headers, assists, crossers and foulers; tactic multipliers (mentality, line, pressure); home advantage; probability caps. Calibrated so league-like batches hit `Data/TestRanges/quicksim.json`; fouls and penalties follow the game rhythm of X-65 (~10 fouls, ~2 yellows per match, as in the played match). Inspect with `dotnet run --project dotnet/QuickSimReport -- --matches 10000`.
 
+**Calibration against the played match (C2, X-84–X-87):** the same matchups in both engines, compared with the tolerances of `Data/TestRanges/calibration.json` (`Tests/Simulation/CalibrationTests`; side-by-side table with `dotnet run --project dotnet/MatchReport -c Release -- --calibration [--groups-only | --sensitivity]`). `composureExponent` is 0.23 since X-87, so the steeper `PressureErrorMult` keeps the same Compostura effect in the QuickSim.
+
 ## ball.json — field geometry + ball physics (A1, baseline v1, X-47)
 
 Used by `Game.Match.Pitch` and `Game.Match.BallPhysics` (TECHNICAL_SPEC §6, GAME_DESIGN §25: own deterministic physics, no PhysX).
@@ -111,7 +113,7 @@ Used by `Game.Match.PassSystem`/`ShotSystem`, `Game.Rules.Match.KickErrorRules` 
 | `minSpeed` / `maxSpeed` | Launch speed range; a held pass maps the bar onto it | max > min > 0 |
 | `powerBarSeconds` | Hold time for 100% on a held pass | > 0 |
 | `throughLeadDistance` | Lead ahead of a static receiver on a through ball (× `LeadCalcError`) | ≥ 0 |
-| `pressureRadius` | Opponent closer than this = pressure (GAME_DESIGN: < 2 m; × `PressureErrorMult` 1.3–1.8) | > 0 |
+| `pressureRadius` | Opponent closer than this = pressure (GAME_DESIGN: < 2 m; × `PressureErrorMult` 1.3–1.8, steepest between 50 and 80, X-87) | > 0 |
 | `orientationMaxErrorPenalty` | Body orientation, up to +60% | ≥ 0 |
 | `weakFootMaxErrorPenalty` | Weak foot 1 → +50%, weak foot 5 → 0 | ≥ 0 |
 | `firstTimeErrorPenalty` | De primeira +25% | ≥ 0 |
@@ -261,7 +263,7 @@ Fouls on contact before the ball, cards, offside at the pass, free kicks with an
 
 ## aerial.json — the high ball (A9a, baseline v1, X-73)
 
-"Alto" (lançamento and cruzamento alto, GAME_DESIGN §19), the header and its aerial duel (§20), the keeper and crosses (§23) and the AI's use of high balls. Attribute effects: CrossAngleError, PassAngleError, PassPowerError (the flight), AerialDuel (Cabeceio + Força), HeaderAccuracy, HeaderPower, CrossQuality (AI), GkCrossClaimRange, GkCrossDecisionQuality (keeper). The launch speed is solved in closed form under the same gravity and linear air drag the ball physics integrates (`HighBallSystem`). Ranges in `Data/TestRanges/aerial.json`.
+"Alto" (lançamento and cruzamento alto, GAME_DESIGN §19), the header and its aerial duel (§20), the keeper and crosses (§23) and the AI's use of high balls. Attribute effects: CrossAngleError, PassAngleError, PassPowerError (the flight), AerialDuel (Cabeceio 0.7 + Força 0.3, exponential curve: +10 points ≈ ×1.43 in the duel weight, X-87), HeaderAccuracy, HeaderPower, CrossQuality (AI), GkCrossClaimRange, GkCrossDecisionQuality (keeper). The launch speed is solved in closed form under the same gravity and linear air drag the ball physics integrates (`HighBallSystem`). Ranges in `Data/TestRanges/aerial.json`.
 
 | Field | Controls | Valid values |
 | --- | --- | --- |

@@ -8,3 +8,17 @@ Parallel .NET solution that compiles the pure sources **in place** from `Unity/A
 ```bash
 dotnet test dotnet/Game.sln
 ```
+
+## Calibration QuickSim × played match (C2)
+
+`Tests.Simulation/CalibrationTests` (category `Slow`) runs the same matchups in both engines and fails outside the tolerances of `Data/TestRanges/calibration.json` (DECISIONS X-84–X-86). It is part of `dotnet test` and blocks merge. Alone (~15 min in Debug on 12 cores, most of it the 400 + 6 × 400 played matches):
+
+```bash
+dotnet test dotnet/Tests.Simulation --filter "FullyQualifiedName~CalibrationTests"
+```
+
+Side-by-side table (Release, ~1 min; `--groups-only` adds the attribute groups, ~3 min; `--sensitivity` also every attribute, slow):
+
+```bash
+dotnet run --project dotnet/MatchReport -c Release -- --calibration [--played N] [--quick N] [--groups-only | --sensitivity]
+```

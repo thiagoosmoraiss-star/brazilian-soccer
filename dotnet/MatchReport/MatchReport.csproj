@@ -9,8 +9,12 @@
   </PropertyGroup>
   <ItemGroup>
     <Compile Include="*.cs" />
+    <!-- C2: the calibration batch shared with Tests/Simulation (same matchups in both engines). -->
+    <Compile Include="$(GameSources)Tests/Simulation/Calibration.cs" Link="Calibration.cs" />
   </ItemGroup>
   <ItemGroup>
     <ProjectReference Include="../Match.AI/Match.AI.csproj" />
+    <ProjectReference Include="../Simulation/Simulation.csproj" />
+    <ProjectReference Include="../Career/Career.csproj" />
   </ItemGroup>
 </Project>

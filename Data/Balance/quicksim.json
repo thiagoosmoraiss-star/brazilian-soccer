@@ -46,7 +46,7 @@
   },
   "accuracyExponent": 0.8,
   "keeperExponent": 0.7,
-  "composureExponent": 0.5,
+  "composureExponent": 0.23,
   "foulsPerMinute": 0.111,
   "defendingTeamFoulShare": 0.6,
   "pressureFoulMult": [0.85, 1.0, 1.2],

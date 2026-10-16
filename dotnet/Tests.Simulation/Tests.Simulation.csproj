@@ -19,6 +19,9 @@
     <ProjectReference Include="../Data/Data.csproj" />
     <ProjectReference Include="../Rules/Rules.csproj" />
     <ProjectReference Include="../Simulation/Simulation.csproj" />
+    <!-- C2: calibration runs the played match (AI × AI) against the QuickSim. -->
+    <ProjectReference Include="../Match/Match.csproj" />
+    <ProjectReference Include="../Match.AI/Match.AI.csproj" />
     <ProjectReference Include="../Career/Career.csproj" />
   </ItemGroup>
 </Project>
