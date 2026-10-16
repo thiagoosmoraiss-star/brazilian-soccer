@@ -10,6 +10,7 @@ namespace Game.Tools.MatchReport
 {
     /// <summary>
     /// Usage: dotnet run --project dotnet/MatchReport -c Release -- [--matches N] [--minutes M] [--seed S] [--delta D] [--baseline-only]
+    ///        dotnet run --project dotnet/MatchReport -c Release -- --calibration [--played N] [--quick N] [--sensitivity | --groups-only]
     /// TECHNICAL_SPEC §19 (vertical slice): N headless matches strong × weak (Data/VerticalSlice/teams.json), then the
     /// same batch with the weak side's Velocidade (+Agilidade), Passe and Finalização raised by D: the weak side's
     /// results must move up ("mudar Velocidade/Passe/Finalização move o relatório na direção esperada").
@@ -23,6 +24,8 @@ namespace Game.Tools.MatchReport
             int matches = 200, minutes = 4, delta = 15;
             bool quick = false;
             int penaltyTrials = 0;
+            bool calibration = false, calibrationSensitivity = false, groupsOnly = false;
+            int? calibrationPlayed = null, calibrationQuick = null;
             ulong seed = 1;
             for (int i = 0; i < args.Length; i++)
             {
@@ -32,11 +35,17 @@ namespace Game.Tools.MatchReport
                 else if (args[i] == "--delta") delta = int.Parse(args[++i], CultureInfo.InvariantCulture);
                 else if (args[i] == "--baseline-only") quick = true;
                 else if (args[i] == "--penalties") penaltyTrials = int.Parse(args[++i], CultureInfo.InvariantCulture);
+                else if (args[i] == "--calibration") calibration = true;
+                else if (args[i] == "--sensitivity") calibrationSensitivity = true;
+                else if (args[i] == "--groups-only") { calibrationSensitivity = true; groupsOnly = true; }
+                else if (args[i] == "--played") calibrationPlayed = int.Parse(args[++i], CultureInfo.InvariantCulture);
+                else if (args[i] == "--quick") calibrationQuick = int.Parse(args[++i], CultureInfo.InvariantCulture);
             }
             string root = DataRoot.Find(Directory.GetCurrentDirectory()) ?? DataRoot.Find(AppContext.BaseDirectory);
             var source = new DirectoryDataSource(root);
             var db = GameDataLoader.Load(source);
             if (!db.IsSuccess) { Console.Error.WriteLine(db); return 1; }
+            if (calibration) return CalibrationReport.Run(db.Value, root, calibrationPlayed, calibrationQuick, calibrationSensitivity, groupsOnly);
             var vs = GameDataLoader.LoadVerticalSlice(source, db.Value);
             if (!vs.IsSuccess) { Console.Error.WriteLine(vs); return 1; }
             var strong = vs.Value.Team("strong");

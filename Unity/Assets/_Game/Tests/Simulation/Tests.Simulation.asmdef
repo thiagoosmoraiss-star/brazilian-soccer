@@ -6,6 +6,8 @@
         "Data",
         "Rules",
         "Simulation",
+        "Match",
+        "Match.AI",
         "Career",
         "UnityEngine.TestRunner",
         "UnityEditor.TestRunner"
