@@ -36,10 +36,15 @@ namespace Game.App
             doc.panelSettings = settings;
             go.SetActive(true);
 
-            var root = doc.rootVisualElement;
-            root.style.backgroundColor = new Color(0.08f, 0.12f, 0.1f);
+            // The content scrolls instead of shrinking (a short landscape Game view squeezed the buttons on top of each other).
+            doc.rootVisualElement.style.backgroundColor = new Color(0.08f, 0.12f, 0.1f);
+            var scroll = new ScrollView(ScrollViewMode.Vertical);
+            scroll.style.flexGrow = 1;
+            doc.rootVisualElement.Add(scroll);
+            var root = scroll.contentContainer;
             root.style.paddingLeft = root.style.paddingRight = 40;
             root.style.paddingTop = 60;
+            root.style.paddingBottom = 60;
 
             _club = MakeText(root, 56, true);
             _date = MakeText(root, 34, false);
@@ -48,6 +53,7 @@ namespace Game.App
             var row = new VisualElement();
             row.style.flexDirection = FlexDirection.Row;
             row.style.marginTop = 20;
+            row.style.flexShrink = 0;
             _play = MakeButton(row, "Jogar", () => SceneManager.LoadScene(BootLoader.MatchScene));
             _simulate = MakeButton(row, "Simular", () => { CareerContext.SimulateMatch(); Refresh(); });
             root.Add(row);
@@ -59,6 +65,7 @@ namespace Game.App
             var bottom = new VisualElement();
             bottom.style.flexDirection = FlexDirection.Row;
             bottom.style.marginTop = 30;
+            bottom.style.flexShrink = 0;
             MakeButton(bottom, "Nova carreira", () => { CareerContext.NewCareer((ulong)System.DateTime.UtcNow.Ticks); Refresh(); });
             root.Add(bottom);
             Refresh();
@@ -82,9 +89,9 @@ namespace Game.App
                 _next.text = $"Próxima partida ({competition}):\n{CareerContext.ClubName(f.HomeClubId)} x {CareerContext.ClubName(f.AwayClubId)}";
             }
             else _next.text = "Nenhuma partida agora. Avance o calendário.";
-            _play.SetEnabled(pending != null);
-            _simulate.SetEnabled(pending != null);
-            _advance.SetEnabled(pending == null);
+            // Only the buttons that apply now are shown: Jogar/Simular with a pending match, Avançar without one.
+            _play.parent.style.display = pending != null ? DisplayStyle.Flex : DisplayStyle.None;
+            _advance.style.display = pending == null ? DisplayStyle.Flex : DisplayStyle.None;
 
             var last = CareerContext.LastResult;
             if (state.History.Count > 0 && state.History[state.History.Count - 1].Year == season.Year - 1 && last == null)
@@ -119,6 +126,7 @@ namespace Game.App
             l.style.fontSize = size;
             l.style.color = Color.white;
             l.style.whiteSpace = WhiteSpace.Normal;
+            l.style.flexShrink = 0;
             if (bold) l.style.unityFontStyleAndWeight = FontStyle.Bold;
             parent.Add(l);
             return l;
@@ -130,6 +138,7 @@ namespace Game.App
             b.style.height = 110;
             b.style.fontSize = 40;
             b.style.flexGrow = 1;
+            b.style.flexShrink = 0;
             b.style.marginRight = 12;
             b.style.marginTop = 12;
             parent.Add(b);
