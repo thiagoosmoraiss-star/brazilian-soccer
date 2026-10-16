@@ -31,7 +31,7 @@ Pedido do usuário (13/10/2026): a cada etapa concluída, informar a porcentagem
 | A8 | 5 | | | | |
 | A9 | 8 | | | **Total** | **100** |
 
-**Concluído:** Stage 0, A1–A9, B1–B8 = **68%** (16/10/2026).
+**Concluído:** Stage 0, A1–A9, B1–B8, C2 = **72%** (16/10/2026). C1 implementada e validada no editor; conclui com a lesão em campo (X-91, sessão auxiliar, X-94).
 
 ---
 
