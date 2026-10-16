@@ -202,6 +202,7 @@ namespace Game.Match.AI
             }
             for (int i = 0; i < Players.Length; i++) _allBodies[i] = Players[i].Body;
             InitDuels();
+            InitSubstitutions(setup);
             HomeKeeper = new Keeper(GoalkeeperOf(Home));
             AwayKeeper = new Keeper(GoalkeeperOf(Away));
 
@@ -401,6 +402,7 @@ namespace Game.Match.AI
                 if (HumanTeam.SecondDefender == Control.Controlled) UpdateSecondDefender(input);
             }
             _ballWasLoose = Ball.State != BallState.Controlled;
+            SubstitutionTick(); // A9c: the AI substitutes at a dead ball once its window has come
             _step++;
 
             // 8. Clock: at the end of a half the other side kicks off the next one.
@@ -408,6 +410,7 @@ namespace Game.Match.AI
             {
                 int half = (int)(_step / _halfSteps); // halves completed
                 Kickoff(half % 2 == 0 ? _firstKickoff : Opponents(_firstKickoff));
+                HalfTimeSubstitutions(); // A9c
                 return AiMatchEvent.HalfTime;
             }
             return Finished && ev == AiMatchEvent.None ? AiMatchEvent.Finished : ev;

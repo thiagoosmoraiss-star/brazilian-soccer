@@ -15,7 +15,7 @@ namespace Game.Match.AI
         private const int SnapshotMagic = 0x534D4341; // "ACMS"
         /// <summary>Bump when the snapshot layout changes; older snapshots are then rejected (a match in progress is
         /// short-lived, it is not migrated like a career save).</summary>
-        public const int SnapshotVersion = 6; // 2: referee (A8a); 4: high ball (A9a); 5: duels (A9b); 6: tactics (A9c)
+        public const int SnapshotVersion = 7; // 2: referee (A8a); 4: high ball (A9a); 5: duels (A9b); 6: tactics or substitutions (A9c, separate sessions); 7: both (A9c)
 
         /// <summary>
         /// The whole match state, binary (TECHNICAL_SPEC §5 "Snapshot e pausa": "MatchState inteiro serializável: ao ir
@@ -116,6 +116,7 @@ namespace Game.Match.AI
                     w.Write(e.OtherPlayerId.Value);
                 }
                 WriteTactics(w); // A9c: the tactic in force, its eased block and the slot of each player
+                WriteSubstitutions(w); // A9c (v6)
                 w.Flush();
                 return ms.ToArray();
             }
@@ -236,6 +237,7 @@ namespace Game.Match.AI
             for (int i = 0; i < events; i++)
                 _events.Add(new MatchEvent(r.ReadInt32(), (MatchEventType)r.ReadInt32(), (MatchSide)r.ReadInt32(), new Id(r.ReadInt32()), new Id(r.ReadInt32())));
             ReadTactics(r);
+            ReadSubstitutions(r); // A9c (v6)
             if (r.BaseStream.Position != r.BaseStream.Length) throw new ArgumentException("Corrupt match snapshot (trailing data).");
         }
 
@@ -246,7 +248,7 @@ namespace Game.Match.AI
             w.Write(_seed);
             w.Write(StepSeconds);
             w.Write(_totalSteps);
-            for (int i = 0; i < Players.Length; i++) w.Write(Players[i].Setup.PlayerId.Value);
+            for (int i = 0; i < Players.Length; i++) w.Write(StarterId(i)); // the starters: a substitute does not change the match
         }
 
         private void CheckFingerprint(BinaryReader r)
@@ -254,7 +256,7 @@ namespace Game.Match.AI
             bool same = r.ReadUInt64() == _seed;
             same &= r.ReadSingle() == StepSeconds;
             same &= r.ReadInt64() == _totalSteps;
-            for (int i = 0; i < Players.Length; i++) same &= r.ReadInt32() == Players[i].Setup.PlayerId.Value;
+            for (int i = 0; i < Players.Length; i++) same &= r.ReadInt32() == StarterId(i);
             if (!same) throw new ArgumentException("The snapshot belongs to another match (seed, step, duration or players differ).");
         }
 

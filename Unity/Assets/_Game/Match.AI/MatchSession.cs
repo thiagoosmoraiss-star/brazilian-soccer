@@ -23,6 +23,8 @@ namespace Game.Match.AI
         public AiMatch Match { get; }
         public MatchSetup Setup { get; }
         public bool Paused { get; private set; }
+        /// <summary>Stop (pause) at the end of a half, for the half-time screen (A9c: substitutions at the interval).</summary>
+        public bool PauseAtHalfTime { get; set; }
         /// <summary>0-1: how far the render time is between the previous step and the current one.</summary>
         public float Alpha => Match.StepSeconds > 0f ? MathF.Min(1f, _accumulator / Match.StepSeconds) : 1f;
 
@@ -78,6 +80,11 @@ namespace Game.Match.AI
             _accumulator = 0f;
         }
 
+        /// <summary>The user's substitution (A9c): only while paused or with the ball dead; then the match's own checks
+        /// (<see cref="AiMatch.Substitute"/>). False when refused.</summary>
+        public bool Substitute(MatchSide side, int outLocal, int benchIndex) =>
+            (Paused || Match.Restart != RestartKind.None) && Match.Substitute(side, outLocal, benchIndex);
+
         /// <summary>Queues a released action and/or a switch tap for the next step (they reach exactly one step).</summary>
         public void Queue(ActionCommand action, bool switchPressed, bool slidePressed = false)
         {
@@ -106,6 +113,12 @@ namespace Game.Match.AI
                 Record(ev);
                 _accumulator -= Match.StepSeconds;
                 steps++;
+                if (ev == AiMatchEvent.HalfTime && PauseAtHalfTime)
+                {
+                    Paused = true;
+                    _accumulator = 0f;
+                    break;
+                }
             }
             if (steps == MaxStepsPerFrame) _accumulator = 0f;
             if (Match.Finished) _accumulator = 0f;

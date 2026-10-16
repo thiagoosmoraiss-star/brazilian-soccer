@@ -29,7 +29,7 @@ Used by both engines through `Rules.Match.MatchRules` (TECHNICAL_SPEC §10: shar
 | `discipline` | Yellow / straight red per foul; card factor for already-booked players | Probabilities 0–1 |
 | `injuries` | Hazard per player-minute (× InjuryChance effect, × low-energy multiplier) and severity weights (light/medium/severe) | Hazard < 0.05; weights ≥ 0 |
 | `ratings` | Rating formula 0–10 (X-38): base, per-action weights, result/clean-sheet terms for defensive roles, noise | min ≥ 0, max ≤ 10 |
-| `substitutions` | AI windows (half-time + stoppages), max stoppages, energy threshold, max tired subs, bench margin | Increasing windows |
+| `substitutions` | AI windows (half-time + stoppages), max stoppages, energy threshold, max tired subs, bench margin. Read by `Rules.Match.Substitutions` for both engines (A9c, X-77): QuickSim by its minutes, the played match by the displayed clock (the AI substitutes at the first dead ball after a window); the user's changes use the same limits (half-time does not count as a stoppage) | Increasing windows |
 
 ## quicksim.json — QuickSim coefficients (B2, baseline v1, X-38)
 

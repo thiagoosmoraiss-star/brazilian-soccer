@@ -133,26 +133,18 @@ namespace Game.Match.AI
             _assistCandidate = -1;
         }
 
-        /// <summary>The single output of the match (D-19, TECHNICAL_SPEC §5): goals, events, fouls and cards (A8a). No
-        /// substitutions, ratings or injuries yet (A9+).</summary>
+        /// <summary>The single output of the match (D-19, TECHNICAL_SPEC §5): goals, events, fouls and cards (A8a),
+        /// substitutions (A9c: everybody who played, with his minutes). No ratings or injuries yet.</summary>
         public MatchResult Result()
         {
-            var players = new PlayerMatchStats[Players.Length];
-            for (int i = 0; i < Players.Length; i++)
-            {
-                var p = Players[i];
-                int minutes = _sentOffMinute[i] > 0 ? _sentOffMinute[i] : TotalDisplayMinutes;
-                players[i] = new PlayerMatchStats(p.Setup.PlayerId, p.Team.Side, true, minutes, _playerGoals[i], _playerAssists[i],
-                    _playerShots[i], _playerShotsOnTarget[i], _playerFouls[i], _playerYellows[i], p.Body.OffPitch, null, p.Body.Energy,
-                    InjurySeverity.None);
-            }
+            var players = PlayerResults();
             return new MatchResult(Home.Goals, Away.Goals, _events, TeamResult(Home), TeamResult(Away), players);
         }
 
         private TeamMatchStats TeamResult(AiTeam team)
         {
             var s = Stats(team);
-            return new TeamMatchStats(s.Shots, s.ShotsOnTarget, PossessionPercent(team), s.Fouls, s.YellowCards, s.RedCards, s.Corners, 0);
+            return new TeamMatchStats(s.Shots, s.ShotsOnTarget, PossessionPercent(team), s.Fouls, s.YellowCards, s.RedCards, s.Corners, SubstitutionsMade(team.Side));
         }
     }
 }

@@ -18,6 +18,9 @@ namespace Game.Match.AI
         public double Fouls, Yellows, Reds, Offsides, FreeKicks, Penalties, PenaltyGoals;
         public double Crosses, LongBalls, Headers, AerialDuels, HeaderShots, HeaderGoals;
         public double Slides, SlidesWon, SlideFouls, BodyDuels, Runs, ThroughBalls, KeeperRushes, Smothers;
+        /// <summary>Substitutions (A9c), both sides; <see cref="MaxSubstitutionsInAMatch"/> by one side in one match.</summary>
+        public double Substitutions;
+        public int MaxSubstitutionsInAMatch;
 
         public double AWinRate => Matches == 0 ? 0 : (double)AWins / Matches;
         public double BWinRate => Matches == 0 ? 0 : (double)BWins / Matches;
@@ -85,6 +88,8 @@ namespace Game.Match.AI
                 result.ThroughBalls += m.HomeStats.ThroughBalls + m.AwayStats.ThroughBalls;
                 result.KeeperRushes += m.HomeStats.KeeperRushes + m.AwayStats.KeeperRushes;
                 result.Smothers += m.HomeStats.Smothers + m.AwayStats.Smothers;
+                result.Substitutions += r.HomeStats.Substitutions + r.AwayStats.Substitutions;
+                result.MaxSubstitutionsInAMatch = Math.Max(result.MaxSubstitutionsInAMatch, Math.Max(r.HomeStats.Substitutions, r.AwayStats.Substitutions));
             }
             return result;
         }

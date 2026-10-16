@@ -161,12 +161,7 @@ namespace Game.Simulation.QuickSim
                 return BuildResult();
             }
 
-            private bool IsWindow(int minute)
-            {
-                foreach (int w in R.Definition.Substitutions.Windows)
-                    if (w == minute && w != R.Definition.Substitutions.HalftimeMinute) return true;
-                return false;
-            }
+            private bool IsWindow(int minute) => Substitutions.IsWindow(minute, R.Definition.Substitutions);
 
             private void UpdateStrength(Team team, Team opponent)
             {
@@ -417,14 +412,14 @@ namespace Game.Simulation.QuickSim
             private void SubstitutionWindow(Team team, bool halftime)
             {
                 var rules = R.Definition.Substitutions;
-                if (!halftime && team.Windows >= rules.MaxWindows) return;
+                if (!Substitutions.HasStoppageLeft(team.Windows, halftime, rules)) return;
                 bool used = false;
-                while (team.Subs < _setup.MaxSubstitutions && team.TiredSubs < rules.MaxTiredSubstitutions)
+                while (Substitutions.AiMayReplaceTired(team.Subs, _setup.MaxSubstitutions, team.TiredSubs, rules))
                 {
                     FieldPlayer tired = null;
                     foreach (var fp in team.OnField)
-                        if (fp.Energy < rules.EnergyThreshold && (tired == null || fp.Energy < tired.Energy ||
-                            (fp.Energy == tired.Energy && fp.Setup.PlayerId.CompareTo(tired.Setup.PlayerId) < 0)))
+                        if (Substitutions.IsTired(fp.Energy, rules)
+                            && (tired == null || Substitutions.MoreTired(fp.Energy, fp.Setup.PlayerId, tired.Energy, tired.Setup.PlayerId)))
                             tired = fp;
                     if (tired == null || !Substitute(team, tired, forced: false)) break;
                     team.TiredSubs++;
@@ -436,10 +431,10 @@ namespace Game.Simulation.QuickSim
             /// <summary>Replaces <paramref name="off"/> with the best bench player for his slot. False when not allowed.</summary>
             private bool Substitute(Team team, FieldPlayer off, bool forced)
             {
-                if (team.Subs >= _setup.MaxSubstitutions || team.Bench.Count == 0) return false;
-                var on = Lineups.Best(R, team.Bench, off.Slot.Position);
+                if (!Substitutions.HasSubstitutionLeft(team.Subs, _setup.MaxSubstitutions)) return false;
+                var on = Substitutions.BestReplacement(R, team.Bench, off.Slot.Position);
                 if (on == null) return false;
-                if (!forced && R.EffectiveOvr(on, off.Slot.Position) < R.EffectiveOvr(off.Setup, off.Slot.Position) * R.EnergyFactor(off.Setup.Attributes, off.Energy) - R.Definition.Substitutions.BenchOvrMargin)
+                if (!forced && !Substitutions.WorthReplacing(R, on, off.Setup, off.Slot.Position, off.Energy))
                     return false; // the bench is much weaker: keep the tired player
 
                 var offAcc = _acc[off.Setup.PlayerId];

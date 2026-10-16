@@ -29,7 +29,8 @@ namespace Game.Match.AI
         public readonly AiTeam Team;
         /// <summary>The formation slot he plays (it changes with a formation change, A9c).</summary>
         public FormationSlot Slot { get; internal set; }
-        public readonly MatchPlayerSetup Setup;
+        /// <summary>Who occupies this slot now: a substitute takes over the slot (and its <see cref="Global"/>) (A9c).</summary>
+        public MatchPlayerSetup Setup { get; internal set; }
         public readonly PlayerBody Body = new PlayerBody();
 
         /// <summary>Role-layer target without any positioning error (what a perfect positioner would aim at).</summary>

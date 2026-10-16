@@ -28,23 +28,30 @@ namespace Game.Data.Match
         public string Formation { get; internal set; }
         /// <summary>In formation slot order.</summary>
         public IReadOnlyList<VerticalSlicePlayer> Players { get; internal set; }
+        /// <summary>Substitutes (A9c, X-77); empty when the file has none.</summary>
+        public IReadOnlyList<VerticalSlicePlayer> Bench { get; internal set; } = Array.Empty<VerticalSlicePlayer>();
 
         /// <summary>The team as a match setup (default tactic, full energy, neutral morale). <paramref name="attributeDelta"/>
         /// optionally adds to some attributes of every outfield player (headless sensitivity reports).</summary>
         public MatchTeamSetup ToSetup(IReadOnlyList<(Effects.Attr Attr, int Delta)> attributeDelta = null)
         {
             var starters = new MatchPlayerSetup[Players.Count];
-            for (int i = 0; i < starters.Length; i++)
-            {
-                var p = Players[i];
-                var attrs = new int[p.Attributes.Count];
-                for (int a = 0; a < attrs.Length; a++) attrs[a] = p.Attributes[a];
-                if (attributeDelta != null && p.Role != FormationRole.GK)
-                    foreach (var (attr, delta) in attributeDelta)
-                        attrs[(int)attr] = Math.Max(1, Math.Min(99, attrs[(int)attr] + delta));
-                starters[i] = new MatchPlayerSetup(new Id(p.Id), attrs, 0, Array.Empty<int>(), 100f, 3, null, p.LeftFooted, p.WeakFoot);
-            }
-            return new MatchTeamSetup(new Id(Id), new TacticSetup(Formation, 3, 2, 2), starters, Array.Empty<MatchPlayerSetup>());
+            for (int i = 0; i < starters.Length; i++) starters[i] = Setup(Players[i], attributeDelta);
+            var bench = new MatchPlayerSetup[Bench.Count];
+            for (int i = 0; i < bench.Length; i++) bench[i] = Setup(Bench[i], attributeDelta);
+            return new MatchTeamSetup(new Id(Id), new TacticSetup(Formation, 3, 2, 2), starters, bench);
+        }
+
+        private static MatchPlayerSetup Setup(VerticalSlicePlayer p, IReadOnlyList<(Effects.Attr Attr, int Delta)> attributeDelta)
+        {
+            var attrs = new int[p.Attributes.Count];
+            for (int a = 0; a < attrs.Length; a++) attrs[a] = p.Attributes[a];
+            if (attributeDelta != null && p.Role != FormationRole.GK)
+                foreach (var (attr, delta) in attributeDelta)
+                    attrs[(int)attr] = Math.Max(1, Math.Min(99, attrs[(int)attr] + delta));
+            var secondary = new int[p.SecondaryPositions.Count];
+            for (int i = 0; i < secondary.Length; i++) secondary[i] = (int)p.SecondaryPositions[i];
+            return new MatchPlayerSetup(new Id(p.Id), attrs, (int)p.Position, secondary, 100f, 3, null, p.LeftFooted, p.WeakFoot);
         }
     }
 
@@ -53,6 +60,9 @@ namespace Game.Data.Match
         public int Id { get; internal set; }
         public string Name { get; internal set; }
         public FormationRole Role { get; internal set; }
+        /// <summary>Main position: the formation slot's for a starter, the first listed for a substitute (A9c).</summary>
+        public Position Position { get; internal set; }
+        public IReadOnlyList<Position> SecondaryPositions { get; internal set; } = Array.Empty<Position>();
         public bool LeftFooted { get; internal set; }
         public int WeakFoot { get; internal set; }
         /// <summary>One value 1-99 per <see cref="Effects.Attr"/>, in enum order.</summary>

@@ -1,0 +1,12 @@
+{
+  "schemaVersion": 1,
+  "sources": {
+    "limits": "GAME_DESIGN §27 'Substituições na pausa: 5 em 3 paradas + intervalo (parametrizável)'; TEST_PLAN '11 ou menos jogadores por time em campo; substituições dentro do limite'. The limits themselves come from MatchSetup.MaxSubstitutions and match_rules.json substitutions.maxWindows",
+    "attributes": "TECHNICAL_SPEC §10 'Substituições | Mesmas regras e IA' and CLAUDE.md §7: the substitute plays with his own attributes (Balance.Eval). A sprinter (Velocidade/Agilidade 95) against a slow starter (30) must cover clearly more ground; minDistanceRatio is a DESIGN ESTIMATE",
+    "headless": "DESIGN ESTIMATE (A9c, X-77), 4-min matches strong × weak (vertical slice with its bench): the AI replaces some tired players at half-time and at the 60/70/80 windows, never more than maxTiredSubstitutions per side; measured 2.6 per match (both sides) at the X-77 baseline",
+    "redCard": "Seeds searched for a dismissal (≈0.1 red per 4-min match, Data/TestRanges/referee.json rhythm) to check that a sent-off player cannot be substituted"
+  },
+  "attributes": { "slowSpeed": 30, "fastSpeed": 95, "seconds": 2.0, "minDistanceRatio": 1.15 },
+  "headless": { "matches": 60, "minutes": 4, "seed": 1, "substitutionsPerMatch": [0.5, 6.0] },
+  "redCard": { "seeds": 80, "minutes": 4 }
+}
