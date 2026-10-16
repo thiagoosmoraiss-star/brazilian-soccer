@@ -28,7 +28,8 @@ namespace Game.Match.AI
         public readonly int Local;
         public readonly AiTeam Team;
         public readonly FormationSlot Slot;
-        public readonly MatchPlayerSetup Setup;
+        /// <summary>Who occupies this slot now: a substitute takes over the slot (and its <see cref="Global"/>) (A9c).</summary>
+        public MatchPlayerSetup Setup { get; internal set; }
         public readonly PlayerBody Body = new PlayerBody();
 
         /// <summary>Role-layer target without any positioning error (what a perfect positioner would aim at).</summary>

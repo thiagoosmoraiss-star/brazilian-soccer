@@ -57,8 +57,9 @@ namespace Game.Rules.Match
         {
             MatchPlayerSetup best = null;
             float bestValue = float.MinValue;
-            foreach (var p in available)
+            for (int i = 0; i < available.Count; i++) // indexed: no enumerator allocation (the playable match calls it too)
             {
+                var p = available[i];
                 // A goalkeeper only plays in goal and only a goalkeeper plays in goal, when one exists.
                 bool keeperSlot = slotPosition == Position.GOL, isKeeper = p.MainPosition == (int)Position.GOL;
                 // Effective OVR, penalized below the low-energy threshold (tired players are rested).

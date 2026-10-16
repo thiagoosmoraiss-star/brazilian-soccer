@@ -44,6 +44,8 @@ namespace Game.App
         private const float AimArrowLength = 4f, AimArrowWidth = 0.25f, AimArrowGap = 0.6f;
         private BroadcastCamera _camera;
         private MatchHudView _hud;
+        private SubstitutionPanel _subs;
+        private bool _halfTimeShown;
         private bool _userStrong;
         private ulong _seed;
         private bool _finalShown;
@@ -142,16 +144,27 @@ namespace Game.App
             _hud.PauseRequested += Pause;
             _hud.ResumeRequested += Resume;
             _hud.RestartRequested += () => NewMatch(_userStrong, (ulong)Environment.TickCount);
+            // Substitutions (A9c): from the pause menu, and at half-time (the session stops there).
+            session.PauseAtHalfTime = true;
+            _halfTimeShown = false;
+            _subs = new SubstitutionPanel(_hud.Root, session, MatchSide.Home, PlayerName);
+            _subs.Closed += OnSubstitutionsClosed;
+            _hud.SubstitutionsRequested += OpenSubstitutions;
             _input.ReservedTopFraction = _hud.ReservedTopFraction;
             _hud.ShowPause(session.Paused);
         }
 
-        /// <summary>Display name of a vertical-slice player by his id value (HUD card notices).</summary>
+        /// <summary>Display name of a vertical-slice player (starter or substitute) by his id value (HUD notices, substitutions).</summary>
         private string PlayerName(int id)
         {
             foreach (var key in new[] { "strong", "weak" })
-                foreach (var p in _teams.Team(key).Players)
+            {
+                var team = _teams.Team(key);
+                foreach (var p in team.Players)
                     if (p.Id == id) return p.Name;
+                foreach (var p in team.Bench)
+                    if (p.Id == id) return p.Name;
+            }
             return "#" + id;
         }
 
@@ -174,14 +187,31 @@ namespace Game.App
         {
             if (_session == null || _session.Match.Finished) return;
             _session.Pause();
+            _subs?.Close();
             _hud.ShowPause(true);
         }
 
         private void Resume()
         {
             if (_session == null) return;
+            _subs?.Close();
             _session.Resume();
             _hud.ShowPause(false);
+        }
+
+        /// <summary>The substitutions panel over the paused match (at half-time the interval does not use a stoppage).</summary>
+        private void OpenSubstitutions()
+        {
+            if (_session == null || _session.Match.Finished) return;
+            _hud.ShowPause(false);
+            _subs.Open(_session.Match.IsHalfTimeBreak);
+        }
+
+        /// <summary>Closing the panel: at half-time the second half starts; otherwise back to the pause menu.</summary>
+        private void OnSubstitutionsClosed()
+        {
+            if (_session.Match.IsHalfTimeBreak) Resume();
+            else _hud.ShowPause(true);
         }
 
         // ---- frame ----
@@ -221,6 +251,11 @@ namespace Game.App
             {
                 _session.Queue(command, switchTap, slideTap);
                 _session.Advance(Time.deltaTime, _input.MoveIntent, _input.SprintHeld, _input.ContainHeld, _input.PressHeld);
+            }
+            if (_session.Paused && m.IsHalfTimeBreak && !_halfTimeShown)
+            {
+                _halfTimeShown = true; // the session stopped at half-time: the interval's substitutions
+                OpenSubstitutions();
             }
 
             if (m.Finished && !_finalShown)

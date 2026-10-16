@@ -21,6 +21,8 @@ namespace Game.Presentation
         public event Action PauseRequested;
         public event Action ResumeRequested;
         public event Action RestartRequested;
+        /// <summary>"Substituições" in the pause menu (A9c).</summary>
+        public event Action SubstitutionsRequested;
 
         private readonly MatchViewDefinition _v;
         private readonly string _homeName, _awayName;
@@ -36,6 +38,9 @@ namespace Game.Presentation
         private int _shownHome = -1, _shownAway = -1, _shownMinute = -1, _shownHalf = -1;
         private float _lastBannerEvent = float.PositiveInfinity;
         private bool _radarOpen = true;
+
+        /// <summary>The HUD's UI Toolkit root (other match panels — substitutions — are added to it).</summary>
+        public VisualElement Root => _root;
 
         /// <summary>Fraction of the screen height the HUD occupies at the top (touches there are not the stick).</summary>
         public float ReservedTopFraction => (_radarH + 2f * Margin + 40f) / RefHeight;
@@ -187,6 +192,7 @@ namespace Game.Presentation
             _pauseMenu = Overlay();
             _pauseMenu.Add(Text("PAUSA", 64, Color.white));
             _pauseMenu.Add(MenuButton("Continuar", () => ResumeRequested?.Invoke()));
+            _pauseMenu.Add(MenuButton("Substituições", () => SubstitutionsRequested?.Invoke()));
             _pauseMenu.Add(MenuButton("Recomeçar partida", () => RestartRequested?.Invoke()));
             _root.Add(_pauseMenu);
 
@@ -281,7 +287,7 @@ namespace Game.Presentation
             _hint.style.display = DisplayStyle.Flex;
         }
 
-        /// <summary>A yellow or red card shows the player's name for a few seconds (A8b).</summary>
+        /// <summary>A yellow or red card shows the player's name for a few seconds (A8b); so does an AI substitution (A9c).</summary>
         private void UpdateCards(AiMatch m)
         {
             var events = m.Events;
@@ -289,9 +295,19 @@ namespace Game.Presentation
             for (; _seenEvents < events.Count; _seenEvents++)
             {
                 var e = events[_seenEvents];
+                string team = e.Side == MatchSide.Home ? _homeName : _awayName;
+                if (e.Type == MatchEventType.Substitution)
+                {
+                    if (m.HumanTeam != null && e.Side == m.HumanTeam.Side) continue; // the user made it himself
+                    _card.text = $"SUBSTITUIÇÃO ({team}): sai {_playerName(e.PlayerId.Value)}, entra {_playerName(e.OtherPlayerId.Value)}";
+                    _card.style.backgroundColor = new Color(0.15f, 0.45f, 0.9f);
+                    _card.style.color = Color.white;
+                    _card.style.display = DisplayStyle.Flex;
+                    _cardUntil = Time.unscaledTime + _v.BannerSeconds;
+                    continue;
+                }
                 if (e.Type != MatchEventType.YellowCard && e.Type != MatchEventType.RedCard) continue;
                 bool red = e.Type == MatchEventType.RedCard;
-                string team = e.Side == MatchSide.Home ? _homeName : _awayName;
                 _card.text = $"{(red ? "EXPULSO" : "CARTÃO AMARELO")}  {_playerName(e.PlayerId.Value)} ({team})";
                 _card.style.backgroundColor = red ? new Color(0.85f, 0.12f, 0.18f) : new Color(0.98f, 0.82f, 0.1f);
                 _card.style.color = red ? Color.white : Color.black;

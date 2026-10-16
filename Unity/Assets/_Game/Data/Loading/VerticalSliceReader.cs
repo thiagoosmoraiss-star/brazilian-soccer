@@ -8,11 +8,14 @@ using Game.Data.Match;
 namespace Game.Data.Loading
 {
     /// <summary>Strict reader for Data/VerticalSlice/teams.json: 11 players per team in formation slot order, each with
-    /// the role of his slot and one 1-99 value per attribute (the file names the order, which must be the Attr enum's).</summary>
+    /// the role of his slot and one 1-99 value per attribute (the file names the order, which must be the Attr enum's);
+    /// optionally a bench of substitutes with their positions (A9c, X-77).</summary>
     public static class VerticalSliceReader
     {
         public const int SupportedSchemaVersion = 1;
         public const string InvalidVerticalSlice = "INVALID_VERTICAL_SLICE";
+        /// <summary>Largest bench the file may give a team (A9c).</summary>
+        public const int MaxBench = 12;
 
         public static Result<VerticalSliceDefinition> Read(string json, GameDatabase db)
         {
@@ -36,7 +39,7 @@ namespace Game.Data.Loading
                 string path = "teams[" + t + "]";
                 var to = j.AsObject(arr[t], path);
                 if (to == null) continue;
-                j.Keys(to, path, "key", "id", "name", "formation", "players");
+                j.Keys(to, path, "key", "id", "name", "formation", "players", "bench");
                 var team = new VerticalSliceTeam
                 {
                     Key = j.String(to, "key", path),
@@ -56,31 +59,67 @@ namespace Game.Data.Loading
                     var po = j.AsObject(pa[i], pp);
                     if (po == null) continue;
                     j.Keys(po, pp, "id", "name", "role", "leftFooted", "weakFoot", "attributes");
-                    var p = new VerticalSlicePlayer
-                    {
-                        Id = j.Int(po, "id", pp),
-                        Name = j.String(po, "name", pp),
-                        LeftFooted = j.Bool(po, "leftFooted", pp),
-                        WeakFoot = j.Int(po, "weakFoot", pp),
-                        Attributes = j.IntList(po, "attributes", pp),
-                    };
+                    var p = ReadCommon(j, po, pp);
                     if (j.TryEnum(j.String(po, "role", pp), pp + ".role", out FormationRole role)) p.Role = role;
-                    if (p.WeakFoot < 1 || p.WeakFoot > 5) j.Fail(InvalidVerticalSlice, $"{pp}.weakFoot must be 1-5.");
-                    if (p.Attributes == null || p.Attributes.Count != AttrInfo.Count) j.Fail(InvalidVerticalSlice, $"{pp}.attributes must have {AttrInfo.Count} values.");
-                    else
-                        for (int a = 0; a < p.Attributes.Count; a++)
-                            if (p.Attributes[a] < 1 || p.Attributes[a] > 99) j.Fail(InvalidVerticalSlice, $"{pp}.attributes[{a}] must be 1-99.");
                     if (formation != null && i < formation.Slots.Count && formation.Slots[i].Role != p.Role)
                         j.Fail(InvalidVerticalSlice, $"{pp}.role {p.Role} does not match slot {i} of {team.Formation} ({formation.Slots[i].Role}).");
+                    if (formation != null && i < formation.Slots.Count) p.Position = formation.Slots[i].Position;
                     players.Add(p);
                 }
                 if (players.Count != Core.Contracts.Match.MatchTeamSetup.StarterCount)
                     j.Fail(InvalidVerticalSlice, $"{path} must have {Core.Contracts.Match.MatchTeamSetup.StarterCount} players.");
                 team.Players = players;
+
+                // Substitutes (A9c, optional): positions instead of a slot role; the first one is the main position.
+                var bench = new List<VerticalSlicePlayer>();
+                var ba = to["bench"] == null ? null : j.Array(to, "bench", path);
+                for (int i = 0; ba != null && i < ba.Count; i++)
+                {
+                    string bp = $"{path}.bench[{i}]";
+                    var bo = j.AsObject(ba[i], bp);
+                    if (bo == null) continue;
+                    j.Keys(bo, bp, "id", "name", "positions", "leftFooted", "weakFoot", "attributes");
+                    var p = ReadCommon(j, bo, bp);
+                    var positions = j.StringList(bo, "positions", bp);
+                    if (positions == null || positions.Count == 0) { j.Fail(InvalidVerticalSlice, $"{bp}.positions must list at least one position."); continue; }
+                    var secondary = new List<Position>();
+                    for (int k = 0; k < positions.Count; k++)
+                    {
+                        if (!j.TryEnum(positions[k], $"{bp}.positions[{k}]", out Position pos)) continue;
+                        if (k == 0) p.Position = pos; else secondary.Add(pos);
+                    }
+                    p.SecondaryPositions = secondary;
+                    p.Role = p.Position == Position.GOL ? FormationRole.GK : FormationRole.CM; // only "is a keeper" matters off the slots
+                    bench.Add(p);
+                }
+                if (bench.Count > MaxBench) j.Fail(InvalidVerticalSlice, $"{path}.bench may have at most {MaxBench} players.");
+                var ids = new HashSet<int>();
+                foreach (var p in players) if (!ids.Add(p.Id)) j.Fail(InvalidVerticalSlice, $"{path}: duplicate player id {p.Id}.");
+                foreach (var p in bench) if (!ids.Add(p.Id)) j.Fail(InvalidVerticalSlice, $"{path}: duplicate player id {p.Id}.");
+                team.Bench = bench;
                 teams.Add(team);
             }
             if (!j.Ok) return Result<VerticalSliceDefinition>.Fail(j.Errors);
             return Result<VerticalSliceDefinition>.Ok(new VerticalSliceDefinition { Teams = teams });
+        }
+
+        /// <summary>What a starter and a substitute share: id, name, foot and the 1-99 attributes.</summary>
+        private static VerticalSlicePlayer ReadCommon(StrictJson j, Newtonsoft.Json.Linq.JObject po, string pp)
+        {
+            var p = new VerticalSlicePlayer
+            {
+                Id = j.Int(po, "id", pp),
+                Name = j.String(po, "name", pp),
+                LeftFooted = j.Bool(po, "leftFooted", pp),
+                WeakFoot = j.Int(po, "weakFoot", pp),
+                Attributes = j.IntList(po, "attributes", pp),
+            };
+            if (p.WeakFoot < 1 || p.WeakFoot > 5) j.Fail(InvalidVerticalSlice, $"{pp}.weakFoot must be 1-5.");
+            if (p.Attributes == null || p.Attributes.Count != AttrInfo.Count) j.Fail(InvalidVerticalSlice, $"{pp}.attributes must have {AttrInfo.Count} values.");
+            else
+                for (int a = 0; a < p.Attributes.Count; a++)
+                    if (p.Attributes[a] < 1 || p.Attributes[a] > 99) j.Fail(InvalidVerticalSlice, $"{pp}.attributes[{a}] must be 1-99.");
+            return p;
         }
     }
 }

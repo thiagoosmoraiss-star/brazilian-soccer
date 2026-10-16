@@ -96,6 +96,64 @@
           "weakFoot": 3,
           "attributes": [75, 72, 68, 72, 66, 69, 68, 77, 72, 75, 43, 67, 69, 76, 11, 10, 9, 9]
         }
+      ],
+      "bench": [
+        {
+          "id": 900112,
+          "name": "Mateus Abreu",
+          "positions": ["GOL"],
+          "leftFooted": false,
+          "weakFoot": 3,
+          "attributes": [34, 32, 35, 33, 43, 34, 32, 37, 33, 34, 38, 37, 47, 43, 68, 65, 69, 70]
+        },
+        {
+          "id": 900113,
+          "name": "Fábio Siqueira",
+          "positions": ["ZAG"],
+          "leftFooted": false,
+          "weakFoot": 3,
+          "attributes": [62, 68, 63, 68, 68, 54, 56, 49, 50, 68, 71, 69, 72, 66, 11, 10, 13, 10]
+        },
+        {
+          "id": 900114,
+          "name": "Luan Mesquita",
+          "positions": ["LD", "LE"],
+          "leftFooted": true,
+          "weakFoot": 3,
+          "attributes": [68, 65, 67, 63, 65, 67, 66, 49, 62, 59, 67, 67, 67, 65, 12, 14, 10, 10]
+        },
+        {
+          "id": 900115,
+          "name": "Otávio Brandão",
+          "positions": ["MC", "VOL"],
+          "leftFooted": false,
+          "weakFoot": 3,
+          "attributes": [66, 67, 73, 69, 73, 67, 69, 61, 65, 69, 65, 71, 67, 69, 14, 10, 10, 11]
+        },
+        {
+          "id": 900116,
+          "name": "Henrique Paixão",
+          "positions": ["MC", "MEI"],
+          "leftFooted": true,
+          "weakFoot": 3,
+          "attributes": [65, 66, 72, 68, 72, 66, 68, 60, 64, 68, 64, 70, 66, 68, 14, 10, 10, 11]
+        },
+        {
+          "id": 900117,
+          "name": "Valter Assunção",
+          "positions": ["PD", "PE"],
+          "leftFooted": false,
+          "weakFoot": 3,
+          "attributes": [69, 67, 65, 57, 65, 69, 69, 66, 67, 63, 51, 64, 65, 63, 12, 15, 10, 10]
+        },
+        {
+          "id": 900118,
+          "name": "Gilson Rocha",
+          "positions": ["ATA"],
+          "leftFooted": false,
+          "weakFoot": 3,
+          "attributes": [73, 69, 66, 69, 63, 65, 65, 74, 69, 72, 41, 67, 65, 73, 10, 12, 10, 12]
+        }
       ]
     },
     {
@@ -191,6 +249,64 @@
           "leftFooted": true,
           "weakFoot": 3,
           "attributes": [53, 50, 50, 47, 43, 49, 47, 56, 53, 56, 23, 47, 49, 54, 12, 9, 12, 13]
+        }
+      ],
+      "bench": [
+        {
+          "id": 900212,
+          "name": "Celso Amaral",
+          "positions": ["GOL"],
+          "leftFooted": false,
+          "weakFoot": 3,
+          "attributes": [16, 15, 12, 18, 23, 16, 18, 16, 17, 13, 17, 18, 24, 25, 49, 46, 47, 47]
+        },
+        {
+          "id": 900213,
+          "name": "Rui Tavares",
+          "positions": ["ZAG"],
+          "leftFooted": false,
+          "weakFoot": 3,
+          "attributes": [45, 49, 49, 52, 49, 39, 37, 29, 31, 52, 52, 49, 51, 49, 10, 10, 15, 10]
+        },
+        {
+          "id": 900214,
+          "name": "Nélio Prado",
+          "positions": ["LE", "LD"],
+          "leftFooted": true,
+          "weakFoot": 3,
+          "attributes": [50, 44, 50, 45, 47, 49, 46, 31, 46, 38, 48, 46, 48, 48, 12, 10, 12, 11]
+        },
+        {
+          "id": 900215,
+          "name": "Jairo Leite",
+          "positions": ["MC", "VOL"],
+          "leftFooted": false,
+          "weakFoot": 3,
+          "attributes": [47, 46, 52, 48, 54, 49, 50, 44, 48, 47, 48, 54, 48, 50, 13, 13, 12, 14]
+        },
+        {
+          "id": 900216,
+          "name": "Ademir Couto",
+          "positions": ["MC", "MEI"],
+          "leftFooted": false,
+          "weakFoot": 3,
+          "attributes": [46, 45, 51, 47, 53, 48, 49, 43, 47, 46, 47, 53, 47, 49, 13, 13, 12, 14]
+        },
+        {
+          "id": 900217,
+          "name": "Sandro Lima",
+          "positions": ["PE", "PD"],
+          "leftFooted": true,
+          "weakFoot": 3,
+          "attributes": [50, 48, 46, 42, 46, 49, 50, 46, 45, 47, 32, 47, 46, 46, 11, 15, 15, 13]
+        },
+        {
+          "id": 900218,
+          "name": "Elias Furtado",
+          "positions": ["ATA"],
+          "leftFooted": false,
+          "weakFoot": 3,
+          "attributes": [50, 46, 48, 46, 42, 46, 45, 55, 50, 52, 23, 46, 46, 54, 10, 9, 12, 13]
         }
       ]
     }

@@ -37,9 +37,12 @@ namespace Game.Match.AI
 
         private void InitDuels()
         {
-            for (int i = 0; i < Players.Length; i++)
-                _bodyWeight[i] = MathF.Pow(MathF.Max(1e-3f, _balance.Eval(Effect.BodyDuelWin, Players[i].Setup.Attributes)), _duels.BodyPushExponent);
+            for (int i = 0; i < Players.Length; i++) _bodyWeight[i] = BodyWeight(Players[i].Setup);
         }
+
+        /// <summary>Contact weight of a player (BodyDuelWin); recomputed when a substitute takes the slot (A9c).</summary>
+        private float BodyWeight(MatchPlayerSetup setup) =>
+            MathF.Pow(MathF.Max(1e-3f, _balance.Eval(Effect.BodyDuelWin, setup.Attributes)), _duels.BodyPushExponent);
 
         // ---------------- carrinho ----------------
 

@@ -118,6 +118,7 @@ namespace Game.Tools.MatchReport
             Console.WriteLine($"  duels per match: slides {r.PerMatch(r.Slides):F1} (won {r.PerMatch(r.SlidesWon):F1}, fouls {r.PerMatch(r.SlideFouls):F2}), "
                               + $"body duels {r.PerMatch(r.BodyDuels):F1}, runs {r.PerMatch(r.Runs):F1}, through balls {r.PerMatch(r.ThroughBalls):F1}, "
                               + $"keeper rushes {r.PerMatch(r.KeeperRushes):F1} (smothers {r.PerMatch(r.Smothers):F2})");
+            Console.WriteLine($"  substitutions per match: {r.PerMatch(r.Substitutions):F1} (both sides; most by one side in a match {r.MaxSubstitutionsInAMatch})");
         }
     }
 }
