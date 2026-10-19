@@ -3,6 +3,7 @@ using Game.UI.Presenters;
 using UnityEngine;
 using UnityEngine.UIElements;
 using static Game.UI.UiKit;
+using Tab = Game.UI.Presenters.Tab;
 
 namespace Game.UI
 {
