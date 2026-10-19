@@ -54,7 +54,7 @@ namespace Game.Match.AI
 
         public int Fouls(AiPlayer p) => _playerFouls[p.Global];
         public int Yellows(AiPlayer p) => _playerYellows[p.Global];
-        public bool SentOff(AiPlayer p) => p.Body.OffPitch;
+        public bool SentOff(AiPlayer p) => _sentOffMinute[p.Global] > 0;
         public int WallCount => _wallCount;
         /// <summary>The user's stick this step (set-piece aim and the penalty dive; A8b presentation).</summary>
         public Vector2 HumanAim => _humanAim;

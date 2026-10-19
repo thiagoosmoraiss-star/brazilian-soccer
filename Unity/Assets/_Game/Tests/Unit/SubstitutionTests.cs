@@ -303,13 +303,17 @@ namespace Game.Tests.Unit
                     }
                 }
                 var r = m.Result();
+                // X-91: an injured player's forced change comes at any minute and does not count as a tired one.
+                var injured = r.Events.Where(e => e.Type == MatchEventType.Injury).Select(e => e.PlayerId).ToList();
                 foreach (var side in new[] { MatchSide.Home, MatchSide.Away })
                 {
                     int subs = r.Stats(side).Substitutions;
-                    Assert.LessOrEqual(subs, Math.Min(rules.MaxTiredSubstitutions, 5), $"seed {seed + (ulong)i}");
+                    int forced = r.Events.Count(e => e.Type == MatchEventType.Substitution && e.Side == side && injured.Contains(e.PlayerId));
+                    Assert.LessOrEqual(subs - forced, Math.Min(rules.MaxTiredSubstitutions, 5), $"seed {seed + (ulong)i}");
+                    Assert.LessOrEqual(subs, 5, $"seed {seed + (ulong)i}");
                     Assert.AreEqual(MatchTeamSetup.StarterCount + subs, r.PlayerStats.Count(p => p.Side == side), $"seed {seed + (ulong)i}");
                 }
-                foreach (var e in r.Events.Where(e => e.Type == MatchEventType.Substitution))
+                foreach (var e in r.Events.Where(e => e.Type == MatchEventType.Substitution && !injured.Contains(e.PlayerId)))
                 {
                     Assert.That(e.Minute == rules.HalftimeMinute || e.Minute >= firstWindow, $"seed {seed + (ulong)i}: minute {e.Minute}");
                     var off = r.PlayerStats.Single(p => p.PlayerId == e.PlayerId);

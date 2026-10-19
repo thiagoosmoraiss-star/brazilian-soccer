@@ -111,6 +111,36 @@ namespace Game.Tests.Unit
             Assert.AreEqual(r.HomeGoals, home.GoalsFor);
         }
 
+        /// <summary>X-91: an injury in the played match reaches the career by the simulated path (PlayerSystems: severity,
+        /// matches or days out from development.json) and the player misses the next match.</summary>
+        [Test]
+        public void AnInjuryInThePlayedMatch_IsAppliedLikeASimulatedOne_AndThePlayerMissesTheNextMatch()
+        {
+            var career = NewCareer(15);
+            var pending = career.AdvanceToUserMatch();
+            var m = new AiMatch(Db(), pending.Setup, Dt);
+            for (int i = 0; i < 3000; i++) m.Step();
+            var side = pending.UserSide;
+            var team = side == MatchSide.Home ? m.Home : m.Away;
+            var injured = team.Players.First(p => !p.IsGoalkeeper && !m.Injured(p) && !p.Body.OffPitch);
+            var id = injured.Setup.PlayerId;
+            Assert.IsTrue(m.Injure(side, injured.Local, InjurySeverity.Medium));
+            m.RunToEnd();
+            var r = m.Result();
+            Assert.AreEqual(InjurySeverity.Medium, r.PlayerStats.Single(s => s.PlayerId == id).Injury);
+            career.CompleteUserMatch(r);
+
+            var player = career.State.World.Players.First(p => p.Id == id);
+            var medium = Db().Development.MediumInjuryMatches;
+            Assert.AreEqual(InjurySeverity.Medium, player.Condition.Injury);
+            Assert.That(player.Condition.InjuryMatchesLeft, Is.InRange(medium.Min, medium.Max), "medium: matches out as in development.json");
+
+            var next = career.AdvanceToUserMatch();
+            if (next == null) Assert.Inconclusive("the season ended");
+            var mine = next.Setup.Team(next.UserSide);
+            Assert.IsFalse(mine.Starters.Concat(mine.Bench).Any(p => p.PlayerId == id), "the injured player is out of the next match");
+        }
+
         [Test]
         public void AMatchInterruptedByClosingTheApp_ResumesFromTheSave_AndEndsAsIfNeverStopped()
         {

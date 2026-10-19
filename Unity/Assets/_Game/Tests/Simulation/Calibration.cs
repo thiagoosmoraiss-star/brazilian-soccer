@@ -125,7 +125,7 @@ namespace Game.Tests.Simulation
         public static readonly string[] MetricNames =
         {
             "goalsPerMatch", "zeroZeroPct", "shotsPerMatch", "shotsOnTargetPerMatch", "onTargetPct", "goalsPerShot",
-            "cornersPerMatch", "foulsPerMatch", "yellowPerMatch", "redPerMatch",
+            "cornersPerMatch", "foulsPerMatch", "yellowPerMatch", "redPerMatch", "injuriesPerMatch",
             "homeWinPct", "drawPct", "awayWinPct", "strongerWinPct", "strongerDecidedWinPct", "strongerGoalShare", "possessionPerOvrPoint",
         };
 
@@ -134,7 +134,7 @@ namespace Game.Tests.Simulation
             var m = new Metrics { Matches = results.Count };
             for (int b = 0; b < bucketCount; b++)
                 m.Buckets.Add(new Bucket { From = b * bucketWidth, To = b == bucketCount - 1 ? double.PositiveInfinity : (b + 1) * bucketWidth });
-            double goals = 0, zero = 0, shots = 0, onTarget = 0, corners = 0, fouls = 0, yellow = 0, red = 0;
+            double goals = 0, zero = 0, shots = 0, onTarget = 0, corners = 0, fouls = 0, yellow = 0, red = 0, injuries = 0;
             double home = 0, draw = 0, away = 0, strongerWins = 0, strongerLosses = 0, strongerGoals = 0, decided = 0;
             // Least squares (through the origin) of the stronger side's possession above 50% against |OVR difference|.
             double sxy = 0, sxx = 0;
@@ -150,6 +150,7 @@ namespace Game.Tests.Simulation
                     shots += s.Shots; onTarget += s.ShotsOnTarget; corners += s.Corners; fouls += s.Fouls;
                     yellow += s.YellowCards; red += s.RedCards;
                 }
+                foreach (var p in r.PlayerStats) if (p.Injury != InjurySeverity.None) injuries++;
                 if (r.HomeGoals > r.AwayGoals) home++; else if (r.HomeGoals == r.AwayGoals) draw++; else away++;
 
                 var stronger = mu.Diff >= 0 ? MatchSide.Home : MatchSide.Away;
@@ -181,6 +182,7 @@ namespace Game.Tests.Simulation
             m.Values["foulsPerMatch"] = fouls / n;
             m.Values["yellowPerMatch"] = yellow / n;
             m.Values["redPerMatch"] = red / n;
+            m.Values["injuriesPerMatch"] = injuries / n;
             m.Values["homeWinPct"] = 100 * home / n;
             m.Values["drawPct"] = 100 * draw / n;
             m.Values["awayWinPct"] = 100 * away / n;

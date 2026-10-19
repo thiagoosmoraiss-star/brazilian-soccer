@@ -303,7 +303,8 @@ namespace Game.Presentation
             _hint.style.display = DisplayStyle.Flex;
         }
 
-        /// <summary>A yellow or red card shows the player's name for a few seconds (A8b); so does an AI substitution (A9c).</summary>
+        /// <summary>A yellow or red card shows the player's name for a few seconds (A8b); so does an AI substitution (A9c) and
+        /// an opponent's injury (X-91).</summary>
         /// <param name="paused">While paused (pause menu, half-time panel) new notices wait: a notice shown behind a panel
         /// would expire unseen (the AI makes most of its substitutions at half-time).</param>
         private void UpdateCards(AiMatch m, bool paused)
@@ -320,12 +321,15 @@ namespace Game.Presentation
             {
                 var e = events[_seenEvents];
                 string team = e.Side == MatchSide.Home ? _homeName : _awayName;
-                if (e.Type == MatchEventType.Substitution)
+                bool user = m.HumanTeam != null && e.Side == m.HumanTeam.Side;
+                if (e.Type == MatchEventType.Injury || e.Type == MatchEventType.Substitution)
                 {
-                    if (m.HumanTeam != null && e.Side == m.HumanTeam.Side) continue; // the user made it himself
-                    // Several at once (half-time) are shown together.
-                    subs = (subs == null ? $"SUBSTITUIÇÃO ({team}): " : subs + "  ·  ")
-                           + $"sai {_playerName(e.PlayerId.Value)}, entra {_playerName(e.OtherPlayerId.Value)}";
+                    if (user) continue; // the user's own: the injury panel told him, and he made the change himself
+                    // Several at once (half-time; an injury and its forced change, X-91) are shown together.
+                    string text = e.Type == MatchEventType.Injury
+                        ? $"LESÃO ({team}): {_playerName(e.PlayerId.Value)}"
+                        : $"SUBSTITUIÇÃO ({team}): sai {_playerName(e.PlayerId.Value)}, entra {_playerName(e.OtherPlayerId.Value)}";
+                    subs = subs == null ? text : subs + "  ·  " + text;
                     _card.text = subs;
                     _card.style.backgroundColor = new Color(0.15f, 0.45f, 0.9f);
                     _card.style.color = Color.white;

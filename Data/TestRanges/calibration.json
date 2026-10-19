@@ -4,6 +4,7 @@
     "batch": "TEST_PLAN 'Divergência QuickSim × Headless': same matchups in both engines; 100-1000 played and 1000-10000 QuickSim matches",
     "matchups": "Generated worlds, career lineup AI (MatchSetupFactory), AI tactic and duration (6 min) of Data/Competitions/competitions.json matchRules; neutral venue because the played match has no home advantage (DECISIONS X-85)",
     "tolerances": "DECISIONS X-84 option (d) / X-86: the played match makes ~1/4 of the QuickSim goals (measured, not a target); volume metrics are compared as a ratio with a floor below today's value (no regression) and a ceiling above 1 (room for the attacking-AI task); fouls and cards in value (game rhythm of X-65, same per match in both engines); shape metrics (wins among decided matches, the stronger side's goal share, possession rising with strength) by difference or direction",
+    "injuries": "DECISIONS X-91 (D-21 option a): the played match injures with QuickSim's chance per player-minute and severity (match_rules.json injuries); injuriesPerMatch compared with the QuickSim of all the batch's matchups (~0.19 per match: ~75 injuries in 400 played matches, Poisson sd ~12%), range ~3 sd; measured 0.19 played x 0.19 QuickSim (ratio 1.0)",
     "ovrCurve": "TECHNICAL_SPEC §10 'curva diferença de OVR → vitória/empate/derrota': rising in both engines; the gap is measured on wins among decided matches, since draws depend on the goal volume",
     "sensitivity": "TEST_PLAN 'sensibilidade por atributo (mesma direção)': per attribute in the QuickSim (z >= 3 on goal difference; Stamina on the starters' final energy, as quicksim.json); in the played match per attribute group, whole matches (one attribute alone needs tens of thousands of played matches: X-86); per-attribute direction in the played match is SensitivityTests (X-81); playedMinZ: all and physical clearly up (3), finishing up (2; measured 2.8-4.6), defending/creation/goalkeeper only 'not the opposite way' (-2; measured -1.3 to +2.4 over the runs, within the noise of 400 matches of ~0.7 goal)"
   },
@@ -25,6 +26,7 @@
     "foulsPerMatch": { "compare": "ratio", "range": [0.7, 1.2] },
     "yellowPerMatch": { "compare": "ratio", "range": [0.65, 1.25] },
     "redPerMatch": { "compare": "played", "range": [0.01, 0.2] },
+    "injuriesPerMatch": { "compare": "ratioAllQuickSim", "range": [0.6, 1.45] },
     "drawPct": { "compare": "played", "range": [0.0, 65.0] },
     "strongerDecidedWinPct": { "compare": "difference", "range": [-10.0, 10.0] },
     "strongerGoalShare": { "compare": "difference", "range": [-5.0, 15.0] },
