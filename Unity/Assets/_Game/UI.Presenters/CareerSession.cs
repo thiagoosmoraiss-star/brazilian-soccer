@@ -184,6 +184,27 @@ namespace Game.UI.Presenters
             return LastMatch;
         }
 
+        /// <summary>The managed club's tactic (C3b); saved.</summary>
+        public void SetTactic(TacticSetup tactic)
+        {
+            Career.SetUserTactic(tactic);
+            Save();
+        }
+
+        /// <summary>The user's starters (slot order) and bench (C3b); saved.</summary>
+        public void SetLineup(System.Collections.Generic.IReadOnlyList<Id> starters, System.Collections.Generic.IReadOnlyList<Id> bench)
+        {
+            Career.SetUserLineup(starters, bench);
+            Save();
+        }
+
+        /// <summary>Back to the automatic lineup (C3b); saved.</summary>
+        public void SetAutomaticLineup()
+        {
+            Career.SetAutomaticLineup();
+            Save();
+        }
+
         /// <summary>The app goes to the background mid-match: the match goes into the career save (C1).</summary>
         public void SuspendMatch(Id fixtureId, byte[] snapshot)
         {

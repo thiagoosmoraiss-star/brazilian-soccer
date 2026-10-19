@@ -30,13 +30,16 @@ namespace Game.Tests.UI
             return used;
         }
 
+        private static bool IsPrefix(string key) => key.EndsWith(".") || key.EndsWith("_");
+
         [Test]
         public void EveryKeyTheUiUses_IsInTheTable_AndEveryTableKeyIsUsed()
         {
             var table = Strings();
             var used = UsedKeys();
-            var prefixes = used.Where(k => k.EndsWith(".")).ToList();
-            var missing = used.Where(k => !k.EndsWith(".") && !table.Has(k)).OrderBy(k => k).ToList();
+            // Literals ending with '.' or '_' are prefixes of keys built in code ("morale." + level).
+            var prefixes = used.Where(IsPrefix).ToList();
+            var missing = used.Where(k => !IsPrefix(k) && !table.Has(k)).OrderBy(k => k).ToList();
             missing.AddRange(prefixes.Where(p => !table.Keys.Any(k => k.StartsWith(p))));
             CollectionAssert.IsEmpty(missing, "keys used by the UI but missing in Data/Strings/pt-BR.json");
             var unused = table.Keys.Where(k => !used.Contains(k) && !prefixes.Any(p => k.StartsWith(p))).OrderBy(k => k).ToList();

@@ -39,17 +39,24 @@ namespace Game.Rules.Match
                 available.Remove(best);
             }
 
-            // Bench: best remaining by OVR at their own main position, keeping a goalkeeper if one is left.
-            available.Sort((a, b) =>
+            return (starters, PickBench(rules, available, benchSize, keeperAlreadyOnBench: false));
+        }
+
+        /// <summary>Bench: best of <paramref name="available"/> by OVR at their own main position, keeping a goalkeeper if
+        /// one is left (unless the bench already has one). Used by <see cref="Pick"/> and to complete a user's bench (C3b).</summary>
+        public static List<MatchPlayerSetup> PickBench(MatchRules rules, IReadOnlyList<MatchPlayerSetup> available, int benchSize, bool keeperAlreadyOnBench)
+        {
+            var pool = new List<MatchPlayerSetup>(available);
+            pool.Sort((a, b) =>
             {
                 int c = rules.EffectiveOvr(b, (Position)b.MainPosition).CompareTo(rules.EffectiveOvr(a, (Position)a.MainPosition));
                 return c != 0 ? c : a.PlayerId.CompareTo(b.PlayerId);
             });
             var bench = new List<MatchPlayerSetup>();
-            var keeper = available.Find(p => p.MainPosition == (int)Position.GOL);
-            if (keeper != null && benchSize > 0) { bench.Add(keeper); available.Remove(keeper); }
-            for (int i = 0; i < available.Count && bench.Count < benchSize; i++) bench.Add(available[i]);
-            return (starters, bench);
+            var keeper = keeperAlreadyOnBench ? null : pool.Find(p => p.MainPosition == (int)Position.GOL);
+            if (keeper != null && benchSize > 0) { bench.Add(keeper); pool.Remove(keeper); }
+            for (int i = 0; i < pool.Count && bench.Count < benchSize; i++) bench.Add(pool[i]);
+            return bench;
         }
 
         /// <summary>Best available player for a slot position, or null when none is available.</summary>

@@ -23,7 +23,7 @@ namespace Game.Save.Serialization
         public static Result<CareerState> Read(JObject root)
         {
             var sj = new StrictJson("save");
-            sj.Keys(root, "root", "schemaVersion", "seed", "ids", "managedClubId", "proposals", "matchInProgress", "world", "season", "history");
+            sj.Keys(root, "root", "schemaVersion", "seed", "ids", "managedClubId", "proposals", "matchInProgress", "userPlan", "world", "season", "history");
 
             var state = new CareerState
             {
@@ -46,6 +46,27 @@ namespace Game.Save.Serialization
                     try { if (b64 != null) bytes = System.Convert.FromBase64String(b64); }
                     catch (System.FormatException) { sj.Fail("INVALID_VALUE", "root.matchInProgress.snapshot is not base64."); }
                     if (bytes != null) state.MatchInProgress = new MatchInProgress(new Id(fixture), bytes);
+                }
+            }
+
+            var up = root["userPlan"];
+            if (up == null) sj.Fail("MISSING_KEY", "root.userPlan is required (null without a user plan).");
+            else if (up.Type != JTokenType.Null)
+            {
+                var o = sj.AsObject(up, "root.userPlan");
+                if (o != null)
+                {
+                    const string path = "root.userPlan";
+                    sj.Keys(o, path, "formation", "mentality", "defensiveLine", "pressure", "starters", "bench");
+                    string formation = sj.String(o, "formation", path);
+                    int mentality = sj.Int(o, "mentality", path), line = sj.Int(o, "defensiveLine", path), pressure = sj.Int(o, "pressure", path);
+                    var starters = ReadIdList(sj, o, "starters", path);
+                    var bench = ReadIdList(sj, o, "bench", path);
+                    try
+                    {
+                        if (sj.Ok) state.UserPlan = new UserTeamPlan(new Game.Core.Contracts.Match.TacticSetup(formation, mentality, line, pressure), starters, bench);
+                    }
+                    catch (System.ArgumentException e) { sj.Fail("INVALID_VALUE", "root.userPlan: " + e.Message); }
                 }
             }
 

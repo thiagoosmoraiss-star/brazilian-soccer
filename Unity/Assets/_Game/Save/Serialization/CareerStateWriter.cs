@@ -28,6 +28,15 @@ namespace Game.Save.Serialization
                     ["fixtureId"] = state.MatchInProgress.FixtureId.Value,
                     ["snapshot"] = System.Convert.ToBase64String(state.MatchInProgress.Snapshot),
                 },
+                ["userPlan"] = state.UserPlan == null ? (JToken)JValue.CreateNull() : new JObject
+                {
+                    ["formation"] = state.UserPlan.Tactic.FormationId,
+                    ["mentality"] = state.UserPlan.Tactic.Mentality,
+                    ["defensiveLine"] = state.UserPlan.Tactic.DefensiveLine,
+                    ["pressure"] = state.UserPlan.Tactic.Pressure,
+                    ["starters"] = ArrayId(state.UserPlan.Starters),
+                    ["bench"] = ArrayId(state.UserPlan.Bench),
+                },
                 ["world"] = WriteWorld(state.World),
                 ["season"] = WriteSeason(state.Season),
                 ["history"] = Array(state.History, WriteSeasonSummary),

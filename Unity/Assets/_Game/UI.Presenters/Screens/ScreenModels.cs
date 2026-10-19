@@ -98,6 +98,7 @@ namespace Game.UI.Presenters
         public bool UserIsHome { get; internal set; }
         public string Formation { get; internal set; }
         public string LineupNote { get; internal set; }
+        public ButtonModel LineupButton { get; internal set; }
         public List<LineupRowModel> Lineup { get; } = new List<LineupRowModel>();
         public ButtonModel Play { get; internal set; }
         public ButtonModel Simulate { get; internal set; }

@@ -25,7 +25,7 @@ dotnet run --project dotnet/MatchReport -c Release -- --calibration [--played N]
 
 ## UI (C3a)
 
-`UI.Presenters` is the pure half of the Shell (career session, navigation, screen presenters; DECISIONS X-96). `Tests.UI` drives the screens through their commands, as a player would: new career and club choice, a whole season with at most three taps from one match to the next, a played match coming back as a post-match report, the duration setting, every screen's texts present in `Data/Strings/pt-BR.json`.
+`UI.Presenters` is the pure half of the Shell (career session, navigation, screen presenters; DECISIONS X-96). `Tests.UI` drives the screens through their commands, as a player would: new career and club choice, a whole season with at most three taps from one match to the next, a played match coming back as a post-match report, the duration setting, every screen's texts present in `Data/Strings/pt-BR.json`; C3b: squad list, player profiles, lineup and tactic edited by taps and used by the next match (X-97).
 
 ```
 dotnet test dotnet/Tests.UI

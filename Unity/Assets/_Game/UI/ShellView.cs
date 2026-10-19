@@ -20,6 +20,11 @@ namespace Game.UI
         private readonly VisualElement _header;
         private readonly ScrollView _scroll;
         private readonly VisualElement _tabBar;
+        // The squad list is virtualized (TECHNICAL_SPEC §15 "Squad | Lista virtualizada"): a ListView instead of the scroll.
+        private readonly VisualElement _listHost;
+        private readonly VisualElement _listTop;
+        private readonly ListView _list;
+        private System.Collections.Generic.List<SquadRowModel> _squadRows = new System.Collections.Generic.List<SquadRowModel>();
 
         public ShellView(VisualElement root, ShellPresenter shell, Action loadMatch)
         {
@@ -42,6 +47,24 @@ namespace Game.UI
             _scroll.contentContainer.style.paddingTop = 28;
             _scroll.contentContainer.style.paddingBottom = 60;
             _root.Add(_scroll);
+            _listHost = new VisualElement();
+            _listHost.style.flexGrow = 1;
+            _listHost.style.paddingLeft = _listHost.style.paddingRight = 36;
+            _listHost.style.paddingTop = 20;
+            _listTop = new VisualElement();
+            _listTop.style.flexShrink = 0;
+            _listHost.Add(_listTop);
+            _list = new ListView
+            {
+                fixedItemHeight = MinTouch,
+                virtualizationMethod = CollectionVirtualizationMethod.FixedHeight,
+                selectionType = SelectionType.None,
+                makeItem = MakeSquadRow,
+                bindItem = BindSquadRow,
+            };
+            _list.style.flexGrow = 1;
+            _listHost.Add(_list);
+            _root.Add(_listHost);
             _tabBar = Row(_root);
             _tabBar.style.backgroundColor = CardColor;
             _tabBar.style.paddingLeft = _tabBar.style.paddingRight = 8;
@@ -75,9 +98,15 @@ namespace Game.UI
             if (career) Header(_shell.Header());
             _tabBar.style.display = nav.ShowsTabBar ? DisplayStyle.Flex : DisplayStyle.None;
             if (nav.ShowsTabBar) TabBar(_shell.TabBar());
+            bool list = nav.Current == ScreenId.Squad;
+            _scroll.style.display = list ? DisplayStyle.None : DisplayStyle.Flex;
+            _listHost.style.display = list ? DisplayStyle.Flex : DisplayStyle.None;
 
             switch (nav.Current)
             {
+                case ScreenId.Squad: Squad(_shell.Squad()); break;
+                case ScreenId.Player: PlayerProfile(c, _shell.PlayerProfile()); break;
+                case ScreenId.Lineup: Lineup(c, _shell.Lineup()); break;
                 case ScreenId.MainMenu: MainMenu(c, _shell.MainMenu()); break;
                 case ScreenId.ClubChoice: ClubChoice(c, _shell.ClubChoice()); break;
                 case ScreenId.Hub: Hub(c, _shell.Hub()); break;
@@ -223,6 +252,7 @@ namespace Game.UI
                 Cell(row, p.Ovr, 100, SmallSize, Surface, true);
                 Cell(row, p.Energy, 120, SmallSize, Neutral);
             }
+            Button(c, m.LineupButton, _shell.OpenLineup);
             var buttons = Row(c);
             Button(buttons, m.Play, () => { if (_shell.Play() == ShellEffect.LoadMatchScene) _loadMatch(); }, primary: true, BigSize);
             Button(buttons, m.Simulate, _shell.Simulate, size: BigSize);
@@ -387,6 +417,175 @@ namespace Game.UI
                         result.style.marginBottom = 8;
                     }
                 }
+            }
+        }
+
+        // ---------------------------------------------------------------- C3b: squad, player, lineup
+
+        private void Squad(SquadModel m)
+        {
+            _listTop.Clear();
+            var top = Row(_listTop);
+            var titles = new VisualElement();
+            titles.style.flexGrow = 1;
+            titles.style.flexShrink = 1;
+            top.Add(titles);
+            Text(titles, m.Title, TitleSize, Accent, true);
+            Text(titles, m.Summary, SmallSize, Neutral);
+            var lineup = Button(top, m.Lineup, _shell.OpenLineup, primary: true, SmallSize);
+            lineup.style.flexGrow = 0;
+            var cols = m.ColumnsHeader.Split('|');
+            var head = Row(_listTop);
+            head.style.marginTop = 12;
+            SquadCells(head, cols[0], cols[1], cols[2], cols[3], cols[4], cols[5], Neutral, Neutral, true);
+            _squadRows = m.Rows;
+            _list.itemsSource = _squadRows;
+            _list.Rebuild();
+            _list.ScrollToItem(0);
+        }
+
+        private VisualElement MakeSquadRow()
+        {
+            var row = Row(null);
+            row.style.height = MinTouch;
+            row.style.borderBottomWidth = 1;
+            row.style.borderBottomColor = CardColor;
+            SquadCells(row, "", "", "", "", "", "", Surface, Neutral, false);
+            row.RegisterCallback<ClickEvent>(_ =>
+            {
+                if (row.userData is int id && id > 0) _shell.OpenPlayer(id);
+            });
+            return row;
+        }
+
+        private void BindSquadRow(VisualElement row, int index)
+        {
+            var m = _squadRows[index];
+            var cells = row.Query<Label>().ToList();
+            bool section = m.Section != null;
+            row.userData = section ? 0 : m.PlayerId;
+            row.style.backgroundColor = section ? CardColor : Color.clear;
+            cells[0].text = section ? "" : m.Pos;
+            cells[1].text = section ? m.Section : m.Name;
+            cells[1].style.color = section ? Accent : Surface;
+            cells[1].style.unityFontStyleAndWeight = section ? FontStyle.Bold : FontStyle.Normal;
+            cells[2].text = section ? "" : m.Age;
+            cells[3].text = section ? "" : m.Ovr;
+            cells[4].text = section ? "" : m.Energy;
+            cells[5].text = section ? "" : m.Status;
+            cells[5].style.color = m.StatusBad ? Negative : Neutral;
+        }
+
+        private static void SquadCells(VisualElement row, string pos, string name, string age, string ovr, string energy, string status,
+            Color main, Color dim, bool bold)
+        {
+            Cell(row, pos, 90, SmallSize, Accent, true, TextAnchor.MiddleLeft);
+            Cell(row, name, 0, SmallSize, main, bold, TextAnchor.MiddleLeft);
+            Cell(row, age, 80, SmallSize, dim);
+            Cell(row, ovr, 90, SmallSize, main, true);
+            Cell(row, energy, 110, SmallSize, dim);
+            Cell(row, status, 230, 24, dim, false, TextAnchor.MiddleRight);
+        }
+
+        private void PlayerProfile(VisualElement c, PlayerModel m)
+        {
+            if (m == null) { _shell.Back(); return; }
+            BackButton(c, m.Back, () => _shell.Back());
+            var top = Card(c, CardStrong);
+            Text(top, m.Name, TitleSize, Surface, true);
+            Text(top, m.Positions, TextSize, Accent, true);
+            var row = Row(top);
+            Cell(row, m.Ovr, 220, BigSize, Surface, true, TextAnchor.MiddleLeft);
+            Cell(row, m.Potential, 0, SmallSize, Neutral, false, TextAnchor.MiddleLeft);
+            Text(top, m.Status, TextSize, m.StatusBad ? Negative : Positive, true);
+            foreach (var g in m.Groups)
+            {
+                var card = Card(c);
+                Text(card, g.Title, TextSize, Accent, true);
+                foreach (var r in g.Rows)
+                {
+                    var line = Row(card);
+                    line.style.minHeight = 56;
+                    Cell(line, r.Label, 0, SmallSize, Neutral, false, TextAnchor.MiddleLeft);
+                    if (r.Bar >= 0)
+                    {
+                        var track = new VisualElement();
+                        track.style.width = 260;
+                        track.style.height = 16;
+                        track.style.backgroundColor = CardStrong;
+                        track.style.marginRight = 16;
+                        Round(track, 8);
+                        var fill = new VisualElement();
+                        fill.style.width = Length.Percent(Mathf.Clamp01(r.Bar) * 100f);
+                        fill.style.height = 16;
+                        fill.style.backgroundColor = Accent;
+                        Round(fill, 8);
+                        track.Add(fill);
+                        line.Add(track);
+                    }
+                    Cell(line, r.Value, r.Bar >= 0 ? 80 : 420, SmallSize, Surface, true, TextAnchor.MiddleRight);
+                }
+            }
+        }
+
+        private void Lineup(VisualElement c, LineupModel m)
+        {
+            BackButton(c, m.Back, () => _shell.Back());
+            Text(c, m.Title, TitleSize, Accent, true);
+            if (m.NextMatch != null) Text(c, m.NextMatch, SmallSize, Neutral);
+
+            var tactic = Card(c, CardStrong);
+            for (int i = 0; i < m.Tactic.Count; i++)
+            {
+                var t = m.Tactic[i];
+                var control = (TacticControl)i;
+                var row = Row(tactic);
+                Cell(row, t.Label, 300, SmallSize, Neutral, false, TextAnchor.MiddleLeft);
+                var prev = Button(row, new ButtonModel("◀", t.CanPrevious), () => _shell.TacticStep(control, -1));
+                prev.style.flexGrow = 0;
+                prev.style.width = MinTouch;
+                Cell(row, t.Value, 0, TextSize, Surface, true);
+                var next = Button(row, new ButtonModel("▶", t.CanNext), () => _shell.TacticStep(control, 1));
+                next.style.flexGrow = 0;
+                next.style.width = MinTouch;
+            }
+
+            Text(c, m.Mode, SmallSize, Surface);
+            Button(c, m.Automatic, _shell.AutomaticLineup, size: SmallSize);
+            Text(c, m.Hint, SmallSize, Accent);
+            SlotList(c, m.StartersTitle, m.Starters, LineupArea.Starter);
+            SlotList(c, m.BenchTitle, m.Bench, LineupArea.Bench);
+            SlotList(c, m.ReservesTitle, m.Reserves, LineupArea.Reserve);
+        }
+
+        private void SlotList(VisualElement c, string title, System.Collections.Generic.List<LineupSlotModel> slots, LineupArea area)
+        {
+            Text(c, title, TextSize, Neutral, true).style.marginTop = 16;
+            var card = Card(c);
+            for (int i = 0; i < slots.Count; i++)
+            {
+                var s = slots[i];
+                int index = i;
+                var row = new Button(() => _shell.LineupTap(area, index));
+                row.style.flexDirection = FlexDirection.Row;
+                row.style.alignItems = Align.Center;
+                row.style.minHeight = MinTouch;
+                row.style.marginLeft = row.style.marginRight = 0;
+                row.style.marginTop = row.style.marginBottom = 2;
+                row.style.borderTopWidth = row.style.borderBottomWidth = row.style.borderLeftWidth = row.style.borderRightWidth = 0;
+                row.style.backgroundColor = s.Selected ? Accent : Color.clear;
+                Round(row, 10);
+                var ink = s.Selected ? Ink : Surface;
+                Cell(row, s.Pos, 90, SmallSize, s.Selected ? Ink : Accent, true, TextAnchor.MiddleLeft);
+                var mid = new VisualElement();
+                mid.style.flexGrow = 1;
+                mid.style.flexShrink = 1;
+                row.Add(mid);
+                Text(mid, s.Name, SmallSize, s.Empty ? Neutral : ink, !s.Empty);
+                if (s.Warning != null) Text(mid, s.Warning, 22, s.Selected ? Ink : Negative);
+                Cell(row, s.Ovr, 80, SmallSize, ink, true);
+                Cell(row, s.Energy, 110, SmallSize, s.Selected ? Ink : Neutral);
+                card.Add(row);
             }
         }
 

@@ -46,6 +46,7 @@ namespace Game.Save
 
             if (state.Season != null) ValidateSeason(errors, clubIds, state.Season);
             if (state.MatchInProgress != null) ValidateMatchInProgress(errors, state);
+            if (state.UserPlan != null) ValidateUserPlan(errors, state);
             foreach (var summary in state.History) ValidateSummary(errors, world.Clubs.Count, summary);
             ValidateBalances(errors, state);
 
@@ -68,6 +69,20 @@ namespace Game.Save
             if (!managed.HasValue || (found.HomeClubId != managed.Value && found.AwayClubId != managed.Value))
                 errors.Add(new Error(Code, $"matchInProgress: fixture {id} is not the managed club's."));
             if (state.MatchInProgress.Snapshot.Length == 0) errors.Add(new Error(Code, "matchInProgress: empty snapshot."));
+        }
+
+        /// <summary>C3b: a user plan belongs to a managed club; a chosen lineup has 11 distinct starters and a distinct bench.
+        /// Ids of players who have since left are allowed (ignored when the team is built).</summary>
+        private static void ValidateUserPlan(List<Error> errors, CareerState state)
+        {
+            var plan = state.UserPlan;
+            if (!state.ManagedClubId.HasValue) errors.Add(new Error(Code, "userPlan without a managed club."));
+            if (plan.Starters.Count != 0 && plan.Starters.Count != Game.Core.Contracts.Match.MatchTeamSetup.StarterCount)
+                errors.Add(new Error(Code, $"userPlan: {plan.Starters.Count} starters (0 or {Game.Core.Contracts.Match.MatchTeamSetup.StarterCount})."));
+            if (plan.Starters.Count == 0 && plan.Bench.Count > 0) errors.Add(new Error(Code, "userPlan: a bench without starters."));
+            var seen = new HashSet<Id>();
+            foreach (var id in plan.Starters) if (!seen.Add(id)) errors.Add(new Error(Code, $"userPlan: player {id} twice."));
+            foreach (var id in plan.Bench) if (!seen.Add(id)) errors.Add(new Error(Code, $"userPlan: player {id} twice."));
         }
 
         private static void ValidateSeason(List<Error> errors, HashSet<Id> clubIds, Season season)

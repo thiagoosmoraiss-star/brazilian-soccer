@@ -129,6 +129,118 @@ namespace Game.Career.Season
             return PendingUserMatch;
         }
 
+        // ---------------- The user's team plan (C3b, X-97) ----------------
+
+        /// <summary>The managed club's tactic: the user's, or the automatic one (the season's formation, the AI defaults).</summary>
+        public TacticSetup UserTactic
+        {
+            get
+            {
+                // A saved formation that the data no longer has falls back to the automatic tactic.
+                if (State.UserPlan != null && _db.Formation(State.UserPlan.Tactic.FormationId) != null) return State.UserPlan.Tactic;
+                var mr = MatchRulesDef;
+                return new TacticSetup(State.Season.ClubFormations[RequireManaged()], mr.AiMentality, mr.AiDefensiveLine, mr.AiPressure);
+            }
+        }
+
+        /// <summary>Sets the managed club's tactic (keeps the lineup choice). The pending match is rebuilt with it.</summary>
+        public void SetUserTactic(TacticSetup tactic)
+        {
+            if (tactic == null) throw new ArgumentNullException(nameof(tactic));
+            if (_db.Formation(tactic.FormationId) == null) throw new ArgumentException("Unknown formation " + tactic.FormationId, nameof(tactic));
+            RequireManaged();
+            var plan = State.UserPlan;
+            State.UserPlan = new UserTeamPlan(tactic, plan?.Starters, plan?.Bench);
+            _pending = null;
+        }
+
+        /// <summary>The user's lineup: 11 starters in the formation's slot order and a bench of up to
+        /// <c>matchRules.benchSize</c>, all distinct players of the managed squad. The pending match is rebuilt with it.</summary>
+        public void SetUserLineup(IReadOnlyList<Id> starters, IReadOnlyList<Id> bench)
+        {
+            var club = RequireManaged();
+            if (starters == null || starters.Count != MatchTeamSetup.StarterCount)
+                throw new ArgumentException($"A lineup has {MatchTeamSetup.StarterCount} starters.", nameof(starters));
+            bench = bench ?? new List<Id>();
+            if (bench.Count > MatchRulesDef.BenchSize) throw new ArgumentException("Bench larger than matchRules.benchSize.", nameof(bench));
+            var squad = new HashSet<Id>();
+            foreach (var p in State.World.SquadOf(club)) squad.Add(p.Id);
+            var seen = new HashSet<Id>();
+            foreach (var id in Concat(starters, bench))
+            {
+                if (!squad.Contains(id)) throw new ArgumentException($"Player {id} is not in the managed squad.");
+                if (!seen.Add(id)) throw new ArgumentException($"Player {id} appears twice in the lineup.");
+            }
+            State.UserPlan = new UserTeamPlan(UserTactic, starters, bench);
+            _pending = null;
+        }
+
+        /// <summary>Back to the automatic lineup (the tactic stays).</summary>
+        public void SetAutomaticLineup()
+        {
+            RequireManaged();
+            State.UserPlan = new UserTeamPlan(UserTactic, null, null);
+            _pending = null;
+        }
+
+        /// <summary>
+        /// The managed club's team for a match of <paramref name="kind"/> on <paramref name="date"/>: the user's tactic, and
+        /// the user's lineup with every chosen player who cannot play (injured, suspended, gone) replaced by the automatic
+        /// pick for that slot (bench completed the same way); without a chosen lineup, the automatic one.
+        /// </summary>
+        public MatchTeamSetup UserTeam(CompetitionKind kind, DateTime date)
+        {
+            var club = RequireManaged();
+            var tactic = UserTactic;
+            var candidates = Candidates(club, kind, date);
+            var plan = State.UserPlan;
+            int benchSize = MatchRulesDef.BenchSize;
+            if (plan == null || !plan.ManualLineup) return MatchSetupFactory.Team(_rules, _db, club, tactic, candidates, benchSize);
+
+            var formation = _db.Formation(tactic.FormationId);
+            var pool = new List<MatchPlayerSetup>(candidates);
+            var available = new HashSet<Id>();
+            foreach (var p in State.World.SquadOf(club))
+                if (ConditionSystem.Available(p, kind, date)) available.Add(p.Id);
+            MatchPlayerSetup Take(Id id)
+            {
+                if (!available.Contains(id)) return null;
+                var found = pool.Find(x => x.PlayerId == id);
+                if (found != null) pool.Remove(found);
+                return found;
+            }
+            var starters = new MatchPlayerSetup[formation.Slots.Count];
+            for (int i = 0; i < starters.Length && i < plan.Starters.Count; i++) starters[i] = Take(plan.Starters[i]);
+            for (int i = 0; i < starters.Length; i++)
+                if (starters[i] == null)
+                {
+                    starters[i] = Lineups.Best(_rules, pool, formation.Slots[i].Position);
+                    pool.Remove(starters[i]);
+                }
+            var bench = new List<MatchPlayerSetup>();
+            foreach (var id in plan.Bench)
+            {
+                if (bench.Count >= benchSize) break;
+                var p = Take(id);
+                if (p != null) bench.Add(p);
+            }
+            if (bench.Count < benchSize)
+            {
+                bench.AddRange(Lineups.PickBench(_rules, pool, benchSize - bench.Count,
+                    bench.Exists(x => x.MainPosition == (int)Game.Data.Definitions.Position.GOL)));
+            }
+            return new MatchTeamSetup(club, tactic, starters, bench);
+        }
+
+        private Id RequireManaged() =>
+            State.ManagedClubId ?? throw new InvalidOperationException("The career has no managed club.");
+
+        private static IEnumerable<Id> Concat(IReadOnlyList<Id> a, IReadOnlyList<Id> b)
+        {
+            foreach (var x in a) yield return x;
+            foreach (var x in b) yield return x;
+        }
+
         private Fixture ManagedFixture(Season season, int round)
         {
             var managed = State.ManagedClubId.Value;
@@ -359,6 +471,7 @@ namespace Game.Career.Season
             var mr = MatchRulesDef;
             MatchTeamSetup Team(Id club)
             {
+                if (State.ManagedClubId.HasValue && club == State.ManagedClubId.Value && State.UserPlan != null) return UserTeam(f.Kind, f.Date);
                 var tactic = new TacticSetup(season.ClubFormations[club], mr.AiMentality, mr.AiDefensiveLine, mr.AiPressure);
                 return MatchSetupFactory.Team(_rules, _db, club, tactic, Candidates(club, f.Kind, f.Date), mr.BenchSize);
             }

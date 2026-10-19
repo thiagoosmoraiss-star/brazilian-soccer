@@ -37,6 +37,39 @@ namespace Game.Tests.Save
                 $"seed={seed}: the loaded state must serialize to exactly the same JSON as the original.\nOriginal: {originalJson}\nLoaded: {loadedJson}");
         }
 
+        [Test]
+        public void TheUsersTacticAndLineup_RoundTrip_AndABrokenPlanFailsValidation()
+        {
+            var db = SaveTestData.Db();
+            var career = CareerSimulator.Start(db, 31, new Game.Simulation.QuickSim.QuickSim(db).Simulate, new TransferWindow(), new EconomySystem());
+            var club = career.State.World.Clubs[career.State.World.Clubs.Count - 1];
+            career.State.ManagedClubId = club.Id;
+            var pending = career.AdvanceToUserMatch();
+            var team = pending.Setup.Team(pending.UserSide);
+            career.SetUserTactic(new Game.Core.Contracts.Match.TacticSetup(team.Tactic.FormationId, 2, 1, 3));
+            var starters = new System.Collections.Generic.List<Game.Core.Ids.Id>();
+            foreach (var p in team.Starters) starters.Add(p.PlayerId);
+            career.SetUserLineup(starters, new[] { team.Bench[0].PlayerId });
+
+            var store = new FileSystemFileStore(SaveTestData.NewTempDirectory());
+            Assert.IsTrue(SaveService.Save(store, "career", career.State, new System.DateTime(2026, 1, 1), false).IsSuccess);
+            var loaded = SaveService.Load(store, "career");
+            Assert.IsTrue(loaded.IsSuccess, loaded.ToString());
+            var plan = loaded.Value.UserPlan;
+            Assert.AreEqual(2, plan.Tactic.Mentality);
+            Assert.AreEqual(1, plan.Tactic.DefensiveLine);
+            Assert.AreEqual(3, plan.Tactic.Pressure);
+            CollectionAssert.AreEqual(starters, plan.Starters);
+            Assert.AreEqual(team.Bench[0].PlayerId, plan.Bench[0]);
+            Assert.IsTrue(Newtonsoft.Json.Linq.JToken.DeepEquals(CareerStateWriter.Write(career.State), CareerStateWriter.Write(loaded.Value)));
+
+            var broken = loaded.Value;
+            broken.UserPlan = new UserTeamPlan(plan.Tactic, System.Linq.Enumerable.ToList(System.Linq.Enumerable.Take(plan.Starters, 10)), null);
+            Assert.IsFalse(SaveValidator.Validate(broken).IsSuccess, "10 starters");
+            broken.UserPlan = new UserTeamPlan(plan.Tactic, plan.Starters, new[] { plan.Starters[0] });
+            Assert.IsFalse(SaveValidator.Validate(broken).IsSuccess, "a starter on the bench too");
+        }
+
         [TestCaseSource(nameof(Seeds))]
         public void ResumedCareer_KeepsSimulatingNormally(ulong seed)
         {

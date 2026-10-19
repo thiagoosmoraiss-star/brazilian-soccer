@@ -12,6 +12,8 @@ namespace Game.UI.Presenters
         PreMatch,
         PostMatch,
         Squad,
+        Player,
+        Lineup,
         Market,
         Competitions,
         Calendar,
@@ -53,6 +55,7 @@ namespace Game.UI.Presenters
                 {
                     case ScreenId.Hub:
                     case ScreenId.Squad:
+                    case ScreenId.Player:
                     case ScreenId.Market:
                     case ScreenId.Competitions:
                     case ScreenId.Calendar:

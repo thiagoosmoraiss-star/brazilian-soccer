@@ -28,6 +28,10 @@ namespace Game.Career.Season
         /// fechar o app"), or null. The match is rebuilt from the same fixture and restored from the snapshot.</summary>
         public MatchInProgress MatchInProgress { get; set; }
 
+        /// <summary>The user's tactic and (optionally) lineup for the managed club (C3b, X-97), or null: the same automatic
+        /// choices as the AI clubs.</summary>
+        public UserTeamPlan UserPlan { get; set; }
+
         /// <summary>Offers from AI clubs for a player of the managed club, awaiting a human decision (B5).</summary>
         public List<TransferProposal> Proposals { get; } = new List<TransferProposal>();
 
@@ -43,6 +47,26 @@ namespace Game.Career.Season
     /// match resolver (D-19) so `Career` never depends on `Career.Market`. Null in <see cref="CareerSimulator"/> = no
     /// market (a career can still run without one, e.g. earlier-stage tests).
     /// </summary>
+    /// <summary>
+    /// The managed club's team plan (C3b, X-97; GAME_DESIGN §27, MVP_SCOPE "formações, mentalidade, linha, pressão"):
+    /// the tactic, and the starters (in formation slot order) and bench the user picked. No starters = the lineup is
+    /// picked automatically for every match. Player Ids that are no longer in the squad are simply ignored.
+    /// </summary>
+    public sealed class UserTeamPlan
+    {
+        public Game.Core.Contracts.Match.TacticSetup Tactic { get; }
+        public IReadOnlyList<Id> Starters { get; }
+        public IReadOnlyList<Id> Bench { get; }
+        public bool ManualLineup => Starters.Count > 0;
+
+        public UserTeamPlan(Game.Core.Contracts.Match.TacticSetup tactic, IReadOnlyList<Id> starters, IReadOnlyList<Id> bench)
+        {
+            Tactic = tactic ?? throw new ArgumentNullException(nameof(tactic));
+            Starters = starters == null ? new List<Id>() : new List<Id>(starters);
+            Bench = bench == null ? new List<Id>() : new List<Id>(bench);
+        }
+    }
+
     public interface ITransferWindow
     {
         void Run(CareerState state, GameDatabase db, DateTime date, ulong seed);

@@ -10,3 +10,5 @@ using System.Runtime.CompilerServices;
 [assembly: InternalsVisibleTo("Save")]
 // Tests.Save builds CareerState fixtures directly (internal setters); no other assembly can.
 [assembly: InternalsVisibleTo("Tests.Save")]
+// Tests.UI sets a player's condition (an injury) to check how the screens show it (C3b); no other assembly can.
+[assembly: InternalsVisibleTo("Tests.UI")]

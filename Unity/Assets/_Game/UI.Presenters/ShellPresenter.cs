@@ -26,7 +26,7 @@ namespace Game.UI.Presenters
     /// "Fim de partida → próxima em ≤ 3 toques" (ROADMAP C3): Post-Match Continuar → Hub Avançar (straight to the
     /// Pre-Match) → Jogar/Simular.
     /// </summary>
-    public sealed class ShellPresenter
+    public sealed partial class ShellPresenter
     {
         private readonly Func<ulong> _newSeed;
         private CompetitionsView _competitionsView = CompetitionsView.Table;
@@ -427,7 +427,8 @@ namespace Game.UI.Presenters
                 AwayStrength = S.Format("choice.strength", TeamStrength(setup.Away)),
                 UserIsHome = pending.UserSide == MatchSide.Home,
                 Formation = S.Format("prematch.formation", mine.Tactic.FormationId),
-                LineupNote = S.Get("prematch.auto_lineup"),
+                LineupNote = S.Get(State.UserPlan != null && State.UserPlan.ManualLineup ? "prematch.lineup_manual" : "prematch.lineup_auto"),
+                LineupButton = new ButtonModel(S.Get("prematch.lineup")),
                 Play = new ButtonModel(S.Format("prematch.play", setup.DurationMinutes)),
                 Simulate = new ButtonModel(S.Get("prematch.simulate")),
                 Back = new ButtonModel(S.Get("common.back")),
@@ -673,13 +674,12 @@ namespace Game.UI.Presenters
             return m;
         }
 
-        /// <summary>Squad, Market and Board until their sub-stages (C3b–C3d).</summary>
+        /// <summary>Market and Board until their sub-stages (C3c, C3d).</summary>
         public PlaceholderModel Placeholder(ScreenId screen)
         {
             var m = new PlaceholderModel { Header = Header() };
             switch (screen)
             {
-                case ScreenId.Squad: m.Title = S.Get("placeholder.squad_title"); m.Text = S.Get("placeholder.squad_text"); break;
                 case ScreenId.Market: m.Title = S.Get("placeholder.market_title"); m.Text = S.Get("placeholder.market_text"); break;
                 default: m.Title = S.Get("placeholder.board_title"); m.Text = S.Get("placeholder.board_text"); break;
             }
