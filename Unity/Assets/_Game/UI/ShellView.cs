@@ -1,4 +1,5 @@
 using System;
+using System.Collections.Generic;
 using Game.UI.Presenters;
 using UnityEngine;
 using UnityEngine.UIElements;
@@ -115,6 +116,9 @@ namespace Game.UI
                 case ScreenId.Competitions: Competitions(c, _shell.Competitions()); break;
                 case ScreenId.Calendar: Calendar(c, _shell.Calendar()); break;
                 case ScreenId.Settings: Settings(c, _shell.Settings()); break;
+                case ScreenId.Board: Board(c, _shell.Board()); break;
+                case ScreenId.Club: Club(c, _shell.Club()); break;
+                case ScreenId.Finances: Finances(c, _shell.Finances()); break;
                 default: Placeholder(c, _shell.Placeholder(nav.Current)); break;
             }
         }
@@ -183,6 +187,7 @@ namespace Game.UI
             Text(c, m.Title, TitleSize, Accent, true);
             Text(c, m.Intro, TextSize);
             if (m.Warning != null) Text(c, m.Warning, SmallSize, Negative, true);
+            Difficulties(Card(c), m.DifficultyLabel, m.Difficulties, m.DifficultyHint);
             foreach (var o in m.Options)
             {
                 var card = Card(c);
@@ -223,7 +228,9 @@ namespace Game.UI
 
             var row = Row(c);
             Button(row, m.Calendar, _shell.OpenCalendar);
-            Button(row, m.Settings, _shell.OpenSettings);
+            Button(row, m.Club, _shell.OpenClub);
+            Button(row, m.Finances, _shell.OpenFinances);
+            Button(c, m.Settings, _shell.OpenSettings);
             Button(c, m.MainMenu, _shell.OpenMainMenu, size: SmallSize);
         }
 
@@ -601,8 +608,129 @@ namespace Game.UI
                 Button(row, new ButtonModel(o.Label), () => _shell.SetMatchMinutes(minutes), o.Selected).style.flexBasis = 0;
             }
             Text(card, m.DurationHint, SmallSize, Neutral);
+            if (m.Difficulties.Count > 0) Difficulties(Card(c), m.DifficultyLabel, m.Difficulties, m.DifficultyHint);
+            else Text(Card(c), m.DifficultyHint, SmallSize, Neutral);
             Text(Card(c), m.Language, TextSize);
             Button(c, m.Close, () => _shell.Back(), primary: true);
+        }
+
+        // ---------------------------------------------------------------- F2a: Diretoria, Clube, Finanças
+
+        private void Board(VisualElement c, BoardModel m)
+        {
+            Text(c, m.Title, TitleSize, Accent, true);
+            var objective = Card(c, CardStrong);
+            Text(objective, m.ObjectiveLabel, SmallSize, Neutral);
+            Text(objective, m.Objective, BigSize, Surface, true);
+            if (m.ObjectiveHint != null) Text(objective, m.ObjectiveHint, SmallSize, Neutral);
+            var confidence = Card(c);
+            Text(confidence, m.ConfidenceLabel, SmallSize, Neutral);
+            Text(confidence, m.Confidence, BigSize, m.ConfidenceAtRisk ? Negative : Surface, true);
+            var bar = Stripe(confidence, CardStrong, 0, 18);
+            bar.style.width = new Length(100, LengthUnit.Percent);
+            var fill = Stripe(bar, m.ConfidenceAtRisk ? Negative : Positive, 0, 18);
+            fill.style.width = new Length(m.ConfidenceValue, LengthUnit.Percent);
+            Text(confidence, m.ConfidenceHint, SmallSize, Neutral);
+            var sponsor = Card(c);
+            Text(sponsor, m.SponsorshipLabel, SmallSize, Neutral);
+            Text(sponsor, m.Sponsorship, TextSize, Surface, true);
+            Text(sponsor, m.SponsorshipHint, SmallSize, Neutral);
+            var row = Row(c);
+            Button(row, m.Club, _shell.OpenClub);
+            Button(row, m.Finances, _shell.OpenFinances);
+        }
+
+        private void Club(VisualElement c, ClubModel m)
+        {
+            BackButton(c, m.Back, () => _shell.Back());
+            Text(c, m.Title, TitleSize, Accent, true);
+            if (m.Message != null) Text(Card(c, CardStrong), m.Message, TextSize, m.MessageIsError ? Negative : Positive, true);
+            if (m.Confirm != null)
+            {
+                var confirm = Card(c, CardStrong);
+                Text(confirm, m.Confirm.Text, TextSize, Surface);
+                var buttons = Row(confirm);
+                Button(buttons, m.Confirm.Cancel, _shell.CancelClubAction);
+                Button(buttons, m.Confirm.Confirm, _shell.ConfirmClubAction, primary: true);
+            }
+            Text(c, m.FacilitiesTitle, TextSize, Neutral, true).style.marginTop = 16;
+            foreach (var f in m.Facilities)
+            {
+                var card = Card(c);
+                Text(card, f.Name, BigSize, Surface, true);
+                Text(card, f.Level, TextSize);
+                Text(card, f.Detail, SmallSize, Neutral);
+                if (f.Requirement != null) Text(card, f.Requirement, SmallSize, Neutral);
+                if (f.Warning != null) Text(card, f.Warning, SmallSize, Negative, true);
+                if (f.Work != null) Text(card, f.Work, SmallSize, Accent, true);
+                int type = f.Type;
+                if (f.Upgrade != null) Button(card, f.Upgrade, () => _shell.RequestFacilityUpgrade(type));
+                if (f.Reason != null) Text(card, f.Reason, SmallSize, Neutral);
+            }
+            Text(c, m.StaffTitle, TextSize, Neutral, true).style.marginTop = 16;
+            Text(c, m.StaffHint, SmallSize, Neutral);
+            foreach (var s in m.Staff)
+            {
+                var card = Card(c);
+                Text(card, s.Name, BigSize, Surface, true);
+                Text(card, s.Level + " · " + s.Wage, TextSize);
+                Text(card, s.Effect, SmallSize, Neutral);
+                int role = s.Role;
+                foreach (var o in s.Levels)
+                {
+                    int level = o.Level;
+                    Button(card, new ButtonModel(o.Label, o.Enabled), () => _shell.RequestStaffReplacement(role, level), o.Current, SmallSize);
+                }
+            }
+        }
+
+        private void Finances(VisualElement c, FinancesModel m)
+        {
+            BackButton(c, m.Back, () => _shell.Back());
+            Text(c, m.Title, TitleSize, Accent, true);
+            var cash = Card(c, CardStrong);
+            Text(cash, m.Cash, BigSize, m.CashNegative ? Negative : Surface, true);
+            if (m.Alert != null) Text(cash, m.Alert, SmallSize, Negative, true);
+            var season = Card(c);
+            Text(season, m.SeasonTitle, TextSize, Accent, true);
+            Text(season, m.Revenue, TextSize);
+            Text(season, m.Expenses, TextSize);
+            Text(season, m.Net, TextSize, m.NetNegative ? Negative : Positive, true);
+            foreach (var r in m.Categories)
+            {
+                var row = Row(season);
+                Cell(row, r.Label, 0, SmallSize, Neutral, false, TextAnchor.MiddleLeft).style.flexGrow = 1;
+                Cell(row, r.Amount, 220, SmallSize, r.Negative ? Negative : Surface);
+            }
+            Text(c, m.MonthsTitle, TextSize, Neutral, true).style.marginTop = 16;
+            var months = Card(c);
+            var head = Row(months);
+            Cell(head, m.MonthHeader, 0, 24, Neutral, true, TextAnchor.MiddleLeft).style.flexGrow = 1;
+            Cell(head, m.RevenueHeader, 200, 24, Neutral, true);
+            Cell(head, m.ExpensesHeader, 200, 24, Neutral, true);
+            Cell(head, m.NetHeader, 200, 24, Neutral, true);
+            foreach (var mo in m.Months)
+            {
+                var row = Row(months);
+                var ink = mo.Future ? Neutral : Surface;
+                Cell(row, mo.Month, 0, SmallSize, ink, false, TextAnchor.MiddleLeft).style.flexGrow = 1;
+                Cell(row, mo.Revenue, 200, SmallSize, ink);
+                Cell(row, mo.Expenses, 200, SmallSize, ink);
+                Cell(row, mo.Net, 200, SmallSize, mo.Future ? Neutral : mo.NetNegative ? Negative : Positive);
+            }
+        }
+
+        /// <summary>F1c: one button per difficulty level (club choice and Settings).</summary>
+        private void Difficulties(VisualElement card, string label, List<LevelOptionModel> levels, string hint)
+        {
+            Text(card, label, TextSize, Surface, true);
+            var row = Row(card);
+            foreach (var o in levels)
+            {
+                string id = o.Id;
+                Button(row, new ButtonModel(o.Label), () => _shell.SetDifficulty(id), o.Selected).style.flexBasis = 0;
+            }
+            Text(card, hint, SmallSize, Neutral);
         }
 
         private static void Placeholder(VisualElement c, PlaceholderModel m)

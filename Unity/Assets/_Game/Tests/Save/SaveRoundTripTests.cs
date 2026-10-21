@@ -70,6 +70,40 @@ namespace Game.Tests.Save
             Assert.IsFalse(SaveValidator.Validate(broken).IsSuccess, "a starter on the bench too");
         }
 
+        [Test]
+        public void TheManagedClub_HasExactlyOneStaffMemberPerRole_OrTheSaveIsInvalid()
+        {
+            var db = SaveTestData.Db();
+            var career = CareerSimulator.Start(db, 31, new Game.Simulation.QuickSim.QuickSim(db).Simulate, new TransferWindow(), new EconomySystem());
+            var club = career.State.World.Clubs[career.State.World.Clubs.Count - 1];
+            career.State.ManagedClubId = club.Id;
+            Assert.IsTrue(SaveValidator.Validate(career.State).IsSuccess, "generated with one member per role");
+            var physio = career.State.World.StaffOf(club.Id, Game.Career.World.StaffRole.Physio);
+            career.State.World.StaffList.Remove(physio);
+            Assert.IsFalse(SaveValidator.Validate(career.State).IsSuccess, "X-122 (2): no empty role is saved");
+            career.State.World.StaffList.Add(physio);
+            career.State.World.StaffList.Add(new Game.Career.World.StaffMember { Id = career.State.Ids.Next(), ClubId = club.Id, Role = Game.Career.World.StaffRole.Physio, Level = 1 });
+            Assert.IsFalse(SaveValidator.Validate(career.State).IsSuccess, "two physios");
+            career.State.ManagedClubId = null;
+            Assert.IsTrue(SaveValidator.Validate(career.State).IsSuccess, "the rule is the managed club's only");
+        }
+
+        [Test]
+        public void TheDifficulty_RoundTrips_AndAnEmptyOneFailsValidation()
+        {
+            var db = SaveTestData.Db();
+            var career = CareerSimulator.Start(db, 31, new Game.Simulation.QuickSim.QuickSim(db).Simulate, new TransferWindow(), new EconomySystem());
+            Assert.AreEqual(db.Difficulty.DefaultLevel, career.State.Difficulty, "a new career starts at the default level");
+            career.SetDifficulty("hard");
+            var store = new FileSystemFileStore(SaveTestData.NewTempDirectory());
+            Assert.IsTrue(SaveService.Save(store, "career", career.State, new System.DateTime(2026, 1, 1), false).IsSuccess);
+            var loaded = SaveService.Load(store, "career");
+            Assert.IsTrue(loaded.IsSuccess, loaded.ToString());
+            Assert.AreEqual("hard", loaded.Value.Difficulty);
+            loaded.Value.Difficulty = " ";
+            Assert.IsFalse(SaveValidator.Validate(loaded.Value).IsSuccess, "an empty level id");
+        }
+
         [TestCaseSource(nameof(Seeds))]
         public void ResumedCareer_KeepsSimulatingNormally(ulong seed)
         {

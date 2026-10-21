@@ -4,6 +4,7 @@ using Game.Core.Contracts.Match;
 using Game.Core.Math;
 using Game.Data.Effects;
 using Game.Data.Match;
+using Game.Rules.Match;
 
 namespace Game.Match.AI
 {
@@ -27,13 +28,89 @@ namespace Game.Match.AI
     public sealed partial class AiMatch
     {
         public const string DuelsStream = "Duels";
+        public const string ShotBlockStream = "ShotBlock";
+        public const string FirstTouchStream = "FirstTouch";
 
         private readonly DuelsDefinition _duels;
         private readonly Game.Core.Random.Rng _duelsRng;
+        private Game.Core.Random.Rng _blockRng;
+        private Game.Core.Random.Rng _touchRng;
+        /// <summary>Who already had his one chance to block the shot in flight (F1b).</summary>
+        private readonly bool[] _blockTried = new bool[2 * MatchTeamSetup.StarterCount];
         /// <summary>BodyDuelWin ^ pushExponent per player (attributes do not change during a match).</summary>
         private readonly float[] _bodyWeight = new float[2 * MatchTeamSetup.StarterCount];
         private readonly int[] _contestants = new int[2 * MatchTeamSetup.StarterCount];
         private readonly float[] _contestWeights = new float[2 * MatchTeamSetup.StarterCount];
+
+        /// <summary>A shot in flight passing a defender's body this step (F1b, "bolas desviadas"): each outfield opponent of
+        /// the shooter gets one chance per shot, his ShotBlockChance (Desarme) x chanceScale x closeness. A block deflects the
+        /// ball (slower, turned, maybe up): it may run loose, or out for a corner.</summary>
+        private bool TryShotBlock()
+        {
+            if (_duels.BlockChanceScale <= 0f || _pendingShot < 0 || !BallLoose || Ball.Position.Z > _duels.BlockMaxHeight) return false;
+            var v = Ball.Velocity;
+            float speed2 = v.X * v.X + v.Y * v.Y;
+            if (speed2 < _duels.BlockMinSpeed * _duels.BlockMinSpeed) return false;
+            var shooterTeam = Players[_pendingShot].Team;
+            var defenders = Opponents(shooterTeam).Players;
+            var a = new Vector2(Ball.Position.X, Ball.Position.Y);
+            var ab = new Vector2(v.X, v.Y) * StepSeconds;
+            float len2 = ab.LengthSquared();
+            for (int i = 0; i < defenders.Length; i++)
+            {
+                var d = defenders[i];
+                if (d.IsGoalkeeper || d.Body.OffPitch || d.Body.Down || _blockTried[d.Global]) continue;
+                var bp = new Vector2(d.Body.Position.X, d.Body.Position.Y);
+                float t = len2 > 1e-8f ? MathUtil.Clamp01(Vector2.Dot(bp - a, ab) / len2) : 0f;
+                float dist = Vector2.Distance(a + ab * t, bp);
+                if (dist > _duels.BlockReach) continue;
+                _blockTried[d.Global] = true;
+                float chance = _balance.Eval(Effect.ShotBlockChance, d.Setup.Attributes) * _duels.BlockChanceScale * (1f - dist / _duels.BlockReach);
+                if (_blockRng.NextFloat() >= chance) continue;
+                float angle = (2f * _blockRng.NextFloat() - 1f) * _duels.BlockMaxDeflectDegrees * MathF.PI / 180f;
+                float factor = _duels.BlockSpeedFactorMin + (_duels.BlockSpeedFactorMax - _duels.BlockSpeedFactorMin) * _blockRng.NextFloat();
+                float c = MathF.Cos(angle), s = MathF.Sin(angle);
+                var out2 = new Vector2(v.X * c - v.Y * s, v.X * s + v.Y * c) * factor;
+                Possession.Kick(d.Global, d.Body, Ball, new Vector3(out2.X, out2.Y, _blockRng.NextFloat() * _duels.BlockMaxUpSpeed));
+                Stats(d.Team).ShotBlocks++;
+                _pendingShot = -1;
+                _headerShotInFlight = false;
+                return true;
+            }
+            return false;
+        }
+
+        /// <summary>The first touch of <paramref name="p"/>, who just captured a ball arriving at <paramref name="incoming"/>
+        /// (D-36): error (m) = FirstTouchError (Drible, Compostura) x scale x speed factor x PressureErrorMult when an opponent is
+        /// within pressureRadius x |triangular|. Above threshold the touch escapes: the ball runs on along its line, turned, about
+        /// error x escapeDistanceScale m, loose for anyone (the receiver too, once it is clear of him). Goalkeepers use their hands.</summary>
+        private bool FirstTouchEscapes(AiPlayer p, Vector3 incoming)
+        {
+            if (_duels.TouchScale <= 0f || p.IsGoalkeeper) return false;
+            float speed = MathF.Sqrt(incoming.X * incoming.X + incoming.Y * incoming.Y);
+            if (speed < _duels.TouchMinSpeed) return false;
+            float error = _balance.Eval(Effect.FirstTouchError, p.Setup.Attributes) * _duels.TouchScale
+                          * Math.Clamp(speed / _duels.TouchReferenceSpeed, _duels.TouchSpeedFactorMin, _duels.TouchSpeedFactorMax);
+            if (OnBallDecision.NearestOpponentDistance(p.Body.Position, Opponents(p.Team)) < _duels.TouchPressureRadius)
+                error *= _balance.Eval(Effect.PressureErrorMult, p.Setup.Attributes);
+            error *= MathF.Abs(KickErrorRules.Triangular(_touchRng));
+            if (error <= _duels.TouchThreshold) return false;
+            float angle = (2f * _touchRng.NextFloat() - 1f) * _duels.TouchMaxEscapeDegrees * MathF.PI / 180f;
+            float c = MathF.Cos(angle), s = MathF.Sin(angle);
+            var dir = new Vector2(incoming.X, incoming.Y) / speed;
+            dir = new Vector2(dir.X * c - dir.Y * s, dir.X * s + dir.Y * c);
+            // Rolling to rest over d m at constant friction a: v = sqrt(2 a d).
+            float v = MathF.Sqrt(2f * _ballCfg.RollingFrictionDeceleration * error * _duels.TouchEscapeDistanceScale);
+            Possession.Release(Ball);
+            Possession.Kick(p.Global, p.Body, Ball, new Vector3(dir.X * v, dir.Y * v, 0f));
+            // He touched it: whatever was in flight (a shot, a penalty, an offside position) is over, as in TakeBall.
+            _pendingShot = -1;
+            _penaltyInPlay = false;
+            _headerShotInFlight = false;
+            ClearOffside();
+            Stats(p.Team).Miscontrols++;
+            return true;
+        }
 
         private void InitDuels()
         {

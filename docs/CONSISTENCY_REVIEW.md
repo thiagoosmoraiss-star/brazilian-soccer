@@ -64,3 +64,14 @@ Revisão cruzada do pacote documental (25/09/2026). Não é instrução para o C
 | Outras pendências | Inalteradas (D-01 a D-05, D-07, D-08, D-10 a D-18) |
 | MVP | Inalterado |
 | Observação não resolvida | O diagrama conceitual da decisão D-09 mostra `Tests/` e `Tools/` na raiz; a estrutura documentada mantém `Tests/` e `Tools/` dentro de `Assets/_Game/` (Especificação §16). D-09 decide só o local de `Data/`; se a intenção for mover `Tests/`/`Tools/` ou colocar o projeto Unity na raiz do repositório, isso é uma nova decisão |
+
+## Revisão 3 — Football Nation (19/10/2026, X-110)
+
+| Verificação | Resultado |
+| --- | --- |
+| Contradições C-01 a C-14 da auditoria (`Football Nation/docs/LEGACY_AUDIT.md`) | Todas continuam presentes no código, porque nada foi implementado. Situação de cada uma em `PRODUCT_SPEC.md` §3: 4 resolvidas no requisito (C-05, C-07, C-09, C-12), mais C-13 com a marca pendente; 7 parciais, que precisam de um detalhe do usuário (C-01, C-02, C-03, C-04, C-06, C-08, C-10); 2 pendentes (C-11, C-14) |
+| Decisões substituídas registradas | X-45 (1), X-72 (1), X-93, D-16 (nome), S-10 e D-02 marcadas em `DECISIONS.md`; MVP_SCOPE e GAME_DESIGN com nota no topo; tabela em `PRODUCT_SPEC.md` §5 |
+| Nenhuma decisão inventada | Detalhes não definidos pelo usuário ficaram como pendências D-22 a D-33, com opções |
+| Hierarquia | `CLAUDE.md` §4: `PRODUCT_SPEC.md` no topo para produto e escopo; técnica inalterada |
+| Progresso | 72% inalterado; medida nova só proposta (`IMPLEMENTATION_PLAN.md` §6) |
+| Observação não resolvida | Os relatórios `LEGACY_AUDIT.md` e `INTEGRATION_2026-10-19.md` estão em `Football Nation/docs/`, fora do repositório; só o brief foi copiado para `docs/` |

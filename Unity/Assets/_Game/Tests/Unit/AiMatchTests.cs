@@ -44,6 +44,7 @@ namespace Game.Tests.Unit
             public readonly List<float> DefendDepth = new List<float>();
             public readonly List<float> AttackDepth = new List<float>();
             public bool PlayersStayedNearThePitch = true;
+            public string OffPitchWhy;
             public int Passes, Shots;
         }
 
@@ -108,7 +109,12 @@ namespace Game.Tests.Unit
                 foreach (var p in team.Players)
                 {
                     var pos = p.Body.Position;
-                    if (MathF.Abs(pos.X) > m.Pitch.HalfLength + 3f || MathF.Abs(pos.Y) > m.Pitch.HalfWidth + 3f) run.PlayersStayedNearThePitch = false;
+                    // A dismissed player waits beyond the touchline by rule (A8a Park): not a player wandering off.
+                    if (!p.Body.OffPitch && (MathF.Abs(pos.X) > m.Pitch.HalfLength + 3f || MathF.Abs(pos.Y) > m.Pitch.HalfWidth + 3f))
+                    {
+                        if (run.PlayersStayedNearThePitch) run.OffPitchWhy = $" (player {p.Global} at {pos.X:F1},{pos.Y:F1}, {p.Intention}, dismissed {p.Body.OffPitch}, restart {m.Restart}, t {m.ElapsedSeconds:F1} s)";
+                        run.PlayersStayedNearThePitch = false;
+                    }
                     if (p.IsGoalkeeper) continue;
                     float u = team.Frame.U(pos);
                     min = MathF.Min(min, u);
@@ -155,7 +161,7 @@ namespace Game.Tests.Unit
                 Assert.IsTrue(run.Finished, $"seed {run.Seed}: the headless match did not end.");
                 Assert.AreEqual(run.ExpectedSteps, run.Steps, 1, $"seed {run.Seed}: steps.");
                 Assert.LessOrEqual(run.Milliseconds, maxMs, $"seed {run.Seed}: {run.Milliseconds} ms.");
-                Assert.IsTrue(run.PlayersStayedNearThePitch, $"seed {run.Seed}: a player wandered off the pitch.");
+                Assert.IsTrue(run.PlayersStayedNearThePitch, $"seed {run.Seed}: a player wandered off the pitch{run.OffPitchWhy}.");
                 Assert.Greater(run.Passes, 0, $"seed {run.Seed}: the AI never passed.");
                 Assert.Greater(run.Shots, 0, $"seed {run.Seed}: the AI never shot.");
             }

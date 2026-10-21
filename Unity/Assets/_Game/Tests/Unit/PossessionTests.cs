@@ -46,6 +46,22 @@ namespace Game.Tests.Unit
         }
 
         [Test]
+        public void AKickersOwnBall_IsIgnoredWhileItMoves_ButNotOnceItHasStoppedAtHisFeet()
+        {
+            var db = Db();
+            var body = new PlayerBody { Position = Vector3.Zero, IgnoreBallUntilClear = true };
+            var ball = new Ball { Position = new Vector3(0.3f, 0f, 0f), Velocity = new Vector3(2f, 0f, 0f), State = BallState.Rolling };
+            Assert.AreEqual(PossessionEvent.None, Possession.Step(0, body, ball, db.Movement), "his own kick, still moving: ignored");
+            Assert.IsTrue(body.IgnoreBallUntilClear);
+
+            // D-36: it died within his reach (a short escaped touch, a deflection): it is a loose ball again, not lost forever.
+            ball.Velocity = Vector3.Zero;
+            Assert.AreEqual(PossessionEvent.None, Possession.Step(0, body, ball, db.Movement), "the step that clears the flag");
+            Assert.IsFalse(body.IgnoreBallUntilClear);
+            Assert.AreEqual(PossessionEvent.Captured, Possession.Step(0, body, ball, db.Movement));
+        }
+
+        [Test]
         public void AlreadyControlledBall_NeverRetriggersCapture()
         {
             var db = Db();

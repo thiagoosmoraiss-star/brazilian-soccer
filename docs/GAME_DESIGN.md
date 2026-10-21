@@ -1,5 +1,18 @@
 # GAME_DESIGN.md
 
+> **19/10/2026 — Football Nation (X-110):** `PRODUCT_SPEC.md` prevalece sobre este documento onde ele o contradiz. O texto abaixo fica como histórico.
+>
+> Seções substituídas:
+>
+> - **§2 Identidade:** nome, arte dos menus, estilo low-poly da partida e cores passam a ser os do Football Nation (FN-01, FN-03, D-28).
+> - **§1/§10 Venda ao exterior:** o mercado é só no Brasil (FN-12, D-30).
+> - **§5 Nomes:** "Liga Nacional — Divisão A/B/C/D" passa a "Série A–D" (FN-11, D-31).
+> - **§3 Início:** a dificuldade da carreira e a criação de clube passam a ser requisitos (D-23, D-24).
+> - **§14 Duração:** "4, 6 ou 10 min (padrão 6)" passa a 3/4/5 (FN-06, D-22).
+> - **§3 item 2, §5, §6, §7, §8 e §12 (D-32, X-122 a X-125):** dificuldade sem efeito na diretoria nem no orçamento (D-23d); Copa com classificação decidida; um objetivo principal por temporada, sem secundários, avaliado no fim da temporada; patrocínio fixo só para consulta; staff por escolha de nível, sem contrato; obras de um nível por vez, pagas no início, sem cancelar, uma por instalação; estádio abaixo do mínimo da divisão só gera aviso. Marcado em cada seção.
+>
+> As metas de ritmo "em 6 min" do §15 dependem de D-22.
+
 Fontes: GDD (visão, carreira, identidade) e "Partida — design aprofundado" (autoridade para tudo da partida). Todos os números são **valores iniciais de balanceamento**, a validar em teste, salvo quando marcados como regra. O que está no MVP é definido em `MVP_SCOPE.md`; este documento descreve o design-alvo.
 
 ---
@@ -31,7 +44,7 @@ Sem online, sem pay-to-win, sem dados reais licenciados.
 ### 3. Início
 
 1. Escolher clube entre 6–8 opções da Divisão D com perfis diferentes (ou criar clube por templates — ver `MVP_SCOPE.md`).
-2. Escolher dificuldade da carreira (orçamento e paciência da diretoria) — PENDENTE: se entra no MVP.
+2. Escolher dificuldade da carreira (orçamento e paciência da diretoria) — PENDENTE: se entra no MVP. **[Substituído (D-23, D-23d): a dificuldade é Fácil/Normal/Difícil e só muda as partidas; não muda orçamento nem diretoria.]**
 3. Elenco inicial gerado: 22 jogadores, média 45–55, 2–3 jovens promissores, 1–2 veteranos.
 4. Diretoria apresenta objetivos.
 
@@ -61,32 +74,32 @@ Nomenclatura própria (ex.: "Liga Nacional — Divisão A/B/C/D", "Copa Nacional
 | Estaduais | 12–16 | Curto + finais |
 | Continental | 32 | Pós-lançamento |
 
-**MVP:** 4 divisões de 16 clubes em pontos corridos (30 rodadas) + Copa Nacional mata-mata em jogo único com 32 clubes. PENDENTE: número de clubes que sobem/caem com 16 clubes, critério de classificação para a Copa, tamanho total do mundo no MVP.
+**MVP:** 4 divisões de 16 clubes em pontos corridos (30 rodadas) + Copa Nacional mata-mata em jogo único com 32 clubes. PENDENTE: número de clubes que sobem/caem com 16 clubes, critério de classificação para a Copa, tamanho total do mundo no MVP. **[Copa decidida (X-40, D-32d em X-123): 32 clubes, os 8 primeiros de cada divisão na temporada anterior (na primeira, pelo OVR do elenco), cinco fases em jogo único, a primeira em março (calendário verificado sem conflito), mando do clube de divisão inferior, final neutra, pênaltis no empate. Os 64 clubes da tabela acima são design-alvo, fora da v1.]**
 
 Regras de classificação (parametrizáveis): vitória 3, empate 1; desempate por vitórias, saldo, gols pró, confronto direto, cartões, sorteio. Mata-mata empatado → pênaltis.
 
 ### 6. Objetivos, diretoria e reputação
 
-- Objetivos de temporada: 1 principal + 1–2 secundários (subir, não cair, fase da copa, fechar no azul, usar jovens).
+- Objetivos de temporada: 1 principal + 1–2 secundários (subir, não cair, fase da copa, fechar no azul, usar jovens). **[Substituído (D-32a, X-124): um objetivo principal por temporada (subir, não cair ou fechar no azul), com as regras e os valores de `board.json`; sem objetivos secundários.]**
 - Objetivos de longo prazo: pós-MVP.
-- **Confiança da diretoria** 0–100; abaixo de 20 no fim de um turno → demissão (tolerância pela dificuldade).
-- **Reputação do clube** (1–5 estrelas; interno 0–1000): patrocínio, público, quem aceita vir, prêmios. **Reputação do treinador:** negociações; propostas de outros clubes pós-MVP.
+- **Confiança da diretoria** 0–100; abaixo de 20 no fim de um turno → demissão (tolerância pela dificuldade). **[Substituído (D-32a, D-32e, D-23d; X-123): avaliada no fim da temporada; a dificuldade não muda a diretoria; a demissão do treinador do usuário encerra a carreira e o save fica só para consulta, sem retomar (F2b).]**
+- **Reputação do clube** (1–5 estrelas; interno 0–1000): patrocínio, público, quem aceita vir, prêmios. **[Patrocínio na v1 (D-32a, X-124): fixo por divisão (`economy.json`), só para consulta, sem negociação.]** **Reputação do treinador:** negociações; propostas de outros clubes pós-MVP.
 
 ### 7. Comissão técnica
 
-Nível 1–5, salário, contrato. MVP (conforme GDD §2): preparador físico (energia, lesões), auxiliar técnico (evolução), olheiro (scouting). Demais funções pós-MVP.
+Nível 1–5, salário, contrato. **[Substituído (D-32c, X-123, X-124): sem contrato com duração e sem candidatos nomeados; o usuário escolhe diretamente o nível (1–5) e só troca um membro com um substituto válido, numa operação só; nível acima paga a soma dos custos de promoção (`staff.json`), nível abaixo sem taxa; o salário é o do nível; pagamento validado no saldo atual (`Balance`).]** MVP (conforme GDD §2): preparador físico (energia, lesões), auxiliar técnico (evolução), olheiro (scouting). Demais funções pós-MVP.
 
 ### 8. Instalações
 
 | Instalação | Níveis | Efeito | MVP |
 | --- | --- | --- | --- |
-| Estádio | 1–10 | Capacidade, bilheteria, requisito por divisão | Sim |
+| Estádio | 1–10 | Capacidade, bilheteria, requisito por divisão (**só aviso, sem bloquear o acesso**: D-32b, X-123) | Sim |
 | Centro de treinamento | 1–5 | Evolução | Sim |
 | Departamento médico | 1–5 | Lesões | Não |
 | Categoria de base | 1–5 | Jovens | Não (base gera 3 jovens/ano fixos) |
 | Loja/marketing | 1–3 | Produtos | Não |
 
-Obras com custo, tempo (datas) e manutenção anual.
+Obras com custo, tempo (datas) e manutenção anual. **[Regras da v1 (D-32b, X-124): cada obra sobe um nível; pagamento integral no início, validado no saldo atual (`Balance`); sem cancelamento; uma obra em andamento por instalação, e estádio e CT podem estar em obra ao mesmo tempo; limites de nível de `facilities.json`; sem pré-requisito além desses.]**
 
 ### 9. Jogadores
 
@@ -118,7 +131,7 @@ Obras com custo, tempo (datas) e manutenção anual.
 - Receitas: TV (por divisão), bilheteria, patrocínio, premiações, transferências, produtos (pós-MVP).
 - Despesas: salários (teto recomendado ~60–70% da receita), staff, manutenção, transferências, obras.
 - Orçamento no início da temporada (teto salarial + verba de transferências).
-- Caixa negativo: 1º mês alerta; 3 meses bloqueio de contratações; 6 meses queda forte de confiança. Sem empréstimo bancário.
+- Caixa negativo: 1º mês alerta; 3 meses bloqueio de contratações; 6 meses queda forte de confiança. Sem empréstimo bancário. **[Implementados: alerta (1 mês) e bloqueio (3 meses), X-44. A queda de confiança aos 6 meses ficou pendente da B7 (X-44), não foi implementada e não é coberta pela D-32: PENDENTE (P-125, `DECISIONS.md` X-125). X-126: continua pendente; não será implementada na v1 por enquanto, sem exclusão permanente; reavaliar antes de qualquer implementação que mude a confiança por essa condição.]**
 - Escala ~10× entre D e A. Premiação relativa: D=1, C=3, B=8, A=40, Copa=25.
 - Meta de balanceamento: clube médio fecha o ano perto de zero; acesso gera superávit.
 
@@ -132,7 +145,7 @@ Obras com custo, tempo (datas) e manutenção anual.
 | A (sobreviver) | 1–2 | 70–75 | Risco de queda |
 | A (brigar) | 2+ | 75–85 | Expectativa, assédio aos craques |
 
-Freios: recusa de jogadores por reputação, estádio mínimo por divisão, propostas pelos destaques, expectativa crescente da diretoria.
+Freios: recusa de jogadores por reputação, estádio mínimo por divisão (**na v1 só aviso, não bloqueia**: D-32b), propostas pelos destaques, expectativa crescente da diretoria.
 
 ### 13. UI
 

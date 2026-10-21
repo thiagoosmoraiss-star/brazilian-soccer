@@ -15,17 +15,20 @@ namespace Game.Core.Contracts.Match
         public MatchTeamSetup Away { get; }
         /// <summary>True when neither side has home advantage (e.g. a neutral venue).</summary>
         public bool NeutralVenue { get; }
-        /// <summary>Configured real-time duration (4/6/10 min). Used by the MatchEngine; QuickSim ignores it.</summary>
+        /// <summary>Configured real-time duration (3/4/5/6/10 min, D-22). Used by the MatchEngine; QuickSim ignores it.</summary>
         public int DurationMinutes { get; }
         public int MaxSubstitutions { get; }
         public ulong Seed { get; }
         /// <summary>Knockout match: a draw is decided by a penalty shootout.</summary>
         public bool RequiresWinner { get; }
+        /// <summary>The user's match difficulty (F1c, D-23), or null: no difficulty (every other match, calibration, tools).</summary>
+        public MatchDifficulty Difficulty { get; }
 
         public MatchSetup(MatchTeamSetup home, MatchTeamSetup away, bool neutralVenue, int durationMinutes, int maxSubstitutions, ulong seed,
-            bool requiresWinner = false)
+            bool requiresWinner = false, MatchDifficulty difficulty = null)
         {
             RequiresWinner = requiresWinner;
+            Difficulty = difficulty;
             Home = home ?? throw new ArgumentNullException(nameof(home));
             Away = away ?? throw new ArgumentNullException(nameof(away));
             if (maxSubstitutions < 0) throw new ArgumentOutOfRangeException(nameof(maxSubstitutions));
@@ -36,6 +39,33 @@ namespace Game.Core.Contracts.Match
         }
 
         public MatchTeamSetup Team(MatchSide side) => side == MatchSide.Home ? Home : Away;
+
+        /// <summary>The same match with another real-time duration.</summary>
+        public MatchSetup WithDuration(int durationMinutes) =>
+            durationMinutes == DurationMinutes ? this
+                : new MatchSetup(Home, Away, NeutralVenue, durationMinutes, MaxSubstitutions, Seed, RequiresWinner, Difficulty);
+
+        /// <summary>The same match with another difficulty (null = none).</summary>
+        public MatchSetup WithDifficulty(MatchDifficulty difficulty) =>
+            new MatchSetup(Home, Away, NeutralVenue, DurationMinutes, MaxSubstitutions, Seed, RequiresWinner, difficulty);
+    }
+
+    /// <summary>The difficulty of the user's match (F1c, D-23): the level id (Data/Balance/difficulty.json) and the user's side.
+    /// The level acts on the other side only.</summary>
+    public sealed class MatchDifficulty
+    {
+        public string LevelId { get; }
+        public MatchSide UserSide { get; }
+
+        public MatchDifficulty(string levelId, MatchSide userSide)
+        {
+            if (string.IsNullOrEmpty(levelId)) throw new ArgumentException("A difficulty level is required.", nameof(levelId));
+            LevelId = levelId;
+            UserSide = userSide;
+        }
+
+        /// <summary>The side the level acts on: the user's opponent.</summary>
+        public MatchSide OpponentSide => UserSide == MatchSide.Home ? MatchSide.Away : MatchSide.Home;
     }
 
     public enum MatchSide

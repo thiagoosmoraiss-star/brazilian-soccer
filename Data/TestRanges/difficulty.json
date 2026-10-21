@@ -1,0 +1,19 @@
+{
+  "schemaVersion": 1,
+  "sources": {
+    "batch": "IMPLEMENTATION_PLAN F1c: the same matchups and the same simulated player (the user's side is the reference AI, no difficulty acts on it) at each level; the career's default duration (4 min, D-22); neutral venue so the home side is not favoured",
+    "minZ": "IMPLEMENTATION_PLAN F1c: 'a diferença entre níveis vizinhos é estatisticamente significativa'; paired z (same seed at both levels) of the opponent's goal difference, 3 like Data/TestRanges/sensitivity.json",
+    "reference": "D-23a / IMPLEMENTATION_PLAN F1c: the reference level reproduces the current AI exactly with the same seed"
+  },
+  "batch": {
+    "worldSeeds": [1, 2, 3],
+    "batchSeed": 2026,
+    "durationMinutes": 4,
+    "playedMatches": 400,
+    "quickSimMatches": 4000,
+    "crossDivisionShare": 0.35,
+    "neutralVenue": true
+  },
+  "minZ": 3.0,
+  "reference": { "seeds": [1, 2, 3] }
+}

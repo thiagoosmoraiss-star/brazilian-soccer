@@ -65,6 +65,8 @@ namespace Game.Simulation.QuickSim
             public readonly List<FieldPlayer> OnField = new List<FieldPlayer>();
             public readonly List<MatchPlayerSetup> Bench = new List<MatchPlayerSetup>();
             public readonly float[] Strength = new float[SectorInfo.Count];
+            /// <summary>F1c: × the sector strengths (the user's opponent's difficulty level; 1 otherwise).</summary>
+            public float DifficultyScale = 1f;
             public int Goals, Shots, ShotsOnTarget, Fouls, Yellows, Reds, Corners, Subs, Windows, TiredSubs, PossessionMinutes;
         }
 
@@ -97,6 +99,12 @@ namespace Game.Simulation.QuickSim
                 _shootout = streams.Get("QuickSim.Shootout");
                 _home = CreateTeam(MatchSide.Home, setup.Home);
                 _away = CreateTeam(MatchSide.Away, setup.Away);
+                if (setup.Difficulty != null)
+                {
+                    var level = sim._db.Difficulty.Level(setup.Difficulty.LevelId)
+                                ?? throw new ArgumentException($"{InvalidSetup}: unknown difficulty level '{setup.Difficulty.LevelId}'.");
+                    (setup.Difficulty.OpponentSide == MatchSide.Home ? _home : _away).DifficultyScale = level.QuickSimStrengthScale;
+                }
             }
 
             private Team CreateTeam(MatchSide side, MatchTeamSetup ts)
@@ -168,6 +176,8 @@ namespace Game.Simulation.QuickSim
                 R.SectorStrengths(team.OnField, team.Strength);
                 if (!_setup.NeutralVenue && team.Side == MatchSide.Home)
                     for (int s = 0; s < team.Strength.Length; s++) team.Strength[s] *= 1f + Q.HomeAdvantage;
+                // F1c (D-23b): the user's opponent, in this match's calculation only; attributes are untouched.
+                for (int s = 0; s < team.Strength.Length; s++) team.Strength[s] *= team.DifficultyScale;
             }
 
             private Team RollPossession()

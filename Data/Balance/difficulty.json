@@ -1,0 +1,46 @@
+{
+  "schemaVersion": 1,
+  "reference": "normal",
+  "default": "normal",
+  "levels": [
+    {
+      "id": "easy",
+      "match": {
+        "decisionNoiseScale": 2.0,
+        "decisionIntervalScale": 1.5,
+        "reactionScale": 1.5,
+        "positionErrorScale": 1.6,
+        "keeperReactionScale": 1.25
+      },
+      "quickSim": {
+        "opponentStrengthScale": 0.88
+      }
+    },
+    {
+      "id": "normal",
+      "match": {
+        "decisionNoiseScale": 1.0,
+        "decisionIntervalScale": 1.0,
+        "reactionScale": 1.0,
+        "positionErrorScale": 1.0,
+        "keeperReactionScale": 1.0
+      },
+      "quickSim": {
+        "opponentStrengthScale": 1.0
+      }
+    },
+    {
+      "id": "hard",
+      "match": {
+        "decisionNoiseScale": 0.5,
+        "decisionIntervalScale": 0.75,
+        "reactionScale": 0.7,
+        "positionErrorScale": 0.6,
+        "keeperReactionScale": 0.85
+      },
+      "quickSim": {
+        "opponentStrengthScale": 1.1
+      }
+    }
+  ]
+}

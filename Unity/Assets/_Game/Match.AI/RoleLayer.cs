@@ -34,6 +34,12 @@ namespace Game.Match.AI
             float maxV = pitchHalfWidth - ai.SidelineMargin;
             float v = (0.5f - p.Slot.Y) * 2f * pitchHalfWidth * t.WidthScale(phase) + shiftV;
             v = MathUtil.Clamp(v, -maxV, maxV);
+            if (team.BoxAttacker[p.Local])
+            {
+                // Atacar a área (F1b): into the box, on the side of the slot, never offside.
+                u = MathF.Max(u, MathUtil.Clamp(MathF.Min(pitchLength - ai.BoxAttackDepth, offsideU - ai.OffsideMargin), 1f, pitchLength - 1f));
+                v = MathUtil.Clamp((0.5f - p.Slot.Y) * 2f * pitchHalfWidth, -ai.BoxAttackHalfWidth, ai.BoxAttackHalfWidth);
+            }
             return team.Frame.World(u, v);
         }
 
@@ -60,7 +66,7 @@ namespace Game.Match.AI
             p.ErrorTimer -= tick;
             if (p.ErrorTimer <= 0f)
             {
-                float magnitude = balance.Eval(Effect.AiTargetError, p.Setup.Attributes) * p.Team.Rng.NextFloat();
+                float magnitude = balance.Eval(Effect.AiTargetError, p.Setup.Attributes) * p.Team.Difficulty.PositionErrorScale * p.Team.Rng.NextFloat();
                 float angle = p.Team.Rng.NextFloat() * 2f * MathF.PI;
                 p.ErrorOffset = new Vector2(MathF.Cos(angle), MathF.Sin(angle)) * magnitude;
                 p.ErrorTimer = ai.ErrorResampleSeconds;
@@ -77,7 +83,7 @@ namespace Game.Match.AI
             if (Vector3.DistanceSquared(target, p.RoleTarget) > ai.CorrectionThreshold * ai.CorrectionThreshold)
             {
                 p.PendingTarget = target;
-                p.CorrectionTimer = balance.Eval(Effect.AiCorrectionDelay, p.Setup.Attributes);
+                p.CorrectionTimer = balance.Eval(Effect.AiCorrectionDelay, p.Setup.Attributes) * p.Team.Difficulty.ReactionScale;
                 return;
             }
             p.RoleTarget = target;

@@ -8,7 +8,7 @@ namespace Game.UI.Presenters
 {
     /// <summary>
     /// App settings (C3a, TECHNICAL_SPEC §15 "Settings | Modal"): kept apart from the career save (a new career keeps
-    /// them). MVP: the played-match duration (MVP_SCOPE "Duração 4/6/10 min"; the options come from
+    /// them). MVP: the played-match duration (D-22: 3/4/5/6/10 min, 4 by default; the options come from
     /// <c>competitions.json</c> <c>matchRules.durationOptions</c>). A missing or unreadable file means the defaults.
     /// </summary>
     public sealed class AppSettings

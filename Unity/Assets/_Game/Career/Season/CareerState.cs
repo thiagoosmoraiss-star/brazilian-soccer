@@ -32,6 +32,10 @@ namespace Game.Career.Season
         /// choices as the AI clubs.</summary>
         public UserTeamPlan UserPlan { get; set; }
 
+        /// <summary>The match difficulty level (F1c, D-23c: chosen in the new career, changeable in Settings at any time), or
+        /// null: the data's default level. Acts only on the managed club's matches (D-23b, D-23d).</summary>
+        public string Difficulty { get; set; }
+
         /// <summary>Offers from AI clubs for a player of the managed club, awaiting a human decision (B5).</summary>
         public List<TransferProposal> Proposals { get; } = new List<TransferProposal>();
 

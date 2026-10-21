@@ -47,6 +47,8 @@ namespace Game.Save
             if (state.Season != null) ValidateSeason(errors, clubIds, state.Season);
             if (state.MatchInProgress != null) ValidateMatchInProgress(errors, state);
             if (state.UserPlan != null) ValidateUserPlan(errors, state);
+            ValidateDifficulty(errors, state);
+            ValidateManagedStaff(errors, state);
             foreach (var summary in state.History) ValidateSummary(errors, world.Clubs.Count, summary);
             ValidateBalances(errors, state);
 
@@ -69,6 +71,25 @@ namespace Game.Save
             if (!managed.HasValue || (found.HomeClubId != managed.Value && found.AwayClubId != managed.Value))
                 errors.Add(new Error(Code, $"matchInProgress: fixture {id} is not the managed club's."));
             if (state.MatchInProgress.Snapshot.Length == 0) errors.Add(new Error(Code, "matchInProgress: empty snapshot."));
+        }
+
+        /// <summary>F2a (X-122 (2)): the managed club has exactly one member in each staff role; no empty role is ever saved.</summary>
+        private static void ValidateManagedStaff(List<Error> errors, CareerState state)
+        {
+            if (!state.ManagedClubId.HasValue) return;
+            var club = state.ManagedClubId.Value;
+            foreach (Game.Career.World.StaffRole role in System.Enum.GetValues(typeof(Game.Career.World.StaffRole)))
+            {
+                int n = 0;
+                foreach (var s in state.World.StaffMembers) if (s.ClubId == club && s.Role == role) n++;
+                if (n != 1) errors.Add(new Error(Code, $"managed club {club}: {n} members as {role} (exactly 1)."));
+            }
+        }
+
+        /// <summary>F1c: a chosen difficulty is a level id (null = the default level).</summary>
+        private static void ValidateDifficulty(List<Error> errors, CareerState state)
+        {
+            if (state.Difficulty != null && state.Difficulty.Trim().Length == 0) errors.Add(new Error(Code, "difficulty: an empty level id."));
         }
 
         /// <summary>C3b: a user plan belongs to a managed club; a chosen lineup has 11 distinct starters and a distinct bench.

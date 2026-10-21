@@ -54,6 +54,10 @@ namespace Game.UI.Presenters
         public List<ClubOptionModel> Options { get; } = new List<ClubOptionModel>();
         public string ChooseLabel { get; internal set; }
         public ButtonModel Back { get; internal set; }
+        /// <summary>F1c (D-23c): the level the new career starts with.</summary>
+        public string DifficultyLabel { get; internal set; }
+        public string DifficultyHint { get; internal set; }
+        public List<LevelOptionModel> Difficulties { get; } = new List<LevelOptionModel>();
     }
 
     public sealed class HubModel
@@ -71,6 +75,9 @@ namespace Game.UI.Presenters
         public string Objective { get; internal set; }
         public string Confidence { get; internal set; }
         public ButtonModel Calendar { get; internal set; }
+        /// <summary>F2a: facilities and staff; the finances.</summary>
+        public ButtonModel Club { get; internal set; }
+        public ButtonModel Finances { get; internal set; }
         public ButtonModel Settings { get; internal set; }
         public ButtonModel MainMenu { get; internal set; }
     }
@@ -215,12 +222,24 @@ namespace Game.UI.Presenters
         public bool Selected { get; internal set; }
     }
 
+    /// <summary>A difficulty level to pick (F1c).</summary>
+    public sealed class LevelOptionModel
+    {
+        public string Id { get; internal set; }
+        public string Label { get; internal set; }
+        public bool Selected { get; internal set; }
+    }
+
     public sealed class SettingsModel
     {
         public string Title { get; internal set; }
         public string DurationLabel { get; internal set; }
         public string DurationHint { get; internal set; }
         public List<OptionModel> Durations { get; } = new List<OptionModel>();
+        /// <summary>F1c (D-23c): the career's level, changeable at any time; empty without a career (<see cref="DifficultyHint"/> says so).</summary>
+        public string DifficultyLabel { get; internal set; }
+        public string DifficultyHint { get; internal set; }
+        public List<LevelOptionModel> Difficulties { get; } = new List<LevelOptionModel>();
         public string Language { get; internal set; }
         public ButtonModel Close { get; internal set; }
     }

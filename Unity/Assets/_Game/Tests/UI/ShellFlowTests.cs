@@ -136,12 +136,15 @@ namespace Game.Tests.UI
             var store = NewStore();
             var shell = NewCareer(store);
             var options = shell.Session.Db.Competitions.MatchRules.DurationOptions;
-            CollectionAssert.AreEqual(new[] { 4, 6, 10 }, options, "MVP_SCOPE: 4/6/10 min");
+            CollectionAssert.AreEqual(new[] { 3, 4, 5, 6, 10 }, options, "D-22 (X-111): 3/4/5/6/10 min");
+            Assert.AreEqual(4, shell.Session.Db.Competitions.MatchRules.DurationMinutes, "D-22 (X-111): 4 min by default");
+            Assert.AreEqual(4, shell.Session.Settings.MatchMinutes, "no settings file yet: the default");
             shell.OpenSettings();
             Assert.AreEqual(ScreenId.Settings, shell.Nav.Current);
             var settings = shell.Settings();
             AssertTextsComplete(settings, "settings");
-            Assert.AreEqual(1, settings.Durations.Count(d => d.Selected));
+            CollectionAssert.AreEqual(options, settings.Durations.Select(d => d.Value), "every option on the screen");
+            Assert.AreEqual(4, settings.Durations.Single(d => d.Selected).Value);
             shell.SetMatchMinutes(10);
             Assert.IsTrue(shell.Settings().Durations.Single(d => d.Selected).Value == 10);
             Assert.Throws<ArgumentOutOfRangeException>(() => shell.SetMatchMinutes(7));
@@ -155,6 +158,61 @@ namespace Game.Tests.UI
             Assert.AreEqual(10, again.Session.PlaySetup(again.Session.Pending).DurationMinutes);
             Assert.AreNotEqual(10, again.Session.Pending.Setup.DurationMinutes, "the career's own setup (QuickSim) is untouched");
             StringAssert.Contains("10", again.PreMatch().Play.Label);
+        }
+
+        [Test]
+        public void TheDifficulty_IsChosenInTheNewCareer_ChangeableInSettings_AndSavedWithTheCareer()
+        {
+            var store = NewStore();
+            var shell = Shell(store);
+            shell.OpenSettings();
+            var noCareer = shell.Settings();
+            Assert.AreEqual(0, noCareer.Difficulties.Count, "no career: nothing to set (D-23c: it lives in the save)");
+            Assert.IsNotEmpty(noCareer.DifficultyHint);
+            shell.Back();
+
+            shell.NewCareer();
+            var choice = shell.ClubChoice();
+            AssertTextsComplete(choice, "club choice");
+            CollectionAssert.AreEqual(new[] { "Fácil", "Normal", "Difícil" }, choice.Difficulties.Select(d => d.Label), "D-23");
+            Assert.AreEqual("normal", choice.Difficulties.Single(d => d.Selected).Id, "the default level");
+            shell.SetDifficulty("easy");
+            Assert.AreEqual(ScreenId.ClubChoice, shell.Nav.Current);
+            Assert.AreEqual("easy", shell.ClubChoice().Difficulties.Single(d => d.Selected).Id);
+            Assert.IsFalse(store.Exists(SaveSlotPaths.Body(CareerSession.Slot)), "nothing saved before the club is chosen");
+            shell.ChooseClub(choice.Options[0].ClubId);
+            Assert.AreEqual("easy", Shell(store).Session.Career.State.Difficulty, "saved with the new career");
+
+            shell.OpenSettings();
+            var settings = shell.Settings();
+            AssertTextsComplete(settings, "settings");
+            Assert.AreEqual("easy", settings.Difficulties.Single(d => d.Selected).Id);
+            shell.SetDifficulty("hard");
+            Assert.AreEqual(ScreenId.Settings, shell.Nav.Current);
+            Assert.AreEqual("hard", shell.Settings().Difficulties.Single(d => d.Selected).Id);
+            Assert.Throws<ArgumentException>(() => shell.SetDifficulty("nightmare"));
+
+            var again = Shell(store);
+            Assert.AreEqual("hard", again.Session.Career.State.Difficulty, "D-23c: gravada no save");
+            again.ContinueCareer();
+            again.HubPrimary();
+            var play = again.Session.PlaySetup(again.Session.Pending);
+            Assert.AreEqual("hard", play.Difficulty.LevelId, "the played match carries the level");
+            Assert.AreEqual(again.Session.Pending.UserSide, play.Difficulty.UserSide);
+        }
+
+        /// <summary>F1a: a settings file written before D-22 (options 4/6/10, default 6) still opens. 6 and 10 stay options,
+        /// so the user's choice is kept; a value that is no longer an option, or no file, means the new default (4 min).</summary>
+        [TestCase(6, 6)]
+        [TestCase(10, 10)]
+        [TestCase(4, 4)]
+        [TestCase(7, 4)]
+        public void ASettingsFileFromBeforeD22_KeepsItsDuration_WhenItIsStillAnOption(int saved, int expected)
+        {
+            var store = NewStore();
+            store.WriteAllBytes(AppSettings.File, System.Text.Encoding.UTF8.GetBytes($"{{\"schemaVersion\":1,\"matchMinutes\":{saved}}}"));
+            Assert.AreEqual(expected, Shell(store).Session.Settings.MatchMinutes);
+            Assert.AreEqual(4, Shell(NewStore()).Session.Settings.MatchMinutes, "no file: the default");
         }
 
         [Test]

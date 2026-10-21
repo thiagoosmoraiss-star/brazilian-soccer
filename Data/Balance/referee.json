@@ -2,7 +2,7 @@
   "schemaVersion": 1,
   "foul": {
     "strictness": 1.0,
-    "foulScale": 2.4,
+    "foulScale": 3.0,
     "contactDistance": 1.05,
     "minClosingSpeed": 0.5,
     "speedReference": 4.0,

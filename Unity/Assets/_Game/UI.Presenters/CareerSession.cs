@@ -1,4 +1,6 @@
 using System;
+using System.IO;
+using Game.Career.Board;
 using Game.Career.Economy;
 using Game.Career.Market;
 using Game.Career.Season;
@@ -144,6 +146,46 @@ namespace Game.UI.Presenters
 
         public void SaveSettings() => Settings.Save(_store);
 
+        /// <summary>An administrative command ran but its save failed; what it changed was undone.</summary>
+        public const string SaveFailed = "SAVE_FAILED";
+
+        /// <summary>F2a (D-32b): one level of a facility for the managed club, paid now; saved when it starts.</summary>
+        public Result StartFacilityUpgrade(FacilityType type) => RunAndSave(() => Career.StartFacilityUpgrade(type));
+
+        /// <summary>F2a (D-32c): the managed club's staff member replaced in one operation; saved when done.</summary>
+        public Result ReplaceStaff(StaffRole role, int level) => RunAndSave(() => Career.ReplaceStaff(role, level));
+
+        /// <summary>A command and its save as one operation: if the save is refused or a file operation throws, what the
+        /// command changed is put back first (<see cref="ClubManagement.Checkpoint"/>), so the career in memory is again the
+        /// last save, and only then <see cref="SaveFailed"/> is returned. Any other exception (a defect, not the storage) is
+        /// not hidden: the command is undone the same way and the exception goes on.</summary>
+        private Result RunAndSave(Func<Result> command)
+        {
+            var checkpoint = ClubManagement.Checkpoint.Take(Career.State);
+            var r = command();
+            if (!r.IsSuccess) return r;
+            Result saved;
+            try { saved = Save(); }
+            catch (Exception e) when (e is IOException || e is UnauthorizedAccessException) { saved = Result.Fail(SaveFailed, e.Message); }
+            catch
+            {
+                checkpoint.Restore(Career.State);
+                throw;
+            }
+            if (saved.IsSuccess) return saved;
+            checkpoint.Restore(Career.State);
+            return Result.Fail(SaveFailed, "The save failed and the command was undone: " + saved);
+        }
+
+        /// <summary>F1c (D-23c): the career's difficulty level, in the new career or at any time after; saved with the career
+        /// (a new career is saved once its club is chosen).</summary>
+        public void SetDifficulty(string levelId)
+        {
+            if (Career == null) throw new InvalidOperationException("No career.");
+            Career.SetDifficulty(levelId);
+            if (HasCareer) Save();
+        }
+
         /// <summary>"Avançar": to the managed club's next match, or to the end of the season. Saves.</summary>
         public CareerSimulator.PendingMatch AdvanceToNextMatch()
         {
@@ -152,13 +194,8 @@ namespace Game.UI.Presenters
             return pending;
         }
 
-        /// <summary>The setup the Match scene plays: the career's, with the duration chosen in the settings.</summary>
-        public MatchSetup PlaySetup(CareerSimulator.PendingMatch pending)
-        {
-            var s = pending.Setup;
-            return s.DurationMinutes == Settings.MatchMinutes ? s
-                : new MatchSetup(s.Home, s.Away, s.NeutralVenue, Settings.MatchMinutes, s.MaxSubstitutions, s.Seed, s.RequiresWinner);
-        }
+        /// <summary>The setup the Match scene plays: the career's, with its difficulty (F1c) and the duration chosen in the settings.</summary>
+        public MatchSetup PlaySetup(CareerSimulator.PendingMatch pending) => Career.UserSetup(pending).WithDuration(Settings.MatchMinutes);
 
         /// <summary>"Simular" (the QuickSim): resolved, applied, saved; <see cref="LastMatch"/> holds the report.</summary>
         public UserMatchReport SimulateMatch()

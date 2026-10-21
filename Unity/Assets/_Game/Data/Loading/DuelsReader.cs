@@ -12,7 +12,7 @@ namespace Game.Data.Loading
         public static Result<DuelsDefinition> Read(string json)
         {
             var j = new StrictJson(GameDataLoader.DuelsFile);
-            var root = j.ParseRoot(json, SupportedSchemaVersion, "slide", "secondDefender", "body", "cover", "runs", "keeperRush");
+            var root = j.ParseRoot(json, SupportedSchemaVersion, "slide", "secondDefender", "body", "cover", "runs", "keeperRush", "shotBlock", "firstTouch");
             if (root == null) return Result<DuelsDefinition>.Fail(j.Errors);
             var d = new DuelsDefinition();
 
@@ -80,6 +80,34 @@ namespace Game.Data.Loading
                 d.RushThroughBallMargin = j.Float(k, "throughBallMargin", "keeperRush");
                 d.RushStopDistance = j.Float(k, "stopDistance", "keeperRush");
             }
+            var sb = j.Object(root, "shotBlock", "root");
+            if (sb != null)
+            {
+                j.Keys(sb, "shotBlock", "reach", "maxHeight", "minSpeed", "chanceScale", "speedFactorMin", "speedFactorMax", "maxDeflectDegrees", "maxUpSpeed");
+                d.BlockReach = j.Float(sb, "reach", "shotBlock");
+                d.BlockMaxHeight = j.Float(sb, "maxHeight", "shotBlock");
+                d.BlockMinSpeed = j.Float(sb, "minSpeed", "shotBlock");
+                d.BlockChanceScale = j.Float(sb, "chanceScale", "shotBlock");
+                d.BlockSpeedFactorMin = j.Float(sb, "speedFactorMin", "shotBlock");
+                d.BlockSpeedFactorMax = j.Float(sb, "speedFactorMax", "shotBlock");
+                d.BlockMaxDeflectDegrees = j.Float(sb, "maxDeflectDegrees", "shotBlock");
+                d.BlockMaxUpSpeed = j.Float(sb, "maxUpSpeed", "shotBlock");
+            }
+            var ft = j.Object(root, "firstTouch", "root");
+            if (ft != null)
+            {
+                j.Keys(ft, "firstTouch", "scale", "threshold", "minSpeed", "referenceSpeed", "speedFactorMin", "speedFactorMax",
+                    "pressureRadius", "escapeDistanceScale", "maxEscapeDegrees");
+                d.TouchScale = j.Float(ft, "scale", "firstTouch");
+                d.TouchThreshold = j.Float(ft, "threshold", "firstTouch");
+                d.TouchMinSpeed = j.Float(ft, "minSpeed", "firstTouch");
+                d.TouchReferenceSpeed = j.Float(ft, "referenceSpeed", "firstTouch");
+                d.TouchSpeedFactorMin = j.Float(ft, "speedFactorMin", "firstTouch");
+                d.TouchSpeedFactorMax = j.Float(ft, "speedFactorMax", "firstTouch");
+                d.TouchPressureRadius = j.Float(ft, "pressureRadius", "firstTouch");
+                d.TouchEscapeDistanceScale = j.Float(ft, "escapeDistanceScale", "firstTouch");
+                d.TouchMaxEscapeDegrees = j.Float(ft, "maxEscapeDegrees", "firstTouch");
+            }
             if (!j.Ok) return Result<DuelsDefinition>.Fail(j.Errors);
 
             bool ok = d.SlideDistance > 0f && d.SlideMinSpeed > 0f && d.SlideMaxSpeed >= d.SlideMinSpeed && d.SlideReachFactor > 0f
@@ -91,7 +119,13 @@ namespace Game.Data.Loading
                       && d.CoverDepth > 0f && d.CoverMaxDistance > 0f
                       && d.RunMinSpaceBehind >= 0f && d.RunSpaceReference > 0f && d.RunDepthBehindLine > 0f && d.RunMaxSeconds > 0f
                       && d.RunOnsideMargin >= 0f && d.RunMaxStartBehindLine > 0f && d.RunCooldownSeconds >= 0f && d.RunMaxCarrierDistance > 0f && d.RunThroughValue >= 0f
-                      && d.RushRange > 0f && d.RushSmotherReachFactor > 0f && d.RushHesitationSeconds >= 0f && d.RushStopDistance >= 0f;
+                      && d.RushRange > 0f && d.RushSmotherReachFactor > 0f && d.RushHesitationSeconds >= 0f && d.RushStopDistance >= 0f
+                      && d.BlockReach > 0f && d.BlockMaxHeight > 0f && d.BlockMinSpeed >= 0f && d.BlockChanceScale >= 0f
+                      && d.BlockSpeedFactorMin >= 0f && d.BlockSpeedFactorMax >= d.BlockSpeedFactorMin && d.BlockSpeedFactorMax <= 1f
+                      && d.BlockMaxDeflectDegrees >= 0f && d.BlockMaxDeflectDegrees <= 180f && d.BlockMaxUpSpeed >= 0f
+                      && d.TouchScale >= 0f && d.TouchThreshold > 0f && d.TouchMinSpeed >= 0f && d.TouchReferenceSpeed > 0f
+                      && d.TouchSpeedFactorMin >= 0f && d.TouchSpeedFactorMax >= d.TouchSpeedFactorMin && d.TouchPressureRadius >= 0f
+                      && d.TouchEscapeDistanceScale > 0f && d.TouchMaxEscapeDegrees >= 0f && d.TouchMaxEscapeDegrees <= 180f;
             if (!ok)
             {
                 j.Fail(InvalidDuels, "duels values invalid (distances and speeds > 0, maxSpeed >= minSpeed, chances in [0, 1], angles in [0, 180]).");

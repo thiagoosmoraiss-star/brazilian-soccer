@@ -30,6 +30,10 @@ namespace Game.Match.AI
         Offside = 11,
         /// <summary>A header that is not a shot: a headed pass or a clearance (A9a).</summary>
         Header = 12,
+        /// <summary>An outfield defender blocked a shot (F1b): the ball is deflected.</summary>
+        Block = 13,
+        /// <summary>A first touch that escaped the receiver (D-36): the ball runs loose.</summary>
+        Miscontrol = 14,
     }
 
     /// <summary>One step of the user's input for the controlled player (A5). Attack: move, sprint and released actions
@@ -191,10 +195,18 @@ namespace Game.Match.AI
             _refereeRng = streams.Get(RefereeStream);
             _aerialRng = streams.Get(AerialStream);
             _duelsRng = streams.Get(DuelsStream);
+            _blockRng = streams.Get(ShotBlockStream);
+            _touchRng = streams.Get(FirstTouchStream);
             Home = new AiTeam(MatchSide.Home, new TeamFrame(true, Pitch.HalfLength), Formation(db, setup.Home), db.Tactics, setup.Home, 0, streams.Get(HomeStream),
                 db.MatchRules.Fatigue);
             Away = new AiTeam(MatchSide.Away, new TeamFrame(false, Pitch.HalfLength), Formation(db, setup.Away), db.Tactics, setup.Away,
                 MatchTeamSetup.StarterCount, streams.Get(AwayStream), db.MatchRules.Fatigue);
+            if (setup.Difficulty != null)
+            {
+                var level = db.Difficulty.Level(setup.Difficulty.LevelId)
+                            ?? throw new ArgumentException("Unknown difficulty level " + setup.Difficulty.LevelId);
+                (setup.Difficulty.OpponentSide == MatchSide.Home ? Home : Away).Difficulty = level;
+            }
             for (int i = 0; i < MatchTeamSetup.StarterCount; i++)
             {
                 Players[i] = Home.Players[i];
@@ -357,20 +369,24 @@ namespace Game.Match.AI
             Goalkeeper.ClampInFront(AwayKeeper, _gk);
 
             // Goalkeeper saves (hands before feet), then possession and dribble.
-            bool saved = KeeperSave(HomeKeeper) || KeeperSave(AwayKeeper);
+            bool blocked = TryShotBlock(); // F1b: bodies in the way of a shot
+            if (blocked) ev = AiMatchEvent.Block;
+            bool saved = !blocked && (KeeperSave(HomeKeeper) || KeeperSave(AwayKeeper));
             if (saved) ev = AiMatchEvent.Save;
-            var headed = saved ? AiMatchEvent.None : TryHeaders();
+            var headed = saved || blocked ? AiMatchEvent.None : TryHeaders();
             if (headed != AiMatchEvent.None) ev = headed;
-            if (Ball.State != BallState.Controlled && Ball.State != BallState.Dead && !saved && headed == AiMatchEvent.None)
+            if (Ball.State != BallState.Controlled && Ball.State != BallState.Dead && !saved && !blocked && headed == AiMatchEvent.None)
             {
                 int i = LooseBallWinner(); // the body duel when both sides reach it (A9b)
                 if (i >= 0)
                 {
                     var p = Players[i];
                     bool intercepting = Ball.LastTouch >= 0 && !p.Team.Owns(Ball.LastTouch);
+                    var incoming = Ball.Velocity;
                     if (Possession.Step(i, p.Body, Ball, _mv, intercepting) == PossessionEvent.Captured)
                     {
                         if (OffsideOnTouch(p)) ev = AiMatchEvent.Offside;
+                        else if (FirstTouchEscapes(p, incoming)) { if (ev == AiMatchEvent.None) ev = AiMatchEvent.Miscontrol; }
                         else
                         {
                             TakeBall(p);
@@ -488,7 +504,8 @@ namespace Game.Match.AI
                     {
                         // The receiver of our own pass expects it: no reaction delay.
                         if (p.ChaseReactionTimer < 0f)
-                            p.ChaseReactionTimer = p.Team.Receiver == p.Local ? 0f : _balance.Eval(Effect.LooseBallReaction, p.Setup.Attributes);
+                            p.ChaseReactionTimer = p.Team.Receiver == p.Local ? 0f
+                                : _balance.Eval(Effect.LooseBallReaction, p.Setup.Attributes) * p.Team.Difficulty.ReactionScale;
                         p.ChaseReactionTimer -= tick;
                         if (p.ChaseReactionTimer <= 0f) SetIntention(p, desired);
                     }
@@ -522,7 +539,7 @@ namespace Game.Match.AI
             var team = p.Team;
             var opp = Opponents(team);
             var decision = OnBallDecision.Decide(p, opp, Pitch, _balance, _ai, _aerial, _duels);
-            p.DecisionTimer = _ai.DecisionIntervalSeconds;
+            p.DecisionTimer = _ai.DecisionIntervalSeconds * team.Difficulty.DecisionIntervalScale;
             float pressure = OnBallDecision.NearestOpponentDistance(p.Body.Position, opp);
             switch (decision.Choice)
             {
@@ -575,7 +592,7 @@ namespace Game.Match.AI
             _headerShotInFlight = false;
             ClearOffside();
             SetIntention(p, AiIntention.OnBall);
-            p.DecisionTimer = _ai.DecisionIntervalSeconds;
+            p.DecisionTimer = _ai.DecisionIntervalSeconds * p.Team.Difficulty.DecisionIntervalScale;
             p.DribbleTimer = 0f;
             p.DribbleTarget = p.Body.Position;
             _secureTimer = _defense.PossessionSecureSeconds;

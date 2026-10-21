@@ -51,7 +51,7 @@ namespace Game.Career.Season
             if (db == null) throw new ArgumentNullException(nameof(db));
             if (resolve == null) throw new ArgumentNullException(nameof(resolve));
             var world = WorldGenerator.Generate(db, seed);
-            var state = new CareerState { Seed = seed, World = world, Ids = new IdAllocator(world.LastIssuedId) };
+            var state = new CareerState { Seed = seed, World = world, Ids = new IdAllocator(world.LastIssuedId), Difficulty = db.Difficulty.DefaultLevel };
             var sim = new CareerSimulator(db, state, resolve, market, economy);
             Youth.Intake(db, world, state.Ids, world.StartYear, regularIntake: false, sim.SeasonRng("Youth", world.StartYear));
             state.Season = sim.CreateSeason(world.StartYear, sim.FirstSeasonCupQualifiers());
@@ -114,11 +114,58 @@ namespace Game.Career.Season
             finally { _userResult = null; _pending = null; }
         }
 
-        /// <summary>"Simular": the pending match by the career's own resolver (the QuickSim).</summary>
+        /// <summary>"Simular": the pending match by the career's own resolver (the QuickSim), at the career's difficulty.</summary>
         public CalendarEntry SimulateUserMatch()
         {
             var pending = PendingUserMatch ?? throw new InvalidOperationException("No managed-club match is pending.");
-            return CompleteUserMatch(_resolve(pending.Setup));
+            return CompleteUserMatch(_resolve(UserSetup(pending)));
+        }
+
+        // ---------------- The managed club's administration (F2a, X-122, X-124) ----------------
+
+        /// <summary>The career's date: the next calendar entry's (what the Shell shows), or the season end once it is processed.</summary>
+        public DateTime Today
+        {
+            get
+            {
+                var season = State.Season;
+                return season.NextEntry < season.Calendar.Count ? season.Calendar[season.NextEntry].Date : season.Calendar[season.Calendar.Count - 1].Date;
+            }
+        }
+
+        /// <summary>D-32b: one level of <paramref name="type"/> for the managed club, paid now (<see cref="Game.Career.Board.ClubManagement"/>).</summary>
+        public Game.Core.Results.Result StartFacilityUpgrade(FacilityType type) =>
+            Game.Career.Board.ClubManagement.StartFacilityUpgrade(_db, State, type, Today);
+
+        /// <summary>D-32c: the managed club's <paramref name="role"/> replaced by a level-<paramref name="level"/> professional.</summary>
+        public Game.Core.Results.Result ReplaceStaff(StaffRole role, int level) =>
+            Game.Career.Board.ClubManagement.ReplaceStaff(_db, State, role, level, Today);
+
+        // ---------------- Difficulty (F1c, D-23) ----------------
+
+        /// <summary>The level in force: the saved one, or the data's default when none was chosen (or it no longer exists).</summary>
+        public string DifficultyLevel
+        {
+            get
+            {
+                var id = State.Difficulty;
+                return id != null && _db.Difficulty.Level(id) != null ? id : _db.Difficulty.DefaultLevel;
+            }
+        }
+
+        /// <summary>D-23c: the level can change at any time; it acts from the next match (or the resumed one) on.</summary>
+        public void SetDifficulty(string levelId)
+        {
+            if (_db.Difficulty.Level(levelId) == null) throw new ArgumentException("Unknown difficulty level.", nameof(levelId));
+            State.Difficulty = levelId;
+        }
+
+        /// <summary>The managed club's match as the user plays or simulates it: the pending setup with the difficulty, which
+        /// acts on the opponent only (D-23b). Every other match of the career is resolved without one.</summary>
+        public MatchSetup UserSetup(PendingMatch pending)
+        {
+            if (pending == null) throw new ArgumentNullException(nameof(pending));
+            return pending.Setup.WithDifficulty(new MatchDifficulty(DifficultyLevel, pending.UserSide));
         }
 
         /// <summary>Advances until the managed club has a match to play (or the season ends). Returns the pending match or null.</summary>

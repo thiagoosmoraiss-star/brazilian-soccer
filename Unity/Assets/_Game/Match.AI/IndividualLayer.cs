@@ -22,11 +22,19 @@ namespace Game.Match.AI
         public static void Assign(AiTeam team, AiTeam opponents, Ball ball, Balance balance, AiDefinition ai,
             bool hasDrop = false, Vector3 drop = default, int dropPlayers = 0, DefenseDefinition defense = null, DuelsDefinition duels = null)
         {
-            for (int i = 0; i < team.Players.Length; i++) { team.Supporter[i] = false; team.Presser[i] = false; team.DropZone[i] = false; }
+            for (int i = 0; i < team.Players.Length; i++)
+            {
+                team.Supporter[i] = false; team.Presser[i] = false; team.DropZone[i] = false; team.BoxAttacker[i] = false;
+            }
             team.Cover = -1;
 
             bool controlled = ball.State == BallState.Controlled && ball.Owner >= 0;
-            if (team.HasPossession) PickNearest(team, ball.Position, ai.SupportPlayers, team.Supporter, controlled ? ball.Owner : -1, float.PositiveInfinity, ai, balance, false);
+            if (team.HasPossession)
+            {
+                if (team.Frame.U(ball.Position) >= ai.BoxAttackFraction * 2f * team.Frame.HalfLength)
+                    PickBoxAttackers(team, Math.Max(0, ai.BoxAttackers + team.Runtime.BoxAttackersOffset), controlled ? ball.Owner : -1);
+                PickNearest(team, ball.Position, ai.SupportPlayers, team.Supporter, controlled ? ball.Owner : -1, float.PositiveInfinity, ai, balance, false);
+            }
             else if (controlled)
             {
                 PickNearest(team, ball.Position, team.Runtime.Pressers, team.Presser, -1, team.Runtime.PressTriggerDistance, ai, balance, true);
@@ -57,6 +65,24 @@ namespace Game.Match.AI
                     if (best < 0) break;
                     team.DropZone[best] = true;
                 }
+            }
+        }
+
+        /// <summary>The <paramref name="count"/> outfield players with the most advanced formation slot (ties: the lower
+        /// index), never the carrier: they attack the box (F1b).</summary>
+        private static void PickBoxAttackers(AiTeam team, int count, int carrierGlobal)
+        {
+            for (int n = 0; n < count; n++)
+            {
+                int best = -1;
+                for (int i = 0; i < team.Players.Length; i++)
+                {
+                    var p = team.Players[i];
+                    if (p.IsGoalkeeper || p.Body.OffPitch || p.Global == carrierGlobal || team.BoxAttacker[i]) continue;
+                    if (best < 0 || p.Slot.X > team.Players[best].Slot.X) best = i;
+                }
+                if (best < 0) return;
+                team.BoxAttacker[best] = true;
             }
         }
 
@@ -96,7 +122,7 @@ namespace Game.Match.AI
                 var p = team.Players[i];
                 if (p.IsGoalkeeper || p.Body.OffPitch) continue;
                 float time = Vector3.Distance(p.Body.Position, loose) / balance.Eval(Effect.SprintSpeed, p.Setup.Attributes)
-                             + balance.Eval(Effect.LooseBallReaction, p.Setup.Attributes);
+                             + balance.Eval(Effect.LooseBallReaction, p.Setup.Attributes) * team.Difficulty.ReactionScale;
                 if (i == team.Chaser) time *= 1f - ai.AssignmentHysteresis;
                 if (time < bestTime) { bestTime = time; best = i; }
             }
@@ -116,6 +142,7 @@ namespace Game.Match.AI
                 {
                     var p = team.Players[i];
                     if (p.IsGoalkeeper || flags[i] || p.Global == excludeGlobal || p.Body.OffPitch || p.Body.Down) continue;
+                    if (!previousIsPress && team.BoxAttacker[i]) continue; // a box attacker does not drop to support
                     if (beaten != null && ControlSelection.IsBeaten(p.Body, point, team.Frame.OwnGoal, beaten)) continue;
                     float d = Vector3.Distance(p.Body.Position, point);
                     if (d > maxDistance) continue;
@@ -199,7 +226,7 @@ namespace Game.Match.AI
                     return p.IntentTarget;
                 case AiIntention.Mark:
                     if (MarkTarget(p, opponents, ball, ai, out var opp) < 0) return p.RoleTarget;
-                    return GoalSide(opp, p.Team.Frame.OwnGoal, ai.MarkGoalSideDistance);
+                    return OnPitch(GoalSide(opp, p.Team.Frame.OwnGoal, ai.MarkGoalSideDistance), pitch);
                 case AiIntention.Press:
                     // The second defender ("Pressionar", A9b) goes straight at the ball; a presser contains goal-side.
                     if (p.Team.SecondDefender == p.Local) return new Vector3(ball.Position.X, ball.Position.Y, 0f);
@@ -210,7 +237,8 @@ namespace Game.Match.AI
                     return p.RunTarget;
                 case AiIntention.ChaseBall:
                     if (hasDrop) return drop; // a ball in the air: where it comes down to head height (A9a)
-                    return InterceptPoint(p.Body.Position, balance.Eval(Effect.SprintSpeed, p.Setup.Attributes), ball, rollingFriction, ai);
+                    // A ball rolling out is chased to the line, not beyond it (F1b: chasers used to run off the pitch).
+                    return OnPitch(InterceptPoint(p.Body.Position, balance.Eval(Effect.SprintSpeed, p.Setup.Attributes), ball, rollingFriction, ai), pitch);
                 case AiIntention.OnBall:
                     return p.DribbleTarget;
                 default:
@@ -239,6 +267,10 @@ namespace Game.Match.AI
             }
             return at;
         }
+
+        /// <summary><paramref name=point/> kept inside the lines (a marker of a throw-in taker, a chaser of a ball going out).</summary>
+        private static Vector3 OnPitch(Vector3 point, Pitch pitch) =>
+            new Vector3(MathUtil.Clamp(point.X, -pitch.HalfLength, pitch.HalfLength), MathUtil.Clamp(point.Y, -pitch.HalfWidth, pitch.HalfWidth), 0f);
 
         private static Vector3 GoalSide(Vector3 from, Vector3 ownGoal, float distance)
         {

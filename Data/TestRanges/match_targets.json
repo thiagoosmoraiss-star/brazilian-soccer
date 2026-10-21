@@ -1,0 +1,15 @@
+{
+  "schemaVersion": 1,
+  "sources": {
+    "status": "DECISIONS X-111 (D-22b): experimental references for the played match, not acceptance criteria; they are tuning targets for the attacking AI (F1b, X-84 (a)) and are printed by dotnet/MatchReport --calibration. No test fails because a measurement is outside them",
+    "values": "PRODUCT_SPEC §4.1: proportional to the real time of GAME_DESIGN §15 (2-4 total goals and ~8-14 shots by the user's side in 6 min)",
+    "userShots": "Shots by one side (the user's); in the AI x AI calibration batch this is half of shotsPerMatch"
+  },
+  "durations": {
+    "3": { "totalGoals": [1.0, 2.0], "userShots": [4, 7] },
+    "4": { "totalGoals": [1.3, 2.7], "userShots": [5, 9] },
+    "5": { "totalGoals": [1.7, 3.3], "userShots": [7, 12] },
+    "6": { "totalGoals": [2.0, 4.0], "userShots": [8, 14] },
+    "10": { "totalGoals": [3.3, 6.7], "userShots": [13, 23] }
+  }
+}

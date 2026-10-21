@@ -37,7 +37,7 @@ namespace Game.Tests.Simulation
             int played = b["playedMatches"].Value<int>();
             int quick = Math.Max(played, b["quickSimMatches"].Value<int>());
             _matchups = Calibration.Matchups(db, worlds, quick, b["batchSeed"].Value<ulong>(), b["crossDivisionShare"].Value<double>(),
-                b["neutralVenue"].Value<bool>());
+                b["neutralVenue"].Value<bool>(), b["durationMinutes"].Value<int>());
             _quick = Calibration.QuickSim(db, Calibration.Setups(_matchups));
             _played = Calibration.Played(db, Calibration.Setups(_matchups.Take(played)));
         }

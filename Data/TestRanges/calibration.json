@@ -1,8 +1,9 @@
 {
   "schemaVersion": 1,
   "sources": {
-    "batch": "TEST_PLAN 'Divergência QuickSim × Headless': same matchups in both engines; 100-1000 played and 1000-10000 QuickSim matches",
-    "matchups": "Generated worlds, career lineup AI (MatchSetupFactory), AI tactic and duration (6 min) of Data/Competitions/competitions.json matchRules; neutral venue because the played match has no home advantage (DECISIONS X-85)",
+    "batch": "TEST_PLAN 'Divergência QuickSim × Headless': same matchups in both engines. D-35 / X-116: 1200 played and 12000 QuickSim matches (was 400 / 4000): with 400 the 12+ OVR bucket had ~30 matches and its win share swung by ~8 points from noise alone; with 1200 it has 81-113 in every batch seed measured. The tolerances, the OVR curve rules and the sensitivity batch (its own 400 / 4000) are unchanged",
+    "matchups": "Generated worlds, career lineup AI (MatchSetupFactory), AI tactic of Data/Competitions/competitions.json matchRules; neutral venue because the played match has no home advantage (DECISIONS X-85)",
+    "duration": "DECISIONS D-34 option (a): batch.durationMinutes stays at 6 min (the career duration when these tolerances were set) until the end of F1b, although the game default is 4 min (D-22); the tolerances are unchanged. F1b ends only with this batch at the game default (4 min) and the same tolerances. Status (X-116): with the 1200-match batch the 4-min tests pass at batchSeed 2026 (and in 4 of 6 batch seeds); F1b is not concluded (D-36 to D-38), so it stays at 6 min",
     "tolerances": "DECISIONS X-84 option (d) / X-86: the played match makes ~1/4 of the QuickSim goals (measured, not a target); volume metrics are compared as a ratio with a floor below today's value (no regression) and a ceiling above 1 (room for the attacking-AI task); fouls and cards in value (game rhythm of X-65, same per match in both engines); shape metrics (wins among decided matches, the stronger side's goal share, possession rising with strength) by difference or direction",
     "injuries": "DECISIONS X-91 (D-21 option a): the played match injures with QuickSim's chance per player-minute and severity (match_rules.json injuries); injuriesPerMatch compared with the QuickSim of all the batch's matchups (~0.19 per match: ~75 injuries in 400 played matches, Poisson sd ~12%), range ~3 sd; measured 0.19 played x 0.19 QuickSim (ratio 1.0)",
     "ovrCurve": "TECHNICAL_SPEC §10 'curva diferença de OVR → vitória/empate/derrota': rising in both engines; the gap is measured on wins among decided matches, since draws depend on the goal volume",
@@ -11,8 +12,9 @@
   "batch": {
     "worldSeeds": [1, 2, 3],
     "batchSeed": 2026,
-    "playedMatches": 400,
-    "quickSimMatches": 4000,
+    "durationMinutes": 6,
+    "playedMatches": 1200,
+    "quickSimMatches": 12000,
     "crossDivisionShare": 0.35,
     "neutralVenue": true
   },

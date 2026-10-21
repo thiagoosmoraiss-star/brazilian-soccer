@@ -2,7 +2,11 @@
 
 Fonte: Especificação Técnica §20. **O Claude Code trabalha somente na etapa atual.** Nada de etapas futuras, mesmo que pareça rápido ou útil. Cada etapa termina quando cumpre seus critérios e o `DEFINITION_OF_DONE.md`.
 
-**Etapa atual:** C1 — Integração (sessão principal) e C2 — Calibração (sessão auxiliar), em paralelo (X-83; ver `CLAUDE.md` §14). A1–A9 concluídas (A7 = Vertical Slice, X-63; A8 = árbitro e bola parada, X-71; A9 = resto da partida, X-82). Track B concluída (B1–B8). D-01 decidida: Track B primeiro. Com uma pessoa só, as trilhas são sequenciais; em paralelo apenas se houver mais de um desenvolvedor.
+**Etapa atual (19/10/2026):** Etapa 2 do Football Nation, só documentação (X-110). A especificação oficial está em `PRODUCT_SPEC.md` e o plano das etapas F0–F8 em `IMPLEMENTATION_PLAN.md`, que **aguarda aprovação do usuário**. Nenhuma etapa F foi iniciada.
+
+- Da trilha anterior: A1–A9 e B1–B8 concluídas; C2 concluída; C1 implementada, aguardando a validação da lesão em campo; C3a validada; C3b implementada e não validada.
+- As etapas C3c–C5 abaixo foram **reorganizadas** nas etapas F (ver "Track F" no fim deste arquivo). O texto antigo fica como histórico.
+- Com uma pessoa só, as trilhas são sequenciais; em paralelo apenas se houver mais de um desenvolvedor.
 
 Regras comuns a todas as etapas:
 
@@ -32,6 +36,28 @@ Pedido do usuário (13/10/2026): a cada etapa concluída, informar a porcentagem
 | A9 | 8 | | | **Total** | **100** |
 
 **Concluído:** Stage 0, A1–A9, B1–B8, C2 = **72%** (16/10/2026). C1 implementada e validada no editor; conclui com a lesão em campo (X-91, sessão auxiliar, X-94).
+
+**19/10/2026:** o percentual **não mudou**. A lesão em campo foi juntada (X-98), mas ainda não foi validada pelo usuário. Esta tabela mede o caminho antigo até a C5. A medida nova para o Football Nation v1 está **proposta** em `IMPLEMENTATION_PLAN.md` §6, com os critérios dela: ≈ 56% hoje, pelo escopo maior. Ela só substitui esta se o usuário aprovar.
+
+## Situação por etapa e funcionalidade (19/10/2026)
+
+Legenda:
+
+- **Implementado e testado:** teste automatizado executado e validação do usuário registrada em `DECISIONS.md`, quando a etapa exige.
+- **Implementado, não validado manualmente:** testes automatizados verdes, sem validação no editor ou aparelho.
+- **Parcial:** parte implementada, parte faltando.
+- **Planejado:** etapa definida no `IMPLEMENTATION_PLAN.md`, sem decisão pendente que a bloqueie, mas não iniciada.
+- **Bloqueado:** depende de uma decisão pendente do usuário.
+
+| Situação | Itens |
+| --- | --- |
+| **Implementado e testado** | Stage 0; A1–A9 (partida completa do MVP; aparelho e editor: X-63, X-74, X-76, X-82); B1–B8 (carreira, QuickSim, mercado, economia, diretoria e save nas regras); C2 (calibração); C1 sem a lesão (X-90); C3a (X-96) |
+| **Implementado, não validado manualmente** | Lesão em campo e troca forçada (X-100, juntada em X-98); C3b: elenco, perfil, escalação e tática do usuário (X-97). Também: nenhuma build Android do commit atual (a última é de 14/10) e testes rodados no .NET 10 com roll-forward (D-33) |
+| **Parcial** | C1 (falta validar a lesão); C3 (C3a ok, C3b sem validação, C3c–C3e não feitas); placar da partida (~0,65 gol em 4 min e ~1,1 em 6 depois da F1b, X-115; metas experimentais ainda acima); duração (3/4/5/6/10 com padrão 4 nos dados, F1a em andamento); mercado, economia, obras e staff (regras prontas, sem comandos do usuário); câmera e HUD (sem teste automatizado, textos e cores no código); competições (pontos corridos configuráveis; nomes antigos); save (falta o aviso de backup restaurado na UI) |
+| **Em andamento** | F0: executada em 19/10/2026 até onde não depende do usuário (`F0_2026-10-19.md`). Faltam a validação no editor, a instalação nos aparelhos e as autorizações dos itens ★ |
+| **Planejado** | F2a e F2b (carreira funcional pela UI); F6 (personalização de controles; o mapeamento depende de D-26); F7a (nome e tema; as cores de estado dependem de D-28); F7d (áudio); F8 (D-07, D-08, D-16 e D-29 antes da loja) |
+| **Em andamento (F1)** | F1 autorizada em X-112. **F1a:** duração 3/4/5/6/10 com padrão 4, metas experimentais em dados e testes feitos (X-113). Com a D-34 (X-114), o lote de calibração fica em 6 min, com as tolerâncias intactas, até o fim da F1b; as 9 falhas em 4 min são diagnóstico conhecido. Falta a validação no editor. A F1b só conclui com a calibração aprovada em 4 min. **F1b** (X-115): ataque da IA implementado (valor de posse, atacar a área, corredor e alcance de chute, faltas na nova duração, correção da perseguição fora do campo); em 4 min 0,68 gol (era 0,42) e 3,56 finalizações (era 2,51). Continuação (X-116, D-35 (c)): lote de calibração de 1 200 partidas, bloqueio de chute; em 4 min 0,68–0,75 gol e 3,5–3,7 finalizações (antes 0,45–0,48 e 2,4–2,5). Testes oficiais verdes com o lote em 6 e em 4 min; por semente, 4 de 6 passam em cada duração (posse por força frágil, D-36). S-07 avaliada, não resolvida (D-37); escala de faltas a consolidar (D-38). Decisões do usuário (X-117): **D-36 (a)** erro de domínio (Drible + Compostura), **D-37 (b)** saída longa sob pressão e atacantes de área por mentalidade, **D-38** faltas 3,0 consolidada; corrigido um impasse de posse (bola parada que ninguém podia tomar). Calibração por semente **6 de 6 em 4 e em 6 min**; S-07 aceita como limitação conhecida (X-118: a ofensiva continua a mais eficiente em pontos). Validação final (X-118): automatizados verdes, compilação e PlayMode na Unity ok, APK gerado. **F1b concluída (X-119)**: validação manual no aparelho e no editor relatada pelo usuário sem defeito impeditivo. **F1c** (X-120): dificuldade Fácil/Normal/Difícil implementada (só o adversário do usuário, Normal idêntico à IA atual, QuickSim só no confronto do usuário, escolha na nova carreira e em Configurações, save v4); automatizados verdes (746/746), compilação na Unity ok, APK gerado. **F1c concluída (X-121)**: validação manual no aparelho aprovada pelo usuário (diferenças perceptíveis entre os níveis; Difícil com desafio elevado). F2 não começou |
+| **Bloqueado por decisão pendente** | F3, F4 e F5: as decisões de base foram tomadas em X-111 (D-24, D-25, D-30), mas faltam os detalhes de cada etapa; F7b arte realista (**D-02**); F7c níveis gráficos (**D-27**, depois da D-02); formatos de campeonato além de pontos corridos (**D-31**); permanência de Copa, diretoria e staff (**D-32**, mantidos até lá) |
 
 ---
 
@@ -250,3 +276,35 @@ Pedido do usuário (13/10/2026): a cada etapa concluída, informar a porcentagem
 - **Sistemas:** performance nos aparelhos de referência, onboarding, tutorial, analytics, fichas da loja, política de privacidade.
 - **Aceite:** crash-free > 99% em teste fechado; roda no aparelho de entrada; publicado em teste fechado.
 - **Não implementar:** funcionalidades novas.
+
+---
+
+## Track F — Football Nation v1 (proposta, X-110; aguarda aprovação)
+
+Detalhes de cada etapa estão em `IMPLEMENTATION_PLAN.md` §3: escopo, critérios de conclusão, testes, validação manual e "não implementar". Os requisitos FN-xx estão em `PRODUCT_SPEC.md`.
+
+**Ordem:**
+
+```
+F0 → F1a → F1b → F1c → F2a → F2b → F3 → F4 → F5 → F6 → F7a → F7b → F7c → F7d → F8
+```
+
+| Etapa | Conteúdo | Substitui | Bloqueio |
+| --- | --- | --- | --- |
+| F0 | Base do repositório: WIP, linha principal, worktrees, .NET, credencial; validação da lesão em campo e da C3b; build Android de linha de base | — | Autorização dos itens ★ |
+| F1a | Duração 3/4/5 e recalibração | parte da C2 | D-22 |
+| F1b | Ataque da IA, placar crível | X-84 (a) | F1a |
+| F1c | Dificuldade ajustável que muda a IA | X-72 (1), X-45 (1) | D-23 |
+| F2a | Clube, diretoria e finanças com comandos do usuário | C3d | D-32 resolvida (X-122 a X-124). **Implementada (X-127)**; falta a validação manual no editor |
+| F2b | Ciclo de temporada pela UI, aviso de backup, textos da partida em tabela, ≤ 3 toques, alvos de toque | C3e (parte) | F2a |
+| F3 | Criar clube e clubes editáveis | X-93, S-10 | D-24 |
+| F4 | Treinamento | — (novo) | D-25 |
+| F5 | Mercado do usuário, só Brasil | C3c | D-30 |
+| F6 | Personalização de controles | — (novo) | D-26 (só o mapeamento) |
+| F7a | Nome FOOTBALL NATION, tema com a paleta do brief, "Série A–D" | C3e (identidade) | D-28 (cores de estado) |
+| F7b | Arte 3D realista | C4 (arte) | D-02 |
+| F7c | Níveis gráficos | — (novo) | D-27 |
+| F7d | Áudio | C4 (áudio) | — |
+| F8 | Polimento e teste fechado | C5 | D-07, D-08, D-16, D-29 |
+
+Enquanto o plano não for aprovado, **nenhuma etapa F pode ser iniciada**. A etapa atual continua sendo a documentação (X-110).

@@ -55,8 +55,10 @@ namespace Game.Match
             {
                 // Clear only once the ball is outside the radius AND moving away: a dribbled ball already sits at the
                 // edge of the radius when kicked, and a kick across the body would otherwise come straight back.
+                // A ball at rest is free again wherever it stopped (D-36: a short escaped touch, or a deflection, can die at
+                // the feet of two flagged players, and nobody could ever take it).
                 bool movingAway = -dx * ball.Velocity.X - dy * ball.Velocity.Y > 0f;
-                if (distSqr > radiusSqr && (movingAway || ball.Velocity.LengthSquared() < 1e-4f)) body.IgnoreBallUntilClear = false;
+                if (ball.Velocity.LengthSquared() < 1e-4f || (distSqr > radiusSqr && movingAway)) body.IgnoreBallUntilClear = false;
                 return false;
             }
             if (distSqr > radiusSqr) return false;

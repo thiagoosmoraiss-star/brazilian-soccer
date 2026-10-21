@@ -6,7 +6,8 @@ namespace Game.Save
 {
     /// <summary>
     /// The migration chain (TECHNICAL_SPEC §14: "Cadeia vN → vN+1 sobre JSON bruto; fixture + teste por migração").
-    /// v1 → v2 (C1): <c>matchInProgress</c> (null). v2 → v3 (C3b): <c>userPlan</c> (null). Each future bump adds a step here, a fixture under
+    /// v1 → v2 (C1): <c>matchInProgress</c> (null). v2 → v3 (C3b): <c>userPlan</c> (null). v3 → v4 (F1c): <c>difficulty</c>
+    /// (null = the data's default level). Each future bump adds a step here, a fixture under
     /// <c>dotnet/Tests.Save/Fixtures</c> and a test that migrates it (B8, X-46).
     /// </summary>
     public static class SaveMigrations
@@ -36,6 +37,14 @@ namespace Game.Save
                 current["userPlan"] = JValue.CreateNull();
                 current["schemaVersion"] = 3;
                 version = 3;
+            }
+
+            if (version == 3)
+            {
+                // v4 (F1c): the match difficulty; a v3 career never chose one, so it plays the default level (Normal).
+                current["difficulty"] = JValue.CreateNull();
+                current["schemaVersion"] = 4;
+                version = 4;
             }
 
             if (version != SaveSchema.CurrentVersion)

@@ -9,8 +9,9 @@ using NUnit.Framework;
 
 namespace Game.Tests.Unit
 {
-    /// <summary>A2 acceptance (ROADMAP): fadiga total igual em 4/6/10 min (TECHNICAL_SPEC: "gasto normalizado
-    /// pela duração configurada").</summary>
+    /// <summary>A2 acceptance (ROADMAP), extended by F1a (D-22: 3/4/5/6/10 min): fadiga total igual em todas as durações
+    /// de <c>competitions.json</c> <c>matchRules.durationOptions</c> (TECHNICAL_SPEC: "gasto normalizado pela duração
+    /// configurada").</summary>
     public class FatigueTests
     {
         private const float Dt = 1f / 50f;
@@ -39,14 +40,13 @@ namespace Game.Tests.Unit
         }
 
         [Test]
-        public void TotalEnergySpent_IsTheSame_At4_6And10Minutes()
+        public void TotalEnergySpent_IsTheSame_AtEveryDurationOption()
         {
-            float drain4 = TotalDrain(4f);
+            var options = Db().Competitions.MatchRules.DurationOptions;
+            CollectionAssert.AreEqual(new[] { 3, 4, 5, 6, 10 }, options, "D-22 (X-111): 3/4/5/6/10 min");
             float drain6 = TotalDrain(6f);
-            float drain10 = TotalDrain(10f);
-
-            Assert.That(drain4, Is.EqualTo(drain6).Within(1.0f), "4 vs 6 min: total fadiga deve ser igual.");
-            Assert.That(drain10, Is.EqualTo(drain6).Within(1.0f), "10 vs 6 min: total fadiga deve ser igual.");
+            foreach (int minutes in options)
+                Assert.That(TotalDrain(minutes), Is.EqualTo(drain6).Within(1.0f), $"{minutes} vs 6 min: total fadiga deve ser igual.");
             Assert.Greater(drain6, 5f, "fixture must actually drain a meaningful amount (not just hit the 0 clamp).");
             Assert.Less(drain6, 95f, "fixture must not bottom out at 0 (would hide the comparison behind the clamp).");
         }

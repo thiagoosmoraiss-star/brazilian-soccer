@@ -368,5 +368,99 @@ namespace Game.Tests.Unit
                 Assert.AreEqual(!attackerClose, rushed, attackerClose ? "the attacker gets there first: he stays" : "he gets there first: he comes");
             }
         }
+
+        // ---------------- domínio (D-36) ----------------
+
+        /// <summary>A home pass arrives at <paramref name="speed"/> to a home receiver standing at the centre spot, an away
+        /// marker 1.6 m off him (within the pressure radius, out of capture range). Returns how many of the trials' first
+        /// touches escaped him; every trial ends with the receiver touching the ball.</summary>
+        private static int Escapes(int trials, int touch, float speed, bool human, bool pressed = true)
+        {
+            int escaped = 0;
+            for (int s = 1; s <= trials; s++)
+            {
+                var m = Open(Setup((ulong)s, home: new[] { (Attr.Dribbling, touch), (Attr.Composure, touch) }));
+                var receiver = Outfield(m.Home);
+                var passer = Outfield(m.Home, 2);
+                receiver.Body.Position = Vector3.Zero;
+                receiver.Body.Velocity = Vector3.Zero;
+                receiver.Body.Facing = -Vector3.UnitX;
+                if (pressed) Outfield(m.Away).Body.Position = new Vector3(0.4f, 1.55f, 0f);
+                if (human) { m.Ball.LastTouch = receiver.Global; m.EnableHuman(MatchSide.Home); } // control starts on him
+                // From where the pass still reaches him (rolling friction), at most 4 m out.
+                float from = MathF.Min(4f, 0.6f * speed * speed / (2f * Db().Ball.Ball.RollingFrictionDeceleration));
+                m.Ball.Position = new Vector3(-from, 0f, 0f);
+                m.Ball.Kick(new Vector3(speed, 0f, 0f), 0f);
+                m.Ball.LastTouch = passer.Global;
+                bool touched = false;
+                for (int i = 0; i < 25 && !touched; i++)
+                {
+                    var ev = m.Step(human ? Input(Vector2.Zero) : HumanInput.None);
+                    if (human && (ev == AiMatchEvent.Miscontrol || m.Ball.State == BallState.Controlled))
+                        Assert.AreSame(receiver, m.Controlled, $"seed {s}: the user drives the receiver");
+                    if (ev == AiMatchEvent.Miscontrol)
+                    {
+                        Assert.AreEqual(receiver.Global, m.Ball.LastTouch, $"seed {s}: his touch");
+                        Assert.AreNotEqual(BallState.Controlled, m.Ball.State, $"seed {s}: the ball ran loose");
+                        escaped++;
+                        touched = true;
+                    }
+                    else if (m.Ball.State == BallState.Controlled) { Assert.AreEqual(receiver.Global, m.Ball.Owner, $"seed {s}"); touched = true; }
+                }
+                Assert.IsTrue(touched, $"seed {s}: the pass reached him");
+            }
+            return escaped;
+        }
+
+        [Test]
+        public void AFastPassUnderPressure_EscapesAPoorFirstTouchOften_AndAGoodOneRarely()
+        {
+            Assert.Greater(Db().Duels.TouchScale, 0f, "duels.json firstTouch is on (D-36)");
+            var r = R()["firstTouch"];
+            int trials = r["trials"].Value<int>();
+            float speed = r["passSpeed"].Value<float>();
+            int poor = Escapes(trials, r["poorTouch"].Value<int>(), speed, false);
+            int good = Escapes(trials, r["goodTouch"].Value<int>(), speed, false);
+            Assert.GreaterOrEqual((double)poor / trials, r["poorEscapeMin"].Value<double>(), "FirstTouchError (Drible + Compostura): a poor touch slips");
+            Assert.LessOrEqual((double)good / trials, r["goodEscapeMax"].Value<double>(), "a good one hardly ever");
+            Assert.Less(poor, trials, "not every time");
+        }
+
+        [Test]
+        public void ASlowBall_OrNobodyClose_LeavesTheFirstTouchMostlyClean()
+        {
+            var r = R()["firstTouch"];
+            int trials = r["trials"].Value<int>(), poorTouch = r["poorTouch"].Value<int>();
+            Assert.AreEqual(0, Escapes(trials, poorTouch, Db().Duels.TouchMinSpeed * 0.75f, false), "below minSpeed every ball is controlled");
+            int pressed = Escapes(trials, poorTouch, r["passSpeed"].Value<float>(), false);
+            int free = Escapes(trials, poorTouch, r["passSpeed"].Value<float>(), false, pressed: false);
+            Assert.Less(free, pressed, "pressure (PressureErrorMult, Compostura) makes it worse");
+        }
+
+        [Test]
+        public void TheUsersPlayer_HasTheSameFirstTouch_AsTheAi()
+        {
+            var r = R()["firstTouch"];
+            int trials = r["trials"].Value<int>();
+            float speed = r["passSpeed"].Value<float>();
+            int poor = Escapes(trials, r["poorTouch"].Value<int>(), speed, true);
+            Assert.GreaterOrEqual((double)poor / trials, r["poorEscapeMin"].Value<double>(), "the controlled player's touch is his attributes too");
+            Assert.LessOrEqual((double)Escapes(trials, r["goodTouch"].Value<int>(), speed, true) / trials, r["goodEscapeMax"].Value<double>());
+        }
+
+        [Test]
+        public void FirstTouchValues_AreValidated()
+        {
+            string json = File.ReadAllText(Path.Combine(TestPaths.DataRoot(), "Balance", "duels.json"));
+            var j = JObject.Parse(json);
+            j["firstTouch"]["threshold"] = 0.0;
+            Assert.IsFalse(DuelsReader.Read(j.ToString()).IsSuccess, "threshold must be > 0");
+            j = JObject.Parse(json);
+            j["firstTouch"]["speedFactorMax"] = 0.1;
+            Assert.IsFalse(DuelsReader.Read(j.ToString()).IsSuccess, "speedFactorMax below speedFactorMin");
+            j = JObject.Parse(json);
+            j["firstTouch"]["scale"] = 0.0;
+            Assert.IsTrue(DuelsReader.Read(j.ToString()).IsSuccess, "scale 0 = every reception clean (the rule before D-36)");
+        }
     }
 }

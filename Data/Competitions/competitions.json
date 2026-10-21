@@ -32,8 +32,8 @@
   "matchRules": {
     "benchSize": 9,
     "maxSubstitutions": 5,
-    "durationMinutes": 6,
-    "durationOptions": [4, 6, 10],
+    "durationMinutes": 4,
+    "durationOptions": [3, 4, 5, 6, 10],
     "aiTactic": {
       "mentality": 3,
       "defensiveLine": 2,

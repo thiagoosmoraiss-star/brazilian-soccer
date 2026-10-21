@@ -23,7 +23,7 @@ namespace Game.Save.Serialization
         public static Result<CareerState> Read(JObject root)
         {
             var sj = new StrictJson("save");
-            sj.Keys(root, "root", "schemaVersion", "seed", "ids", "managedClubId", "proposals", "matchInProgress", "userPlan", "world", "season", "history");
+            sj.Keys(root, "root", "schemaVersion", "seed", "ids", "managedClubId", "proposals", "matchInProgress", "userPlan", "difficulty", "world", "season", "history");
 
             var state = new CareerState
             {
@@ -69,6 +69,10 @@ namespace Game.Save.Serialization
                     catch (System.ArgumentException e) { sj.Fail("INVALID_VALUE", "root.userPlan: " + e.Message); }
                 }
             }
+
+            var difficulty = root["difficulty"];
+            if (difficulty == null) sj.Fail("MISSING_KEY", "root.difficulty is required (null = the default level).");
+            else if (difficulty.Type != JTokenType.Null) state.Difficulty = sj.String(root, "difficulty", "root");
 
             var proposalsArr = sj.Array(root, "proposals", "root");
             if (proposalsArr != null)

@@ -85,5 +85,35 @@ namespace Game.Data.Match
         public float RushThroughBallMargin { get; internal set; }
         /// <summary>He aims this far (m) short of the ball, on its line to goal.</summary>
         public float RushStopDistance { get; internal set; }
+
+        // Shot block (F1b, X-84 (a) "bolas desviadas"): a shot passing within reach of a defender's body is blocked with
+        // his ShotBlockChance (Desarme) x chanceScale x closeness, once per defender per shot; the ball is deflected.
+        public float BlockReach { get; internal set; }
+        public float BlockMaxHeight { get; internal set; }
+        public float BlockMinSpeed { get; internal set; }
+        /// <summary>0 = no physical blocks (the A9 rule).</summary>
+        public float BlockChanceScale { get; internal set; }
+        public float BlockSpeedFactorMin { get; internal set; }
+        public float BlockSpeedFactorMax { get; internal set; }
+        public float BlockMaxDeflectDegrees { get; internal set; }
+        public float BlockMaxUpSpeed { get; internal set; }
+
+        // First touch (D-36, FirstTouchError = Drible 0,7 + Compostura 0,3, GAME_DESIGN §19 "Domínio usa Drible e Compostura"):
+        // receiving a moving ball, the touch error (m) = FirstTouchError x scale x speed factor x PressureErrorMult (an opponent
+        // within pressureRadius) x |triangular|; above threshold the ball escapes the receiver, loose.
+        /// <summary>0 = every reception is clean (the behaviour before D-36).</summary>
+        public float TouchScale { get; internal set; }
+        public float TouchThreshold { get; internal set; }
+        /// <summary>Slower balls are always controlled.</summary>
+        public float TouchMinSpeed { get; internal set; }
+        /// <summary>Ball speed at which the speed factor is 1; clamped to [speedFactorMin, speedFactorMax].</summary>
+        public float TouchReferenceSpeed { get; internal set; }
+        public float TouchSpeedFactorMin { get; internal set; }
+        public float TouchSpeedFactorMax { get; internal set; }
+        public float TouchPressureRadius { get; internal set; }
+        /// <summary>An escaped ball rolls about (error x this) m away.</summary>
+        public float TouchEscapeDistanceScale { get; internal set; }
+        /// <summary>It goes on along the incoming line, turned by up to this.</summary>
+        public float TouchMaxEscapeDegrees { get; internal set; }
     }
 }

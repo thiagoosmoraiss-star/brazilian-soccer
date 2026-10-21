@@ -167,12 +167,14 @@ namespace Game.Match.AI
             return u / -vu <= g.PredictionHorizonSeconds;
         }
 
-        /// <summary>Reaction for a shot that just appeared: GkReactionTime (Reflexo) plus the not-set penalty.</summary>
+        /// <summary>Reaction for a shot that just appeared: GkReactionTime (Reflexo) plus the not-set penalty, × the side's
+        /// difficulty (F1c).</summary>
         public static float ReactionSeconds(Keeper k, Balance balance, GoalkeeperDefinition g)
         {
             var body = k.Player.Body;
             float speed = new Vector2(body.Velocity.X, body.Velocity.Y).Length();
-            return balance.Eval(Effect.GkReactionTime, k.Player.Setup.Attributes) + (speed > g.UnsetSpeed ? g.UnsetPenaltySeconds : 0f);
+            return (balance.Eval(Effect.GkReactionTime, k.Player.Setup.Attributes) + (speed > g.UnsetSpeed ? g.UnsetPenaltySeconds : 0f))
+                   * k.Player.Team.Difficulty.KeeperReactionScale;
         }
 
         /// <summary>Get-up time after a dive: proportional to the reaction time, within GAME_DESIGN's 0.6-1.0 s.</summary>

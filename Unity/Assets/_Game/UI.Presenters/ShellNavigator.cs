@@ -19,6 +19,10 @@ namespace Game.UI.Presenters
         Calendar,
         Board,
         Settings,
+        /// <summary>F2a: facilities and staff (TECHNICAL_SPEC §15 "Club").</summary>
+        Club,
+        /// <summary>F2a: summary and 12 months (TECHNICAL_SPEC §15 "Finances").</summary>
+        Finances,
     }
 
     /// <summary>Bottom bar (GAME_DESIGN §13): Clube · Elenco · Mercado · Competições · Diretoria.</summary>
@@ -60,6 +64,8 @@ namespace Game.UI.Presenters
                     case ScreenId.Competitions:
                     case ScreenId.Calendar:
                     case ScreenId.Board:
+                    case ScreenId.Club:
+                    case ScreenId.Finances:
                         return true;
                     default:
                         return false;

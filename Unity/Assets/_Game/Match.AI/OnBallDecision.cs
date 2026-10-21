@@ -50,7 +50,7 @@ namespace Game.Match.AI
             var rng = team.Rng;
             var pos = holder.Body.Position;
             float nearestOpp = NearestOpponentDistance(pos, opponents);
-            float noise = ai.DecisionNoise;
+            float noise = ai.DecisionNoise * team.Difficulty.DecisionNoiseScale;
             if (nearestOpp < ai.ReceiverPressureRadius) noise *= balance.Eval(Effect.PressureErrorMult, holder.Setup.Attributes);
 
             // Dribble: headings fanned around the attack direction — within shooting range around the line to the goal,
@@ -71,7 +71,7 @@ namespace Game.Match.AI
                 // Room at the end of the run, and nobody standing on the way (a defender in reach takes the ball, A5).
                 float success = MathUtil.Clamp01(NearestOpponentDistance(target, opponents) / ai.DribbleClearance);
                 success = MathF.Min(success, MathUtil.Clamp01(1f - LaneRisk(pos, target, opponents, ai.DribbleClearance)));
-                float value = success * ai.DribbleRiskFactor * Threat(target, team, pitch, ai) + noise * KickErrorRules.Triangular(rng);
+                float value = success * ai.DribbleRiskFactor * (Threat(target, team, pitch, ai) + ai.PossessionValue) + noise * KickErrorRules.Triangular(rng);
                 if (value > bestValue) { bestValue = value; best = new OnBallDecisionResult(OnBallChoice.Dribble, -1, target); }
             }
 
@@ -93,7 +93,7 @@ namespace Game.Match.AI
                 success -= LaneRisk(pos, receiver, opponents, ai.PassLaneClearance);
                 float receiverPressure = NearestOpponentDistance(receiver, opponents);
                 if (receiverPressure < ai.ReceiverPressureRadius) success -= 1f - receiverPressure / ai.ReceiverPressureRadius;
-                float value = MathUtil.Clamp01(success) * Threat(receiver, team, pitch, ai) + noise * KickErrorRules.Triangular(rng);
+                float value = MathUtil.Clamp01(success) * (Threat(receiver, team, pitch, ai) + ai.PossessionValue) + noise * KickErrorRules.Triangular(rng);
                 if (value > bestValue) { bestValue = value; best = new OnBallDecisionResult(OnBallChoice.Pass, candidate, receiver); }
             }
 
@@ -126,7 +126,7 @@ namespace Game.Match.AI
             if (dist > ai.PassMaxDistance + d.RunDepthBehindLine) return;
             float success = 1f - ai.PassDistanceRisk * dist / (ai.PassMaxDistance + d.RunDepthBehindLine)
                             - LaneRisk(pos, target, opponents, ai.PassLaneClearance);
-            float value = d.RunThroughValue * MathUtil.Clamp01(success) * Threat(target, team, pitch, ai)
+            float value = d.RunThroughValue * MathUtil.Clamp01(success) * (Threat(target, team, pitch, ai) + ai.PossessionValue)
                           + noise * KickErrorRules.Triangular(team.Rng);
             if (value > bestValue) { bestValue = value; best = new OnBallDecisionResult(OnBallChoice.Through, team.Runner, target); }
         }
@@ -165,6 +165,9 @@ namespace Game.Match.AI
                 return;
             }
             float u0 = team.Frame.U(pos);
+            // Pressed in the own third (D-37): the mentality may prefer getting it long to a risky short ball.
+            float outlet = u0 < pitch.Length / 3f && NearestOpponentDistance(pos, opponents) < ai.ReceiverPressureRadius
+                ? team.Runtime.PressedOutletValue : 0f;
             for (int i = 0; i < team.Players.Length; i++)
             {
                 var q = team.Players[i];
@@ -173,7 +176,7 @@ namespace Game.Match.AI
                 float d = Vector3.Distance(qp, pos);
                 if (d < a.AiLongBallMinDistance || d > a.MaxTargetDistance || team.Frame.U(qp) <= u0 || team.Frame.U(qp) > team.OffsideU) continue;
                 float open = MathUtil.Clamp01(NearestOpponentDistance(qp, opponents) / (2f * ai.ReceiverPressureRadius));
-                float value = a.AiLongBallValue * open * Threat(qp, team, pitch, ai) + noise * KickErrorRules.Triangular(rng);
+                float value = a.AiLongBallValue * open * (Threat(qp, team, pitch, ai) + ai.PossessionValue) + outlet + noise * KickErrorRules.Triangular(rng);
                 if (value > bestValue) { bestValue = value; best = new OnBallDecisionResult(OnBallChoice.High, i, qp); }
             }
         }

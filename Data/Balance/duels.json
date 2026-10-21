@@ -43,5 +43,26 @@
     "hesitationSeconds": 0.6,
     "throughBallMargin": 0.2,
     "stopDistance": 0.0
+  },
+  "shotBlock": {
+    "reach": 0.8,
+    "maxHeight": 1.8,
+    "minSpeed": 8.0,
+    "chanceScale": 1.0,
+    "speedFactorMin": 0.3,
+    "speedFactorMax": 0.7,
+    "maxDeflectDegrees": 70.0,
+    "maxUpSpeed": 4.0
+  },
+  "firstTouch": {
+    "scale": 1.0,
+    "threshold": 0.7,
+    "minSpeed": 4.0,
+    "referenceSpeed": 12.0,
+    "speedFactorMin": 0.6,
+    "speedFactorMax": 1.4,
+    "pressureRadius": 2.0,
+    "escapeDistanceScale": 2.0,
+    "maxEscapeDegrees": 50.0
   }
 }

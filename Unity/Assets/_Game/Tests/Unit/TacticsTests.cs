@@ -43,6 +43,12 @@ namespace Game.Tests.Unit
             j = JObject.Parse(json);
             j["modifiers"]["extra"] = 1;
             Assert.IsFalse(AiReader.ReadTactics(j.ToString()).IsSuccess, "unknown key");
+            j = JObject.Parse(json);
+            j["modifiers"]["mentality"]["pressedOutletValue"] = new JArray(-0.1, 0.0, 0.0, 0.0, 0.0);
+            Assert.IsFalse(AiReader.ReadTactics(j.ToString()).IsSuccess, "negative outlet value");
+            j = JObject.Parse(json);
+            j["modifiers"]["mentality"]["boxAttackersOffset"] = new JArray(0, 1);
+            Assert.IsFalse(AiReader.ReadTactics(j.ToString()).IsSuccess, "5 mentality levels");
         }
 
         [Test]
@@ -124,6 +130,51 @@ namespace Game.Tests.Unit
             var m = new AiMatch(Db(), Setup(1, new TacticSetup("4-4-2", 3, 2, 3)), Dt);
             Assert.AreEqual(Db().Tactics.Pressers + 1, m.Home.Runtime.Pressers);
             Assert.Greater(m.Home.Runtime.PressTriggerDistance, Db().Tactics.PressTriggerDistance);
+        }
+
+        [Test]
+        public void AnAttackingMentality_SendsMorePlayersIntoTheBox_ADefensiveOneFewer()
+        {
+            var offset = Db().Tactics.Modifiers.MentalityBoxAttackersOffset;
+            Assert.Greater(offset[4], offset[2], "D-37: the offensive side commits more players forward");
+            Assert.Less(offset[0], offset[2], "the defensive one fewer");
+            foreach (int mentality in new[] { 1, 3, 5 })
+            {
+                var m = new AiMatch(Db(), Setup(1, new TacticSetup("4-4-2", mentality, 2, 2)), Dt);
+                m.CancelRestart();
+                foreach (var o in m.Away.Players) o.Body.Position = m.Away.Frame.World(4f, 30f);
+                var carrier = m.Home.Players[5];
+                carrier.Body.Position = m.Home.Frame.World(80f, 0f);
+                m.PlaceBall(carrier);
+                for (int i = 0; i < 25; i++) m.Step();
+                Assert.IsTrue(m.Home.HasPossession);
+                Assert.AreEqual(Db().Ai.BoxAttackers + offset[mentality - 1], m.Home.Players.Count(p => m.Home.AttacksTheBox(p.Local)), $"mentality {mentality}");
+            }
+        }
+
+        [Test]
+        public void PressedInTheOwnThird_ADefensiveMentality_GetsItLongMoreOften()
+        {
+            var outlet = Db().Tactics.Modifiers.MentalityPressedOutletValue;
+            Assert.Greater(outlet[0], outlet[2], "D-37: the defensive side prefers the long outlet when pressed in its own third");
+            int LongBalls(int mentality, float carrierU)
+            {
+                var m = new AiMatch(Db(), Setup(1, new TacticSetup("4-4-2", mentality, 2, 2)), Dt);
+                m.Step(); // the team layer has set the offside line
+                var team = m.Home;
+                var carrier = team.Players[5];
+                carrier.Body.Position = team.Frame.World(carrierU, 0f);
+                foreach (var p in team.Players) if (p != carrier) p.Body.Position = team.Frame.World(5f, 33f);
+                team.Players[6].Body.Position = team.Frame.World(carrierU + 9f, 8f);  // short, open-ish
+                team.Players[9].Body.Position = team.Frame.World(carrierU + 37f, 0f); // far up: a lançamento
+                foreach (var o in m.Away.Players) o.Body.Position = team.Frame.World(100f, -33f);
+                m.Away.Players[4].Body.Position = team.Frame.World(carrierU + 1.5f, 0.5f); // the presser
+                int high = 0;
+                for (int i = 0; i < 300; i++)
+                    if (OnBallDecision.Decide(carrier, m.Away, m.Pitch, Db().Balance, Db().Ai, Db().Aerial, Db().Duels).Choice == OnBallChoice.High) high++;
+                return high;
+            }
+            Assert.Greater(LongBalls(1, 15f), LongBalls(3, 15f), "in the own third (the defensive side values progress less, so this is the outlet)");
         }
 
         [Test]

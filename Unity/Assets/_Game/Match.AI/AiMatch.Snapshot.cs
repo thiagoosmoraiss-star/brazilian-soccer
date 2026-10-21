@@ -15,7 +15,7 @@ namespace Game.Match.AI
         private const int SnapshotMagic = 0x534D4341; // "ACMS"
         /// <summary>Bump when the snapshot layout changes; older snapshots are then rejected (a match in progress is
         /// short-lived, it is not migrated like a career save).</summary>
-        public const int SnapshotVersion = 8; // 2: referee (A8a); 4: high ball (A9a); 5: duels (A9b); 6: tactics or substitutions (A9c, separate sessions); 7: both (A9c); 8: injuries (X-91)
+        public const int SnapshotVersion = 11; // 2: referee (A8a); 4: high ball (A9a); 5: duels (A9b); 6: tactics or substitutions (A9c, separate sessions); 7: both (A9c); 8: injuries (X-91); 9: box attackers (F1b); 10: shot blocks (F1b); 11: first touch (D-36)
 
         /// <summary>
         /// The whole match state, binary (TECHNICAL_SPEC §5 "Snapshot e pausa": "MatchState inteiro serializável: ao ir
@@ -47,6 +47,9 @@ namespace Game.Match.AI
                 Write(w, _refereeRng.GetState());
                 Write(w, _aerialRng.GetState());
                 Write(w, _duelsRng.GetState());
+                Write(w, _blockRng.GetState());
+                Write(w, _touchRng.GetState());
+                for (int i = 0; i < _blockTried.Length; i++) w.Write(_blockTried[i]);
                 w.Write(HasDropPoint);
                 w.Write(_headerShotInFlight);
                 Write(w, DropPoint);
@@ -165,6 +168,9 @@ namespace Game.Match.AI
             _refereeRng.SetState(ReadRng(r));
             _aerialRng.SetState(ReadRng(r));
             _duelsRng.SetState(ReadRng(r));
+            _blockRng.SetState(ReadRng(r));
+            _touchRng.SetState(ReadRng(r));
+            for (int i = 0; i < _blockTried.Length; i++) _blockTried[i] = r.ReadBoolean();
             HasDropPoint = r.ReadBoolean();
             _headerShotInFlight = r.ReadBoolean();
             DropPoint = ReadV3(r);
@@ -275,6 +281,7 @@ namespace Game.Match.AI
             for (int i = 0; i < t.Supporter.Length; i++) w.Write(t.Supporter[i]);
             for (int i = 0; i < t.Presser.Length; i++) w.Write(t.Presser[i]);
             for (int i = 0; i < t.DropZone.Length; i++) w.Write(t.DropZone[i]);
+            for (int i = 0; i < t.BoxAttacker.Length; i++) w.Write(t.BoxAttacker[i]);
             w.Write(t.Chaser);
             w.Write(t.HasPossession);
             w.Write(t.OffsideU);
@@ -295,6 +302,7 @@ namespace Game.Match.AI
             for (int i = 0; i < t.Supporter.Length; i++) t.Supporter[i] = r.ReadBoolean();
             for (int i = 0; i < t.Presser.Length; i++) t.Presser[i] = r.ReadBoolean();
             for (int i = 0; i < t.DropZone.Length; i++) t.DropZone[i] = r.ReadBoolean();
+            for (int i = 0; i < t.BoxAttacker.Length; i++) t.BoxAttacker[i] = r.ReadBoolean();
             t.Chaser = r.ReadInt32();
             t.HasPossession = r.ReadBoolean();
             t.OffsideU = r.ReadSingle();

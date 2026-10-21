@@ -33,6 +33,7 @@ namespace Game.Data.Loading
         public Match.RefereeDefinition Referee { get; }
         public Match.AerialDefinition Aerial { get; }
         public Match.DuelsDefinition Duels { get; }
+        public Match.DifficultyDefinition Difficulty { get; }
 
         internal GameDatabase(string sourceDescription, Effects.Balance balance, Ovr.OvrDefinition ovr, World.WorldDefinition world,
             System.Collections.Generic.IReadOnlyList<Match.FormationDefinition> formations, Match.MatchRulesDefinition matchRules,
@@ -42,8 +43,9 @@ namespace Game.Data.Loading
             Match.MovementDefinition movement, Match.FatigueDefinition fatigue, Match.KickingDefinition kicking,
             Match.AiDefinition ai, Match.TacticsDefinition tactics, Match.DefenseDefinition defense,
             Match.GoalkeeperDefinition goalkeeper, Match.RestartsDefinition restarts, Match.RefereeDefinition referee,
-            Match.AerialDefinition aerial, Match.DuelsDefinition duels)
+            Match.AerialDefinition aerial, Match.DuelsDefinition duels, Match.DifficultyDefinition difficulty)
         {
+            Difficulty = difficulty;
             Duels = duels;
             Aerial = aerial;
             Referee = referee;

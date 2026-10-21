@@ -89,6 +89,9 @@ namespace Game.Tests.UI
                 case ScreenId.Competitions: return shell.Competitions();
                 case ScreenId.Calendar: return shell.Calendar();
                 case ScreenId.Settings: return shell.Settings();
+                case ScreenId.Board: return shell.Board();
+                case ScreenId.Club: return shell.Club();
+                case ScreenId.Finances: return shell.Finances();
                 default: return shell.Placeholder(shell.Nav.Current);
             }
         }

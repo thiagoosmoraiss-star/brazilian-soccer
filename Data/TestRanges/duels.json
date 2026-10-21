@@ -4,11 +4,13 @@
     "slide": "GAME_DESIGN §22: 'carrinho (2-3 m; falta se contato antes da bola; por trás cartão provável; erro = 1 s no chão)'; 'provável' read as at least half of the fouls from behind booked (DESIGN ESTIMATE)",
     "body": "GAME_DESIGN §22 'disputa de corpo' and TECHNICAL_SPEC §7 BodyDuelWin (Força): a much stronger player wins most loose balls at equal distance; DESIGN ESTIMATE for 'most'",
     "rush": "GAME_DESIGN §23: 'sai no 1×1 com bola exposta; sai na enfiada só se chega antes'; GkRushDecisionQuality (Posicionamento GK)",
+    "firstTouch": "D-36, GAME_DESIGN §19 'Domínio usa Drible e Compostura' (FirstTouchError, TECHNICAL_SPEC §8): a 15 m/s pass with a marker 1.6 m away escapes a poor touch (Drible/Compostura 30) at least a quarter of the time and a good one (90) at most a tenth; DESIGN ESTIMATE for the shares",
     "headless": "DESIGN ESTIMATE (A9b, X-75), 4-min matches strong × weak: the AI slides a few times per match and fouls with a minority of them; runs in behind and through balls every match; the keeper rushes now and then"
   },
   "slide": { "behindTrials": 40, "behindCardMin": 0.5 },
   "body": { "trials": 150, "strongWinMin": 0.6 },
   "rush": { "seeds": 20 },
+  "firstTouch": { "trials": 60, "passSpeed": 15.0, "poorTouch": 30, "goodTouch": 90, "poorEscapeMin": 0.25, "goodEscapeMax": 0.1 },
   "headless": {
     "matches": 100,
     "minutes": 4,

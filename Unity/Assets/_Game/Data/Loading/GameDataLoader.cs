@@ -46,6 +46,7 @@ namespace Game.Data.Loading
         public const string RefereeFile = "Balance/referee.json";
         public const string AerialFile = "Balance/aerial.json";
         public const string DuelsFile = "Balance/duels.json";
+        public const string DifficultyFile = "Balance/difficulty.json";
         /// <summary>Vertical-slice teams (A7a): demo/test data, not part of the career database.</summary>
         public const string VerticalSliceTeamsFile = "VerticalSlice/teams.json";
         /// <summary>Match-scene presentation tunables (A7b): camera, radar, placeholder animation, HUD.</summary>
@@ -59,7 +60,7 @@ namespace Game.Data.Loading
         {
             EffectsFile, OvrFile, NamesFile, CitiesFile, ClubTemplatesFile, CrestTemplatesFile, GenerationFile,
             FormationsFile, MatchRulesFile, QuickSimFile, CompetitionsFile, CalendarFile, DevelopmentFile, MarketFile, EconomyFile,
-            BoardFile, FacilitiesFile, StaffFile, BallFile, MovementFile, FatigueFile, KickingFile, AiFile, TacticsFile, DefenseFile, GoalkeeperFile, RestartsFile, RefereeFile, AerialFile, DuelsFile,
+            BoardFile, FacilitiesFile, StaffFile, BallFile, MovementFile, FatigueFile, KickingFile, AiFile, TacticsFile, DefenseFile, GoalkeeperFile, RestartsFile, RefereeFile, AerialFile, DuelsFile, DifficultyFile,
         };
 
         /// <summary>Reads and deserializes the effect definitions (syntax and structure only).</summary>
@@ -227,6 +228,12 @@ namespace Game.Data.Loading
             return text.IsSuccess ? DuelsReader.Read(text.Value) : Result<DuelsDefinition>.Fail(text.Errors);
         }
 
+        public static Result<DifficultyDefinition> LoadDifficulty(IDataSource source)
+        {
+            var text = ReadText(source, DifficultyFile);
+            return text.IsSuccess ? DifficultyReader.Read(text.Value) : Result<DifficultyDefinition>.Fail(text.Errors);
+        }
+
         public static Result<RestartsDefinition> LoadRestarts(IDataSource source)
         {
             var text = ReadText(source, RestartsFile);
@@ -299,6 +306,7 @@ namespace Game.Data.Loading
             var referee = LoadReferee(source);
             var aerial = LoadAerial(source);
             var duels = LoadDuels(source);
+            var difficulty = LoadDifficulty(source);
 
             var errors = new List<Error>();
             errors.AddRange(catalog.Errors);
@@ -327,12 +335,13 @@ namespace Game.Data.Loading
             errors.AddRange(referee.Errors);
             errors.AddRange(aerial.Errors);
             errors.AddRange(duels.Errors);
+            errors.AddRange(difficulty.Errors);
             if (errors.Count > 0) return Result<GameDatabase>.Fail(errors);
 
             return Result<GameDatabase>.Ok(new GameDatabase(source.Description, new Balance(catalog.Value), ovr.Value, world.Value,
                 formations.Value, matchRules.Value, quickSim.Value, competitions.Value, calendar.Value, development.Value, market.Value,
                 economy.Value, board.Value, facilities.Value, staff.Value, ball.Value, movement.Value, fatigue.Value,
-                kicking.Value, ai.Value, tactics.Value, defense.Value, goalkeeper.Value, restarts.Value, referee.Value, aerial.Value, duels.Value));
+                kicking.Value, ai.Value, tactics.Value, defense.Value, goalkeeper.Value, restarts.Value, referee.Value, aerial.Value, duels.Value, difficulty.Value));
         }
 
         /// <summary>Deserializes and validates the effect definitions against <paramref name="schema"/>.</summary>

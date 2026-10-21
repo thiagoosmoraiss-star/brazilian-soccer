@@ -75,13 +75,16 @@ namespace Game.Data.Loading
             var me = j.Object(m, "mentality", "modifiers");
             if (me != null)
             {
-                j.Keys(me, "modifiers.mentality", "lineOffset", "attackDepthScale", "defendDepthScale", "progressWeightScale", "shootThresholdScale", "runCooldownScale");
+                j.Keys(me, "modifiers.mentality", "lineOffset", "attackDepthScale", "defendDepthScale", "progressWeightScale", "shootThresholdScale", "runCooldownScale",
+                    "pressedOutletValue", "boxAttackersOffset");
                 r.MentalityLineOffset = j.FloatList(me, "lineOffset", "modifiers.mentality")?.ToArray();
                 r.MentalityAttackDepthScale = j.FloatList(me, "attackDepthScale", "modifiers.mentality")?.ToArray();
                 r.MentalityDefendDepthScale = j.FloatList(me, "defendDepthScale", "modifiers.mentality")?.ToArray();
                 r.MentalityProgressWeightScale = j.FloatList(me, "progressWeightScale", "modifiers.mentality")?.ToArray();
                 r.MentalityShootThresholdScale = j.FloatList(me, "shootThresholdScale", "modifiers.mentality")?.ToArray();
                 r.MentalityRunCooldownScale = j.FloatList(me, "runCooldownScale", "modifiers.mentality")?.ToArray();
+                r.MentalityPressedOutletValue = j.FloatList(me, "pressedOutletValue", "modifiers.mentality")?.ToArray();
+                r.MentalityBoxAttackersOffset = j.IntList(me, "boxAttackersOffset", "modifiers.mentality")?.ToArray();
             }
             var li = j.Object(m, "defensiveLine", "modifiers");
             if (li != null)
@@ -111,11 +114,13 @@ namespace Game.Data.Loading
                 || !Len(m.MentalityDefendDepthScale, TacticModifiers.MentalityLevels)
                 || !Len(m.MentalityProgressWeightScale, TacticModifiers.MentalityLevels) || !Len(m.MentalityShootThresholdScale, TacticModifiers.MentalityLevels)
                 || !Len(m.MentalityRunCooldownScale, TacticModifiers.MentalityLevels)
+                || !Len(m.MentalityPressedOutletValue, TacticModifiers.MentalityLevels) || !Len(m.MentalityBoxAttackersOffset, TacticModifiers.MentalityLevels)
                 || !Len(m.LineBehindBallOffset, TacticModifiers.LineLevels) || !Len(m.LineMaxOffset, TacticModifiers.LineLevels)
                 || !Len(m.LineMinOffset, TacticModifiers.LineLevels)
                 || !Len(m.PressersOffset, TacticModifiers.PressureLevels) || !Len(m.PressTriggerScale, TacticModifiers.PressureLevels)
                 || !Len(m.TransitionDefenseScale, TacticModifiers.PressureLevels)) return false;
             if (m.ChangeSmoothSeconds < 0f || m.FormationRolePenalty < 0f) return false;
+            foreach (float v in m.MentalityPressedOutletValue) if (v < 0f) return false;
             foreach (var a in new[] { m.MentalityAttackDepthScale, m.MentalityDefendDepthScale, m.MentalityProgressWeightScale, m.MentalityShootThresholdScale,
                          m.MentalityRunCooldownScale, m.PressTriggerScale, m.TransitionDefenseScale })
                 foreach (float v in a) if (v <= 0f) return false;
@@ -172,7 +177,7 @@ namespace Game.Data.Loading
                 j.Keys(ind, "individual", "supportPlayers", "supportCandidates", "supportRadius", "supportOpennessCap",
                     "supportOpennessWeight", "supportForwardWeight", "supportShapeWeight", "supportCommitSeconds",
                     "markZoneRadius", "markGoalSideDistance", "containDistance", "minCommitSeconds", "assignmentHysteresis",
-                    "interceptHorizonSeconds", "interceptStepSeconds");
+                    "interceptHorizonSeconds", "interceptStepSeconds", "boxAttackers", "boxAttackFraction", "boxAttackDepth", "boxAttackHalfWidth");
                 a.SupportPlayers = j.Int(ind, "supportPlayers", "individual");
                 a.SupportCandidates = j.Int(ind, "supportCandidates", "individual");
                 a.SupportRadius = j.Float(ind, "supportRadius", "individual");
@@ -188,13 +193,17 @@ namespace Game.Data.Loading
                 a.AssignmentHysteresis = j.Float(ind, "assignmentHysteresis", "individual");
                 a.InterceptHorizonSeconds = j.Float(ind, "interceptHorizonSeconds", "individual");
                 a.InterceptStepSeconds = j.Float(ind, "interceptStepSeconds", "individual");
+                a.BoxAttackers = j.Int(ind, "boxAttackers", "individual");
+                a.BoxAttackFraction = j.Float(ind, "boxAttackFraction", "individual");
+                a.BoxAttackDepth = j.Float(ind, "boxAttackDepth", "individual");
+                a.BoxAttackHalfWidth = j.Float(ind, "boxAttackHalfWidth", "individual");
             }
             var ob = j.Object(root, "onBall", "root");
             if (ob != null)
             {
                 j.Keys(ob, "onBall", "decisionIntervalSeconds", "minDribbleSeconds", "dribbleStep", "dribbleHeadings", "dribbleSpreadDegrees", "dribbleClearance",
                     "passMinDistance", "passMaxDistance", "passLaneClearance", "passDistanceRisk", "receiverPressureRadius", "shotRange",
-                    "shotPower", "shootChanceThreshold", "lateralValuePenalty", "progressWeight", "dribbleRiskFactor", "decisionNoise");
+                    "shotPower", "shootChanceThreshold", "lateralValuePenalty", "progressWeight", "dribbleRiskFactor", "decisionNoise", "possessionValue");
                 a.DecisionIntervalSeconds = j.Float(ob, "decisionIntervalSeconds", "onBall");
                 a.MinDribbleSeconds = j.Float(ob, "minDribbleSeconds", "onBall");
                 a.DribbleStep = j.Float(ob, "dribbleStep", "onBall");
@@ -213,6 +222,7 @@ namespace Game.Data.Loading
                 a.ProgressWeight = j.Float(ob, "progressWeight", "onBall");
                 a.DribbleRiskFactor = j.Float(ob, "dribbleRiskFactor", "onBall");
                 a.DecisionNoise = j.Float(ob, "decisionNoise", "onBall");
+                a.PossessionValue = j.Float(ob, "possessionValue", "onBall");
             }
             var m = j.Object(root, "motion", "root");
             if (m != null)
@@ -235,11 +245,13 @@ namespace Game.Data.Loading
                       && a.ContainDistance > 0f && a.MinCommitSeconds >= 0f
                       && a.AssignmentHysteresis >= 0f && a.AssignmentHysteresis < 1f
                       && a.InterceptHorizonSeconds > 0f && a.InterceptStepSeconds > 0f
+                      && a.BoxAttackers >= 0 && a.BoxAttackers <= 4 && a.BoxAttackFraction > 0f && a.BoxAttackFraction < 1f
+                      && a.BoxAttackDepth > 0f && a.BoxAttackHalfWidth >= 0f
                       && a.DecisionIntervalSeconds > 0f && a.MinDribbleSeconds >= 0f && a.DribbleStep > 0f && a.DribbleHeadings > 0 && a.DribbleSpreadDegrees >= 0f && a.DribbleClearance > 0f
                       && a.PassMinDistance >= 0f && a.PassMaxDistance > a.PassMinDistance && a.PassLaneClearance > 0f && a.PassDistanceRisk >= 0f && a.ReceiverPressureRadius >= 0f
                       && a.ShotRange > 0f && a.ShotPower > 0f && a.ShotPower <= 1f && a.ShootChanceThreshold > 0f && a.ShootChanceThreshold <= 1f && a.LateralValuePenalty >= 0f && a.LateralValuePenalty < 1f
                       && a.ProgressWeight >= 0f && a.ProgressWeight <= 1f && a.DribbleRiskFactor > 0f && a.DribbleRiskFactor <= 1f
-                      && a.DecisionNoise >= 0f
+                      && a.DecisionNoise >= 0f && a.PossessionValue >= 0f
                       && a.ArriveRadius > 0f && a.RestartRadius > a.ArriveRadius && a.SprintDistance > 0f;
             if (!ok) { j.Fail(InvalidAi, "ai values invalid (rates > 0, restartRadius > arriveRadius, shotPower 0-1...)."); return Result<AiDefinition>.Fail(j.Errors); }
             return Result<AiDefinition>.Ok(a);

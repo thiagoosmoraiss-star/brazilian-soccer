@@ -52,6 +52,11 @@ namespace Game.Data.Match
         public float[] MentalityShootThresholdScale { get; internal set; }
         /// <summary>Mentality: time between runs in behind (A9b ruptura).</summary>
         public float[] MentalityRunCooldownScale { get; internal set; }
+        /// <summary>Mentality (D-37): added to a lançamento's value when the carrier is pressed in his own third ("saída longa
+        /// sob pressão"); 0 = no preference.</summary>
+        public float[] MentalityPressedOutletValue { get; internal set; }
+        /// <summary>Mentality (D-37): box attackers added to ai.json's ("jogadores comprometidos à frente").</summary>
+        public int[] MentalityBoxAttackersOffset { get; internal set; }
 
         /// <summary>Line: added to how far behind the ball the line sits when defending (+ = deeper).</summary>
         public float[] LineBehindBallOffset { get; internal set; }
@@ -119,6 +124,14 @@ namespace Game.Data.Match
         public float InterceptHorizonSeconds { get; internal set; }
         /// <summary>…in steps of this many seconds (A7a, X-57).</summary>
         public float InterceptStepSeconds { get; internal set; }
+        /// <summary>Atacar a área (F1b, X-84 (a)): with the ball past <see cref="BoxAttackFraction"/> of the pitch, this many
+        /// of the side's most advanced players (by formation slot) go into the box instead of supporting the carrier.</summary>
+        public int BoxAttackers { get; internal set; }
+        public float BoxAttackFraction { get; internal set; }
+        /// <summary>They stand this far from the goal line (never offside)...</summary>
+        public float BoxAttackDepth { get; internal set; }
+        /// <summary>...and at most this far from the middle of the pitch, on the side of their slot.</summary>
+        public float BoxAttackHalfWidth { get; internal set; }
 
         public float DecisionIntervalSeconds { get; internal set; }
         public float MinDribbleSeconds { get; internal set; }
@@ -144,6 +157,9 @@ namespace Game.Data.Match
         /// <summary>Discount on dribbling (the ball may still be lost before the next decision).</summary>
         public float DribbleRiskFactor { get; internal set; }
         public float DecisionNoise { get; internal set; }
+        /// <summary>Value of still having the ball (F1b, X-84 (a)), added to the situation value of every option that keeps
+        /// it (pass, dribble, through ball, lançamento): losing the ball costs it, so a safe pass beats a run into the presser.</summary>
+        public float PossessionValue { get; internal set; }
 
         public float ArriveRadius { get; internal set; }
         public float RestartRadius { get; internal set; }

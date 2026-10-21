@@ -17,7 +17,7 @@ namespace Game.Tests.Simulation
     /// C2 (TEST_PLAN "Divergência QuickSim × Headless"): the same matchups — same <see cref="MatchSetup"/>, same seed —
     /// resolved by the QuickSim and by the played match (AI × AI, headless), and the TEST_PLAN metrics of both.
     /// Matchups come from generated worlds with the career's own lineup AI (<see cref="MatchSetupFactory"/>), the AI
-    /// tactic and the match duration of competitions.json. No NUnit here: the tests and dotnet/MatchReport share it.
+    /// tactic of competitions.json and the duration of calibration.json (D-34: 6 min until the end of F1b). No NUnit here: the tests and dotnet/MatchReport share it.
     /// Matches run in parallel; results are stored by index, so a batch is deterministic.
     /// </summary>
     public static class Calibration
@@ -34,10 +34,11 @@ namespace Game.Tests.Simulation
         /// <summary>
         /// <paramref name="count"/> matchups: a random club of a random division against another club of the same
         /// division, or (with <paramref name="crossDivisionShare"/>) of the division right above or below; on a
-        /// neutral venue when <paramref name="neutralVenue"/> (the played match has no home advantage, X-85).
+        /// neutral venue when <paramref name="neutralVenue"/> (the played match has no home advantage, X-85); played for
+        /// <paramref name="durationMinutes"/> real minutes (the QuickSim ignores it).
         /// </summary>
         public static List<Matchup> Matchups(GameDatabase db, IReadOnlyList<WorldState> worlds, int count, ulong batchSeed,
-            double crossDivisionShare, bool neutralVenue)
+            double crossDivisionShare, bool neutralVenue, int durationMinutes)
         {
             var sim = new Game.Simulation.QuickSim.QuickSim(db);
             var mr = db.Competitions.MatchRules;
@@ -68,7 +69,7 @@ namespace Game.Tests.Simulation
                 var setup = new MatchSetup(
                     MatchSetupFactory.Team(world, sim.Rules, db, h.Id, Tactic(), mr.BenchSize),
                     MatchSetupFactory.Team(world, sim.Rules, db, a.Id, Tactic(), mr.BenchSize),
-                    neutralVenue, mr.DurationMinutes, mr.MaxSubstitutions, rng.NextULong());
+                    neutralVenue, durationMinutes, mr.MaxSubstitutions, rng.NextULong());
                 list.Add(new Matchup { Setup = setup, HomeOvr = SquadOvr(world, h.Id), AwayOvr = SquadOvr(world, a.Id) });
             }
             return list;

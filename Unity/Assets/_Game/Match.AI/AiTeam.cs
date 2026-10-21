@@ -20,6 +20,8 @@ namespace Game.Match.AI
         /// <summary>Same body instances as <see cref="Players"/> (PassSystem/ShotSystem work on team-local arrays).</summary>
         public readonly PlayerBody[] Bodies = new PlayerBody[MatchTeamSetup.StarterCount];
         internal readonly Rng Rng;
+        /// <summary>The difficulty acting on this side (F1c): the user's opponent's level, else neutral (all factors 1).</summary>
+        public DifficultyLevelDefinition Difficulty { get; internal set; } = DifficultyLevelDefinition.Neutral;
 
         public TeamPhase Phase = TeamPhase.Build;
         public float TransitionTimer;
@@ -30,6 +32,9 @@ namespace Game.Match.AI
         internal readonly bool[] Presser = new bool[MatchTeamSetup.StarterCount];
         /// <summary>Goes for a high ball's drop zone besides the chaser/receiver (A9a).</summary>
         internal readonly bool[] DropZone = new bool[MatchTeamSetup.StarterCount];
+        /// <summary>Goes into the box while the ball is in the final third (F1b "atacar a área").</summary>
+        internal readonly bool[] BoxAttacker = new bool[MatchTeamSetup.StarterCount];
+        public bool AttacksTheBox(int local) => BoxAttacker[local];
         internal int Chaser = -1;
         /// <summary>"Pressionar" (A9b): team-local index of the teammate the user sent at the carrier, or -1.</summary>
         public int SecondDefender { get; internal set; } = -1;

@@ -34,6 +34,8 @@ namespace Game.Match.AI
         public float ProgressWeightScale { get; private set; }
         public float ShootThresholdScale { get; private set; }
         public float RunCooldownScale { get; private set; }
+        public float PressedOutletValue { get; private set; }
+        public int BoxAttackersOffset { get; private set; }
         public float TransitionDefenseScale { get; private set; }
         /// <summary>Energy drain multiplier of this tactic (match_rules.json fatigue intensity, shared with QuickSim).</summary>
         public float FatigueIntensity { get; private set; }
@@ -72,6 +74,8 @@ namespace Game.Match.AI
             ProgressWeightScale = m.MentalityProgressWeightScale[me];
             ShootThresholdScale = m.MentalityShootThresholdScale[me];
             RunCooldownScale = m.MentalityRunCooldownScale[me];
+            PressedOutletValue = m.MentalityPressedOutletValue[me];
+            BoxAttackersOffset = m.MentalityBoxAttackersOffset[me];
             TransitionDefenseScale = m.TransitionDefenseScale[pr];
             FatigueIntensity = _fatigue == null ? 1f : _fatigue.MentalityIntensity[me] * _fatigue.PressureIntensity[pr];
             if (immediate) Snap();

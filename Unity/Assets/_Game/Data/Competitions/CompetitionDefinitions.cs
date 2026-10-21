@@ -58,7 +58,7 @@ namespace Game.Data.Competitions
         public int BenchSize { get; internal set; }
         public int MaxSubstitutions { get; internal set; }
         public int DurationMinutes { get; internal set; }
-        /// <summary>Played-match durations the user can pick in the settings (MVP_SCOPE "Duração 4/6/10 min", C3a).</summary>
+        /// <summary>Played-match durations the user can pick in the settings (C3a; D-22: 3/4/5/6/10 min, 4 by default).</summary>
         public System.Collections.Generic.List<int> DurationOptions { get; internal set; }
         public int AiMentality { get; internal set; }
         public int AiDefensiveLine { get; internal set; }

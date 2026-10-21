@@ -94,6 +94,20 @@ namespace Game.UI.Presenters
             Nav.Replace(ScreenId.Settings);
         }
 
+        /// <summary>F1c: the career's difficulty (on the club choice or in Settings); the screen is rebuilt.</summary>
+        public void SetDifficulty(string levelId)
+        {
+            Session.SetDifficulty(levelId);
+            Nav.Replace(Nav.Current);
+        }
+
+        private void AddDifficulties(List<LevelOptionModel> options)
+        {
+            string current = Session.Career.DifficultyLevel;
+            foreach (var l in Session.Db.Difficulty.Levels)
+                options.Add(new LevelOptionModel { Id = l.Id, Label = S.Get("difficulty." + l.Id), Selected = l.Id == current });
+        }
+
         public void OpenCalendar() => Nav.Push(ScreenId.Calendar);
 
         public void OpenMainMenu() => Nav.Reset(ScreenId.MainMenu);
@@ -164,14 +178,7 @@ namespace Game.UI.Presenters
             return S.Format("division.name", index);
         }
 
-        private DateTime Today
-        {
-            get
-            {
-                var season = State.Season;
-                return season.NextEntry < season.Calendar.Count ? season.Calendar[season.NextEntry].Date : season.Calendar[season.Calendar.Count - 1].Date;
-            }
-        }
+        private DateTime Today => Session.Career.Today;
 
         public HeaderModel Header()
         {
@@ -262,7 +269,10 @@ namespace Game.UI.Presenters
                 Intro = S.Format("choice.intro", Division(Session.LowestDivision)),
                 ChooseLabel = S.Get("choice.choose"),
                 Back = new ButtonModel(S.Get("common.back")),
+                DifficultyLabel = S.Get("choice.difficulty"),
+                DifficultyHint = S.Get("choice.difficulty_hint"),
             };
+            AddDifficulties(m.Difficulties);
             if (Session.HasSavedCareer) m.Warning = S.Get("choice.warning_overwrite");
             var options = State.World.Clubs.Where(c => c.DivisionIndex == Session.LowestDivision)
                 .Select(c => (Club: c, Strength: SquadStrength(c.Id))).OrderByDescending(x => x.Strength).ThenBy(x => x.Club.Id);
@@ -304,6 +314,8 @@ namespace Game.UI.Presenters
                 Header = Header(),
                 NextTitle = S.Get("hub.next_title"),
                 Calendar = new ButtonModel(S.Get("hub.calendar")),
+                Club = new ButtonModel(S.Get("hub.club")),
+                Finances = new ButtonModel(S.Get("hub.finances")),
                 Settings = new ButtonModel(S.Get("hub.settings")),
                 MainMenu = new ButtonModel(S.Get("hub.main_menu")),
             };
@@ -671,17 +683,23 @@ namespace Game.UI.Presenters
             };
             foreach (int minutes in Session.Db.Competitions.MatchRules.DurationOptions)
                 m.Durations.Add(new OptionModel { Value = minutes, Label = S.Format("settings.minutes", minutes), Selected = minutes == Session.Settings.MatchMinutes });
+            if (Session.HasCareer)
+            {
+                m.DifficultyLabel = S.Get("settings.difficulty");
+                m.DifficultyHint = S.Get("settings.difficulty_hint");
+                AddDifficulties(m.Difficulties);
+            }
+            else m.DifficultyHint = S.Get("settings.difficulty_no_career");
             return m;
         }
 
-        /// <summary>Market and Board until their sub-stages (C3c, C3d).</summary>
+        /// <summary>The Market until its stage (F5); the Board is a real screen since F2a.</summary>
         public PlaceholderModel Placeholder(ScreenId screen)
         {
             var m = new PlaceholderModel { Header = Header() };
             switch (screen)
             {
-                case ScreenId.Market: m.Title = S.Get("placeholder.market_title"); m.Text = S.Get("placeholder.market_text"); break;
-                default: m.Title = S.Get("placeholder.board_title"); m.Text = S.Get("placeholder.board_text"); break;
+                default: m.Title = S.Get("placeholder.market_title"); m.Text = S.Get("placeholder.market_text"); break;
             }
             return m;
         }

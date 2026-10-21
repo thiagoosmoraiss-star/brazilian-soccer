@@ -20,7 +20,9 @@
       "defendDepthScale": [0.8, 0.9, 1.0, 1.05, 1.1],
       "progressWeightScale": [0.8, 0.9, 1.0, 1.1, 1.2],
       "shootThresholdScale": [1.15, 1.07, 1.0, 0.94, 0.88],
-      "runCooldownScale": [1.8, 1.35, 1.0, 0.8, 0.65]
+      "runCooldownScale": [1.8, 1.35, 1.0, 0.8, 0.65],
+      "pressedOutletValue": [0.3, 0.15, 0.0, 0.0, 0.0],
+      "boxAttackersOffset": [-1, -1, 0, 1, 1]
     },
     "defensiveLine": {
       "lineBehindBallOffset": [5.0, 0.0, -5.0],

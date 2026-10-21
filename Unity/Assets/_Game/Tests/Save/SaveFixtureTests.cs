@@ -9,7 +9,7 @@ namespace Game.Tests.Save
     /// <summary>
     /// B8 acceptance (TEST_PLAN "Save"): the reader accepts a hand-authored save body, not only one produced by
     /// <see cref="CareerStateWriter"/> itself, through the migration chain (<see cref="SaveMigrations"/>: v1 → v2 adds
-    /// <c>matchInProgress</c>, C1; v2 → v3 adds <c>userPlan</c>, C3b).
+    /// <c>matchInProgress</c>, C1; v2 → v3 adds <c>userPlan</c>, C3b; v3 → v4 adds <c>difficulty</c>, F1c).
     /// </summary>
     public class SaveFixtureTests
     {
@@ -57,8 +57,26 @@ namespace Game.Tests.Save
             Assert.IsFalse(CareerStateReader.Read((JObject)v1.DeepClone()).IsSuccess, "a v2 body lacks userPlan (strict reader)");
             var migrated = SaveMigrations.MigrateToCurrent(v1, 2);
             Assert.IsTrue(migrated.IsSuccess, migrated.ToString());
-            Assert.AreEqual(3, migrated.Value["schemaVersion"].Value<int>());
+            Assert.AreEqual(SaveSchema.CurrentVersion, migrated.Value["schemaVersion"].Value<int>());
             Assert.IsNull(CareerStateReader.Read(migrated.Value).Value.UserPlan);
+        }
+
+        [Test]
+        public void V3ToV4_AddsNoDifficulty_SoTheCareerPlaysTheDefaultLevel()
+        {
+            var v3 = SaveJson.Parse(File.ReadAllText(SaveTestData.FixturePath("v1_minimal.json")));
+            v3["matchInProgress"] = JValue.CreateNull();
+            v3["userPlan"] = JValue.CreateNull();
+            v3["schemaVersion"] = 3; // a v3 body: v1 plus matchInProgress and userPlan
+            Assert.IsFalse(CareerStateReader.Read((JObject)v3.DeepClone()).IsSuccess, "a v3 body lacks difficulty (strict reader)");
+            var migrated = SaveMigrations.MigrateToCurrent(v3, 3);
+            Assert.IsTrue(migrated.IsSuccess, migrated.ToString());
+            Assert.AreEqual(4, migrated.Value["schemaVersion"].Value<int>());
+            Assert.AreEqual(JTokenType.Null, migrated.Value["difficulty"].Type);
+            var read = CareerStateReader.Read(migrated.Value);
+            Assert.IsTrue(read.IsSuccess, read.ToString());
+            Assert.IsNull(read.Value.Difficulty, "null = the data's default level (Normal)");
+            Assert.IsTrue(SaveValidator.Validate(read.Value).IsSuccess);
         }
     }
 }

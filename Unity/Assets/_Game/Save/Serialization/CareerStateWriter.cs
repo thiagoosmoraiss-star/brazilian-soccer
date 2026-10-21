@@ -37,6 +37,7 @@ namespace Game.Save.Serialization
                     ["starters"] = ArrayId(state.UserPlan.Starters),
                     ["bench"] = ArrayId(state.UserPlan.Bench),
                 },
+                ["difficulty"] = state.Difficulty == null ? JValue.CreateNull() : new JValue(state.Difficulty),
                 ["world"] = WriteWorld(state.World),
                 ["season"] = WriteSeason(state.Season),
                 ["history"] = Array(state.History, WriteSeasonSummary),

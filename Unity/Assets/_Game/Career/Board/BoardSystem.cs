@@ -109,6 +109,8 @@ namespace Game.Career.Board
             {
                 CompleteIfDue(db, world, club, FacilityType.Stadium, date);
                 CompleteIfDue(db, world, club, FacilityType.TrainingCenter, date);
+                // X-122 (1): the managed club's works are the user's (ClubManagement); a started one still completes above.
+                if (ClubManagement.IsManaged(state, club.Id)) continue;
                 TryQueue(f, world, state, club, FacilityType.Stadium, date);
                 TryQueue(f, world, state, club, FacilityType.TrainingCenter, date);
             }
@@ -164,6 +166,13 @@ namespace Game.Career.Board
                 foreach (var role in Roles)
                 {
                     var member = world.StaffOf(club.Id, role);
+                    if (ClubManagement.IsManaged(state, club.Id))
+                    {
+                        // X-122: the user hires, replaces and promotes (ClubManagement); the wages are still paid. The role is never
+                        // empty (X-122 (2), SaveValidator).
+                        if (member != null) LedgerBook.Post(state, club.Id, date, LedgerCategory.StaffWages, -(BoardRules.StaffWage(s, member.Level) / 12));
+                        continue;
+                    }
                     if (member == null)
                     {
                         member = new StaffMember { Id = state.Ids.Next(), ClubId = club.Id, Role = role, Level = 1 };

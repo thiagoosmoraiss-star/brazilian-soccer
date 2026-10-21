@@ -29,13 +29,17 @@ namespace Game.Match.AI
         public int Crosses, LongBalls, Headers, AerialDuels, HeaderShots, HeaderGoals;
         // Duels (A9b).
         public int Slides, SlidesWon, SlideFouls, BodyDuels, Runs, ThroughBalls, KeeperRushes, Smothers;
+        /// <summary>Shots this side's outfield players blocked (F1b).</summary>
+        public int ShotBlocks;
+        /// <summary>First touches of this side that escaped (D-36).</summary>
+        public int Miscontrols;
 
         internal void Clear()
         {
             Shots = ShotsOnTarget = Passes = Tackles = Saves = Corners = ThrowIns = GoalKicks = 0;
             Fouls = YellowCards = RedCards = Offsides = FreeKicks = Penalties = PenaltyGoals = 0;
             Crosses = LongBalls = Headers = AerialDuels = HeaderShots = HeaderGoals = 0;
-            Slides = SlidesWon = SlideFouls = BodyDuels = Runs = ThroughBalls = KeeperRushes = Smothers = 0;
+            Slides = SlidesWon = SlideFouls = BodyDuels = Runs = ThroughBalls = KeeperRushes = Smothers = ShotBlocks = Miscontrols = 0;
             PossessionSteps = 0;
         }
     }
@@ -80,6 +84,7 @@ namespace Game.Match.AI
             _playerShots[p.Global]++;
             _headerShotInFlight = false;
             _pendingShot = p.Global;
+            for (int i = 0; i < _blockTried.Length; i++) _blockTried[i] = false; // a new shot: everybody may block it
             MarkOffside(p.Team, p); // a rebound to an offside teammate is offside
             RecordEvent(MatchEventType.Shot, p.Team.Side, p.Setup.PlayerId, Id.None);
         }

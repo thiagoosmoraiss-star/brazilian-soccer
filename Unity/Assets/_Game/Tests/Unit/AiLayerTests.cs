@@ -1,5 +1,8 @@
+using System;
 using System.IO;
+using System.Linq;
 using System.Numerics;
+using Game.Core.Contracts.Match;
 using Game.Data.Definitions;
 using Game.Data.Loading;
 using Game.Match;
@@ -97,6 +100,151 @@ namespace Game.Tests.Unit
             foreach (var o in m.Away.Players) o.Body.Position = m.Away.Frame.World(90f, 30f); // everyone far away
             var d = OnBallDecision.Decide(carrier, m.Away, m.Pitch, Db().Balance, Db().Ai);
             Assert.AreEqual(OnBallChoice.Shot, d.Choice);
+        }
+
+        /// <summary>Home carrier at <paramref name="u"/> (own frame) in open play, the away side back near its own goal line
+        /// and out wide (no pressure, a deep offside line); a few steps run.</summary>
+        private static AiMatch CarrierAt(float u)
+        {
+            var m = NewMatch();
+            m.CancelRestart();
+            foreach (var o in m.Away.Players) o.Body.Position = m.Away.Frame.World(4f, 30f);
+            var carrier = m.Home.Players[5];
+            carrier.Body.Position = m.Home.Frame.World(u, 0f);
+            m.PlaceBall(carrier);
+            for (int i = 0; i < 25; i++) m.Step();
+            return m;
+        }
+
+        [Test]
+        public void WithTheBallUpThePitch_TheMostAdvancedPlayers_AttackTheBox_InsteadOfSupporting()
+        {
+            var ai = Db().Ai;
+            var m = CarrierAt(80f);
+            var team = m.Home;
+            Assert.IsTrue(team.HasPossession);
+            int carrier = m.Ball.Owner - team.Players[0].Global;
+            var expected = team.Players.Where(p => !p.IsGoalkeeper && p.Local != carrier)
+                .OrderByDescending(p => p.Slot.X).ThenBy(p => p.Local).Take(ai.BoxAttackers).Select(p => p.Local).ToList();
+            CollectionAssert.AreEquivalent(expected, team.Players.Where(p => team.AttacksTheBox(p.Local)).Select(p => p.Local),
+                "F1b: the most advanced slots attack the box.");
+            foreach (int i in expected)
+            {
+                var p = team.Players[i];
+                Assert.AreNotEqual(AiIntention.Support, p.Intention, "a box attacker does not drop to support.");
+                Assert.LessOrEqual(MathF.Abs(team.Frame.V(p.IdealTarget)), ai.BoxAttackHalfWidth + 1e-3f);
+                Assert.Greater(team.Frame.U(p.IdealTarget), 80f, "he goes ahead of the ball, towards the box.");
+            }
+        }
+
+        [Test]
+        public void WithTheBallInTheOwnHalf_NobodyAttacksTheBox()
+        {
+            var m = CarrierAt(30f);
+            Assert.IsTrue(m.Home.HasPossession);
+            Assert.IsFalse(m.Home.Players.Any(p => m.Home.AttacksTheBox(p.Local)));
+        }
+
+        [Test]
+        public void PossessionValue_MakesThePressedCarrier_PassMoreInsteadOfRunningIntoThePresser()
+        {
+            // Forward, every dribble heading ends ~2.5 m from a defender (a risky run worth more ground); 15 m behind him
+            // an open teammate (a safe pass worth less). Without a value for keeping the ball the run wins more often.
+            var withValue = Db().Ai;
+            Assert.Greater(withValue.PossessionValue, 0f, "ai.json gives keeping the ball a value (F1b).");
+            var without = AiReader.ReadAi(Read("ai.json").Replace($"\"possessionValue\": {withValue.PossessionValue.ToString(System.Globalization.CultureInfo.InvariantCulture)}",
+                "\"possessionValue\": 0.0")).Value;
+            Assert.AreEqual(0f, without.PossessionValue);
+            int Passes(Game.Data.Match.AiDefinition ai)
+            {
+                var m = NewMatch();
+                m.Step(); // the team layer has set the offside line
+                var team = m.Home;
+                var carrier = team.Players[5];
+                carrier.Body.Position = team.Frame.World(60f, 0f);
+                foreach (var p in team.Players) if (p != carrier) p.Body.Position = team.Frame.World(5f, 33f);
+                team.Players[6].Body.Position = team.Frame.World(45f, 0f);
+                foreach (var o in m.Away.Players) o.Body.Position = team.Frame.World(100f, -33f);
+                m.Away.Players[3].Body.Position = team.Frame.World(68.5f, 0f);
+                m.Away.Players[4].Body.Position = team.Frame.World(67f, 5f);
+                m.Away.Players[5].Body.Position = team.Frame.World(67f, -5f);
+                int passes = 0;
+                for (int i = 0; i < 300; i++)
+                    if (OnBallDecision.Decide(carrier, m.Away, m.Pitch, Db().Balance, ai).Choice == OnBallChoice.Pass) passes++;
+                return passes;
+            }
+            Assert.Greater(Passes(withValue), Passes(without));
+        }
+
+        [Test]
+        public void ABallRollingOut_IsChasedToTheLine_NotBeyondIt()
+        {
+            var m = NewMatch();
+            m.CancelRestart();
+            var chaser = m.Home.Players[5];
+            chaser.Body.Position = new Vector3(m.Pitch.HalfLength - 15f, 0f, 0f);
+            m.Ball.State = BallState.Rolling;
+            m.Ball.Owner = Ball.NoPlayer;
+            m.Ball.Position = new Vector3(m.Pitch.HalfLength - 3f, 0f, 0f);
+            m.Ball.Velocity = new Vector3(20f, 0f, 0f); // it will cross the goal line long before he gets there
+            chaser.Intention = AiIntention.ChaseBall;
+            var target = IndividualLayer.Target(chaser, m.Away, m.Ball, m.Pitch, Db().Ai, 0.1f, Db().Balance, Db().Ball.Ball.RollingFrictionDeceleration);
+            Assert.LessOrEqual(target.X, m.Pitch.HalfLength + 1e-3f);
+        }
+
+        /// <summary>The user shoots from 20 m straight at goal; an away defender stands on the line of the shot 6 m ahead (or
+        /// is parked far away). Returns how many of <paramref name="trials"/> shots he blocked (F1b shot block).</summary>
+        private static int BlockedShots(int trials, bool defenderInTheWay)
+        {
+            int blocked = 0;
+            for (int t = 0; t < trials; t++)
+            {
+                var m = new AiMatch(Db(), AiMatchTests.Setup((ulong)(t + 1)), Dt);
+                m.CancelRestart();
+                float goalX = m.Pitch.HalfLength;
+                for (int i = 0; i < m.Players.Length; i++) m.Players[i].Body.Position = new Vector3(-45f + (i % 4), -30f + 2.5f * i, 0f);
+                var shooter = m.Home.Players[9];
+                shooter.Body.Position = new Vector3(goalX - 20f, 0f, 0f);
+                shooter.Body.Facing = Vector3.UnitX;
+                var defender = m.Away.Players[3];
+                defender.Body.Position = defenderInTheWay ? new Vector3(goalX - 14f, 0f, 0f) : new Vector3(-40f, 30f, 0f);
+                m.AwayKeeper.Player.Body.Position = new Vector3(goalX - 1f, 0f, 0f);
+                m.PlaceBall(shooter);
+                m.EnableHuman(MatchSide.Home);
+                for (int i = 0; i < 10 && m.Ball.Owner != shooter.Global; i++) m.Step();
+                Assert.AreEqual(shooter.Global, m.Ball.Owner, "the shooter has the ball");
+                m.Step(new HumanInput(Vector2.UnitX, false, new ActionCommand(ActionKind.Shot, 0.8f), false, false));
+                for (int i = 0; i < 40; i++)
+                {
+                    var ev = m.Step();
+                    if (ev == AiMatchEvent.Block)
+                    {
+                        blocked++;
+                        Assert.AreEqual(defender.Global, m.Ball.LastTouch, "the blocker touched it last (a corner if it goes out)");
+                        break;
+                    }
+                    if (ev == AiMatchEvent.Goal || ev == AiMatchEvent.Save || ev == AiMatchEvent.Out) break;
+                }
+            }
+            return blocked;
+        }
+
+        [Test]
+        public void AShotThroughADefender_IsSometimesBlocked_AndNeverWithNobodyInTheWay()
+        {
+            Assert.Greater(Db().Duels.BlockChanceScale, 0f, "duels.json shotBlock is on (F1b)");
+            int inTheWay = BlockedShots(40, true);
+            Assert.Greater(inTheWay, 0, "ShotBlockChance (Desarme) blocks some shots");
+            Assert.Less(inTheWay, 40, "but not every one");
+            Assert.AreEqual(0, BlockedShots(10, false));
+        }
+
+        [Test]
+        public void AiWithInvalidAttackValues_IsRejected()
+        {
+            Assert.IsFalse(AiReader.ReadAi(Read("ai.json").Replace("\"boxAttackers\": 3", "\"boxAttackers\": 5")).IsSuccess);
+            Assert.IsFalse(AiReader.ReadAi(Read("ai.json").Replace("\"boxAttackFraction\": 0.5", "\"boxAttackFraction\": 1.5")).IsSuccess);
+            Assert.IsFalse(AiReader.ReadAi(Read("ai.json").Replace("\"possessionValue\": 0.1", "\"possessionValue\": -0.1")).IsSuccess);
         }
 
         [Test]
